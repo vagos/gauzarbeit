@@ -16,6 +16,8 @@ public:
     
     const sf::String& getInput() {return sInput;}
     
+    void getKeyboardInput(Graphics& gfx) override;
+     
     void startTyping() {keyboardFocus = this;}
     void stopTyping() {keyboardFocus = nullptr;}
 

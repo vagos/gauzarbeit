@@ -24,7 +24,9 @@ Label::Label(int x, int y, sf::Color color): Widget(x, y, 10, 1)
 
 void Label::doRender(Graphics& gfx) 
 {
-   
+    if (focus == this) textLabel.setFillColor(colorForeFocus);
+    else textLabel.setFillColor(colorFore);
+
     gfx.getWindow().draw(textLabel);
 
 }

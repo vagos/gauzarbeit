@@ -7,14 +7,18 @@
 Input::Input(int x, int y, int max_c):
     Label(x, y, sf::Color::Black) 
 {
-    startTyping();
+    //startTyping();
 }
 
 
 void Input::doUpdate(Graphics& gfx)
 {
-    if (keyboardFocus != this) return;
+       
+    textLabel.setString(sInput);
+}
 
+void Input::getKeyboardInput(Graphics &gfx)
+{
     for (const auto& event : gfx.getEvents() )
     {
         if (event.type == sf::Event::TextEntered) 
@@ -36,8 +40,8 @@ void Input::doUpdate(Graphics& gfx)
         }
         
     }
-       
-    textLabel.setString(sInput);
+
+
 }
 
 void Input::doRender(Graphics& gfx) 

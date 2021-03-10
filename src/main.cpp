@@ -12,6 +12,7 @@
 #include <SFML/Window/Keyboard.hpp>
 
 #include "Graphics.hpp"
+#include "gui/List.hpp"
 #include "component/Renderable.hpp"
 #include "Thing.hpp"
 #include "World.hpp"
@@ -47,10 +48,12 @@ int main()
     Player player;
     World world(30, 30);
     
-    std::string vag{"Vagozino"};
 
     //Input myInput(10, 10, 30);
-    //Label myLabel(100, 100, vag);
+
+    List myList (10, 10, 100, 100, {"Option1", "Option2", "Option3"});
+
+    Widget::keyboardFocus = (Widget *)&myList;
 
     CharacterMenu charMenu(player);
     

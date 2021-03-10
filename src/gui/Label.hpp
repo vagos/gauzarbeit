@@ -15,6 +15,7 @@ class Label : public Widget
 
         void doRender(Graphics &gfx) override;  
         void doMove(int x_, int y_) override;
+
     
     protected:
         sf::Text textLabel;

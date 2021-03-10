@@ -88,7 +88,9 @@ void Widget::_doUpdate(Graphics &gfx)
      }
 
     UPDATE:
-        doUpdate(gfx); // Might change this.
+        if (keyboardFocus == this) getKeyboardInput(gfx);
+        
+        doUpdate(gfx); 
 
 }
 

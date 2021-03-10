@@ -31,8 +31,8 @@ class Widget {
   void doFocus() {focus = this;}
   void doUnfocus() {focus = nullptr;}
 
-  bool isTyping() {return keyboardFocus != this;}
-  
+  virtual void getKeyboardInput(Graphics& gfx) {}
+
   virtual void computeSize() {}
   
   void setBackgroundColor(const sf::Color col, const sf::Color colFocus);
