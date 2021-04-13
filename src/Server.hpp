@@ -33,13 +33,13 @@ public:
         if (!socketSelector.isReady(socketListener)) return;
 
         // Create a new Player object. 
+        
         auto newPlayer = std::make_shared<Player>();
-
         newPlayer -> doInit();
         
         if (socketListener.accept( *newPlayer -> networked -> socket ) == sf::Socket::Done)
         {
-            std::clog << "New dude connected!\n";    
+            std::clog << "Player connected!\n";    
         }
 
         socketSelector.add(*newPlayer -> networked -> socket);
@@ -48,69 +48,16 @@ public:
 
     }
 
-    void doUpdate(World& world)
+    void doUpdate(World& world) // Change this
     {
         for (auto& player : world.listPlayers)
         {
             player -> networked -> doUpdate(socketSelector);    
+
+            //player -> physical -> doUpdate();
+
+            static_cast<PlayerNetworked*>(player -> networked.get()) -> sendResponse(socketSelector);
         }
-    }
-
-
-    void handleRequest(std::shared_ptr<Thing>& player, std::stringstream& request)
-    {
-        
-        std::cout << request.str() << "\n"; 
-
-        std::string sVerb;
-
-        request >> sVerb;
-
-        std::stringstream response{""};
-
-        if (sVerb == "clear" || sVerb == "cls")
-        {
-            response << "\e[2J\e[H";
-
-        }
-
-        if (sVerb == "help")
-        {
-            response << "1. Type 'cls' to clear the screen\n";
-            response << "2. Type 'dab' to dab on 'em.\n";
-        }
-
-        if (sVerb == "dab")
-        {
-            response << "You dabbed on 'em\n";
-        }
-
-        if (sVerb == "move")
-        {
-            int x, y;
-            
-            request >> x >> y;
-
-            player -> physical -> doMove(x,y);
-
-            response << "You got moved into room "
-                << "x: " << player -> physical -> getRoom() -> x
-                << "y: " << player -> physical -> getRoom() -> y
-                << "\n";
-        }
-
-        if (sVerb == "exit")
-        {
-            
-            delete player.get();
-        
-        }
-
-        if (response.str().size())
-        {
-            player -> networked -> socket -> send(response.str().data(), response.str().size());
-        }
-
     }
 
 private:

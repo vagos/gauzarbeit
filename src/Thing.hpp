@@ -49,6 +49,8 @@ public:
     {
     }
 
+    virtual void doUpdate() {};
+
     void doMove(int x, int y); // Move to room on coords x and y.
 
     std::shared_ptr<Room>& getRoom()
@@ -56,11 +58,10 @@ public:
         return currentRoom;
     }
 
-private:
+protected:
     std::shared_ptr<Room> currentRoom = nullptr;
     std::vector< std::shared_ptr<Thing> > vInventory;
 
-    std::shared_ptr<Thing> owner;
 };
 
 
@@ -83,7 +84,7 @@ public:
     
     friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
     {
-        os << "Thing: " << thing.sName;
+        os << thing.sName;
 
         return os;
     }
