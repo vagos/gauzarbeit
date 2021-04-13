@@ -1,115 +1,93 @@
 #ifndef THING_HPP
 #define THING_HPP
+#include <SFML/Network/SocketSelector.hpp>
+#include <memory>
+#include <iostream>
+#include <SFML/Network/TcpSocket.hpp>
+#include <string>
 
-#include "component/Renderable.hpp"
-#include "Graphics.hpp"
-//This is the base class for every Game object.
 
+class World;
+class Thing;
+class Room;
 
-// Thing acts on it's own.
-
-class Intelligent
+class Component
 {
-    virtual void doUpdate() {};
+public:
 
-    private:
-        float fUpdateTime; //How often the object's AI is run.
-};
-
-
-// Thing can die / get destroyed.
-
-class Destructible
-{
-    
-    virtual void doDie() {}
-
-};
-
-// The player / other things can use the thing.
-
-class Usable
-{
-    virtual void doUse() {};
-
-};
-
-class Physical
-{
-    public:
-        Physical(bool bSolid): bSolid(bSolid), x(0), y(0)
-        {
-        }
-        
-        Physical (int x, int y): x(x), y(y)
-        {
-    
-        }
-        
-        bool isSolid() { return bSolid; }
-
-        void setPos(int x_, int y_) {x = x_; y = y_;}
-    
-    bool bSolid;
-    int x, y;
-
-    sf::Vector2f vPos;
-    sf::Vector2f vVel;
-
-};
-
-class Thing
-{
-
-    protected:
-        Renderable   * renderable   = nullptr;    
-        Intelligent  * intelligent  = nullptr;   
-        Destructible * destructible = nullptr;   
-        Usable       * usable       = nullptr;    
-        Physical     * physical     = nullptr;
-
-    public:
-        
-        Renderable     & getRenderable()   { return *renderable;   }
-        Intelligent    & getIntelligent()  { return *intelligent;  }
-        Destructible   & getDestructible() { return *destructible; }
-        Usable         & getUsable()       { return *usable;       }
-        Physical       & getPhysical()     { return *physical;     } 
-
-    virtual void doUpdate() {}
-    virtual void doUpdate(Graphics& gfx) {}
-
-};
-
-// A simple wall that does nothing.
-
-class Wall : public Thing 
-{
-    public:
-    Wall() 
+    Component(std::shared_ptr<Thing> owner): owner(owner)
     {
-        renderable = new Renderable(0, 0);
-        physical = new Physical(true);
+
     }
 
-    void doUpdate(Graphics& gfx) 
-    {
-       getRenderable().doUpdate(gfx, *this); 
-    }
+    std::shared_ptr<Thing> owner;
 };
 
-class Air : public Thing
+class Networked : public Component 
 {
-    public:
-    
-        Air() : Thing()
-        {
-            //renderable = new Renderable(' ');
-            physical = new Physical(false);
-            
-        }
-    
+public:
+
+    Networked(std::shared_ptr<Thing> owner): Component(owner)
+    {
+        socket = std::make_unique<sf::TcpSocket>();
+    }
+
+    std::unique_ptr<sf::TcpSocket> socket;
+
+    virtual void doUpdate(sf::SocketSelector& socketSelector)
+    {
+    }
 
 };
 
-#endif /* THING_HPP */
+class Physical: public Component
+{
+
+public:
+
+    Physical(std::shared_ptr<Thing> owner): Component(owner)
+    {
+    }
+
+    void doMove(int x, int y); // Move to room on coords x and y.
+
+    std::shared_ptr<Room>& getRoom()
+    {
+        return currentRoom;
+    }
+
+private:
+    std::shared_ptr<Room> currentRoom = nullptr;
+    std::vector< std::shared_ptr<Thing> > vInventory;
+
+    std::shared_ptr<Thing> owner;
+};
+
+
+
+class Thing : public std::enable_shared_from_this<Thing>
+{
+public:
+    Thing(): sName{"INVALID_NAME"}
+    {
+
+    }
+
+public:
+    std::string sName; 
+
+    void doUpdate(World& world);
+
+    std::unique_ptr<Networked> networked = nullptr;
+    std::unique_ptr<Physical> physical   = nullptr;
+    
+    friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
+    {
+        os << "Thing: " << thing.sName;
+
+        return os;
+    }
+
+};
+
+#endif//THING_HPP

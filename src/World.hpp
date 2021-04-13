@@ -1,26 +1,31 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
-#include"Thing.hpp"
+#include <list>
+#include <memory>
 
-class World 
+class Server;
+class Room;
+
+class Thing;
+class Player;
+
+class World
 {
 
-public:
+    //std::list< std::shared_ptr<Thing> > listThings;
+    std::list< std::shared_ptr<Thing> > listPlayers; // A list of all the online players.
 
-    World(int w, int h);
+    void addPlayer(std::shared_ptr<Thing> player)
+    {
+        listPlayers.push_back(player);
+    }
+
+    std::shared_ptr<Thing> getPlayer(const std::string& name);
     
-    void doUpdate(Graphics& graphics);
-    Thing * getTile(int x, int y) const { return tTiles[x + y * w];}
-
-private:
-    int w, h;    
-
-    Thing ** tTiles;
-    
-    static const Thing * tWall;
-    static const Thing * tAir; 
+    friend Server;
 
 };
 
-#endif /* WORLD_HPP */
+
+#endif//WORLD_HPP
