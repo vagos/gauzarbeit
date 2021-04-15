@@ -79,9 +79,9 @@ public:
 
     void doUpdate(World& world);
 
-    std::unique_ptr<Networked> networked = nullptr;
-    std::unique_ptr<Physical> physical   = nullptr;
-    
+    std::shared_ptr<Networked> networked = nullptr;
+    std::shared_ptr<Physical> physical   = nullptr;
+
     friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
     {
         os << thing.sName;

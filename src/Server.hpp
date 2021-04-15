@@ -7,7 +7,6 @@
 #include <sstream>
 
 #include "World.hpp"
-#include "Player.hpp"
 #include "Room.hpp"
 
 class Server
@@ -25,40 +24,13 @@ public:
         socketSelector.add(socketListener);
     }
 
-    void acceptConnections(World& world)
-    {
-            
-        if (!socketSelector.wait()) return;
+    void acceptConnections(World& world);
 
-        if (!socketSelector.isReady(socketListener)) return;
+    void doUpdate(World& world); // Change this
+    
+    static void sendMessage(const std::string& message);
+    static void sendMessage(const std::string& recipient, const std::string& message);
 
-        // Create a new Player object. 
-        
-        auto newPlayer = std::make_shared<Player>();
-        newPlayer -> doInit();
-        
-        if (socketListener.accept( *newPlayer -> networked -> socket ) == sf::Socket::Done)
-        {
-            std::clog << "Player connected!\n";    
-        }
-
-        socketSelector.add(*newPlayer -> networked -> socket);
-
-        world.addPlayer(newPlayer);
-
-    }
-
-    void doUpdate(World& world) // Change this
-    {
-        for (auto& player : world.listPlayers)
-        {
-            player -> networked -> doUpdate(socketSelector);    
-
-            //player -> physical -> doUpdate();
-
-            static_cast<PlayerNetworked*>(player -> networked.get()) -> sendResponse(socketSelector);
-        }
-    }
 
 private:
     sf::TcpListener socketListener;

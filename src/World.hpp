@@ -14,7 +14,7 @@ class World
 {
 
     //std::list< std::shared_ptr<Thing> > listThings;
-    std::list< std::shared_ptr<Thing> > listPlayers; // A list of all the online players.
+    static std::list< std::shared_ptr<Thing> > listPlayers; // A list of all the online players.
 
     void addPlayer(std::shared_ptr<Thing> player)
     {
@@ -24,6 +24,12 @@ class World
     std::shared_ptr<Thing> getPlayer(const std::string& name);
     
     friend Server;
+public:
+
+    static const std::list< std::shared_ptr<Thing> >& getPlayers()
+    {
+        return listPlayers; 
+    }
 
 };
 
