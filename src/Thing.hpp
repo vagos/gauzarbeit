@@ -1,72 +1,98 @@
 #ifndef THING_HPP
 #define THING_HPP
 #include <SFML/Network/SocketSelector.hpp>
+#include <SFML/Network/TcpSocket.hpp>
 #include <memory>
 #include <iostream>
-#include <SFML/Network/TcpSocket.hpp>
 #include <string>
+#include <sstream>
 
 
 class World;
 class Thing;
 class Room;
 
-class Component
+
+class Networked 
 {
 public:
 
-    Component(std::shared_ptr<Thing> owner): owner(owner)
-    {
-
-    }
-
-    std::shared_ptr<Thing> owner;
-};
-
-class Networked : public Component 
-{
-public:
-
-    Networked(std::shared_ptr<Thing> owner): Component(owner)
+    Networked() 
     {
         socket = std::make_unique<sf::TcpSocket>();
     }
 
     std::unique_ptr<sf::TcpSocket> socket;
 
-    virtual void doUpdate(sf::SocketSelector& socketSelector)
+    virtual void doUpdate(std::shared_ptr<Thing> owner) {}
+    virtual void handleRequest(std::shared_ptr<Thing> owner) {}
+
+    void clearStreams()
     {
+        streamRequest.str(std::string()); 
+        streamResponse.str(std::string()); 
     }
+    
+    void addResponse(const std::string& res)
+    {
+       streamResponse << res; 
+    }
+
+    const std::stringstream& getRequestStream() { return streamRequest; }
+
+
+    char cData[100];
+    std::size_t nReceived;
+
+    std::stringstream streamRequest;
+    std::stringstream streamResponse;
+
 
 };
 
-class Physical: public Component
+class Physical
 {
 
 public:
 
-    Physical(std::shared_ptr<Thing> owner): Component(owner)
+    Physical()
     {
     }
 
-    virtual void doUpdate() {};
+    virtual void doUpdate( std::shared_ptr<Thing> owner ) {};
 
-    void doMove(int x, int y); // Move to room on coords x and y.
+    void doMove(std::shared_ptr<Thing> owner, int x, int y); // Move to room on coords x and y.
 
     std::shared_ptr<Room>& getRoom()
     {
         return currentRoom;
     }
+    
+    void gainItem(std::shared_ptr<Thing> item)
+    {
+        tInventory.push_back(item);
+    }
 
 protected:
     std::shared_ptr<Room> currentRoom = nullptr;
-    std::vector< std::shared_ptr<Thing> > vInventory;
+    std::vector< std::shared_ptr<Thing> > tInventory;
+
+};
+
+
+class Usable 
+{
+    
+    virtual void doUse(std::shared_ptr<Thing> user)
+    {
+
+    }
 
 };
 
 
 
-class Thing : public std::enable_shared_from_this<Thing>
+class Thing 
 {
 public:
     Thing(): sName{"INVALID_NAME"}
@@ -79,12 +105,15 @@ public:
 
     void doUpdate(World& world);
 
+    virtual const std::string getInfo() const;
+
     std::shared_ptr<Networked> networked = nullptr;
     std::shared_ptr<Physical> physical   = nullptr;
+    std::shared_ptr<Usable> usable   = nullptr;
 
     friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
     {
-        os << thing.sName;
+        os << thing.sName << thing.getInfo();
 
         return os;
     }

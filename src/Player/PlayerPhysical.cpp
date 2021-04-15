@@ -1,12 +1,12 @@
 #include "PlayerPhysical.hpp"
 #include "PlayerNetworked.hpp"
+#include <memory>
+#include <sstream>
 
-void PlayerPhysical::doUpdate()
+void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner)
 {
 
-    std::shared_ptr<PlayerNetworked> net = std::static_pointer_cast<PlayerNetworked>(owner -> networked); 
-        
-    std::stringstream requestStream { net->getRequestStream().str() };
+    std::stringstream requestStream { owner -> networked -> getRequestStream().str() };
 
     std::string sVerb; 
 
@@ -18,7 +18,37 @@ void PlayerPhysical::doUpdate()
 
         requestStream >> sDirection;
 
-        moveDirection(sDirection, net);
+        moveDirection(owner, sDirection);
+
+    }
+
+    else if (sVerb == "look")
+    {
+        std::stringstream res;
+
+        res << "\n\n" << "Players in the room: \n";
+
+        for (const auto& thing : currentRoom -> listPlayers) 
+        {
+            res << "-- " << *thing << "\n";
+        }
+
+        owner -> networked -> addResponse( res.str() );
+
+    }
+
+    else if (sVerb == "inventory")
+    {
+        std::stringstream res;
+
+        res << owner -> sName << "'s Inventory: \n";
+
+        for (const auto& item : tInventory)
+        {
+            res << *item << "\n";
+        }
+
+        owner -> networked -> addResponse( res.str() );
 
     }
 
@@ -27,27 +57,27 @@ void PlayerPhysical::doUpdate()
 
 
 
-void PlayerPhysical::moveDirection(const std::string& direction, const std::shared_ptr<PlayerNetworked>& net)
+void PlayerPhysical::moveDirection(std::shared_ptr<Thing> owner, const std::string& direction)
 {
 
         if (direction == "left")
         {
-            doMove(currentRoom -> x - 1, currentRoom -> y);
+            doMove(owner, currentRoom -> x - 1, currentRoom -> y);
         }
         
         else if (direction == "right")
         {
-            doMove(currentRoom -> x + 1, currentRoom -> y);
+            doMove(owner, currentRoom -> x + 1, currentRoom -> y);
         }
    
         else if (direction == "down")
         {
-            doMove(currentRoom -> x, currentRoom -> y + 1);
+            doMove(owner, currentRoom -> x, currentRoom -> y + 1);
         }
    
         else if (direction == "up")
         {
-            doMove(currentRoom -> x, currentRoom -> y - 1);
+            doMove(owner, currentRoom -> x, currentRoom -> y - 1);
         }
 
         else return;
@@ -56,6 +86,6 @@ void PlayerPhysical::moveDirection(const std::string& direction, const std::shar
 
         res << "Moved into Room: " << currentRoom -> x << " " << currentRoom -> y << "\n";
 
-        net -> addResponse( res.str() );
+        owner -> networked -> addResponse( res.str() );
 
 }

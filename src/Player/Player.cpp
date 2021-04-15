@@ -5,8 +5,8 @@
 
 
 
-void Player::doInit()
+Player::Player()
 {
-    networked = std::make_unique<PlayerNetworked>(shared_from_this());
-    physical = std::make_unique<PlayerPhysical>(shared_from_this());
+    networked = std::make_unique<PlayerNetworked>();
+    physical = std::make_unique<PlayerPhysical>();
 }

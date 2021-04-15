@@ -3,6 +3,7 @@
 
 #include "../Thing.hpp"
 #include "../Room.hpp"
+#include <memory>
 
 class PlayerNetworked;
 
@@ -10,20 +11,19 @@ class PlayerPhysical : public Physical
 {
 public:
 
-   PlayerPhysical(std::shared_ptr<Thing> owner): Physical(owner) 
+   PlayerPhysical()
     {
-        currentRoom = Room::get(0, 0); 
+        // currentRoom = Room::get(0, 0); 
 
-        currentRoom -> addPlayer( owner -> shared_from_this() );
+        // currentRoom -> addPlayer( owner -> shared_from_this() );
 
     }
 
-   void doUpdate() override;
+   void doUpdate( std::shared_ptr<Thing> owner) override;
 
+   private:
 
-private:
-
-   void moveDirection(const std::string& direction, const std::shared_ptr<PlayerNetworked>& net);
+   void moveDirection(std::shared_ptr<Thing> owner, const std::string& direction);
 };
 
 #endif

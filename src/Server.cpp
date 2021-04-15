@@ -1,6 +1,9 @@
 #include "Server.hpp"
 
 #include "Player/Player.hpp"
+#include "TestItem.hpp"
+#include <SFML/Network/SocketSelector.hpp>
+#include <memory>
 #include <string>
 
 void Server::acceptConnections(World &world)
@@ -13,7 +16,6 @@ void Server::acceptConnections(World &world)
     // Create a new Player object. 
     
     auto newPlayer = std::make_shared<Player>();
-    newPlayer -> doInit();
     
     if (socketListener.accept( *newPlayer -> networked -> socket ) == sf::Socket::Done)
     {
@@ -22,8 +24,12 @@ void Server::acceptConnections(World &world)
 
     socketSelector.add(*newPlayer -> networked -> socket);
 
+
     world.addPlayer(newPlayer);
 
+    //Testing
+    
+    // newPlayer -> physical -> gainItem( std::make_shared<TestItem>() );
 
 }
 
@@ -32,8 +38,7 @@ void Server::sendMessage(const std::string &message)
 
     for (const auto& p : World::getPlayers())
     {
-        std::static_pointer_cast<PlayerNetworked>(p -> networked)
-            -> addResponse(message);
+        p -> networked -> addResponse(message);
     }
 
 }
@@ -44,8 +49,7 @@ void Server::sendMessage(const std::string& recipient, const std::string& messag
     {
         if (p -> sName == recipient)
         {
-            std::static_pointer_cast<PlayerNetworked>(p -> networked)
-                -> addResponse(message);
+            p -> networked -> addResponse(message);
             
             return;
         }
@@ -55,17 +59,19 @@ void Server::sendMessage(const std::string& recipient, const std::string& messag
 
 void Server::doUpdate(World &world)
 {
-    for (auto& player : world.listPlayers)
-        player -> networked -> doUpdate(socketSelector);    
-
+    for (auto& player : world.listPlayers) // Get request
+        player -> networked -> doUpdate(player);    
+    
+    for (auto& player : world.listPlayers) // Handle request
+        player -> networked -> doUpdate(player);
+    
     for (auto& player : world.listPlayers) 
-        static_cast<PlayerNetworked*>(player -> networked.get())
-            -> handleRequest();
+        player -> physical -> doUpdate(player);
+    
+    for (auto& player : world.listPlayers) // Send response
+        player -> networked -> doUpdate(player);    
 
-    for (auto& player : world.listPlayers) 
-        player -> physical -> doUpdate();
-
-    for (auto& player : world.listPlayers) 
-        static_cast<PlayerNetworked*>(player -> networked.get()) 
-            -> sendResponse(socketSelector);
 }
+
+sf::SocketSelector Server::socketSelector;
+

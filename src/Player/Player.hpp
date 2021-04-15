@@ -11,21 +11,14 @@
 class Player : public Thing
 {
 public:
-    Player() 
-    {
-
-    }
-
-
+    Player(); 
+    
     void doInit();
 
-    friend std::ostream& operator<<(std::ostream& os, const Player& thing)
+    const std::string getInfo() const override
     {
-        os << thing.sName << " (Player)";
-
-        return os;
+        return " (Player)";
     }
-
 
 };
 

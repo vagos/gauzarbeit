@@ -31,10 +31,12 @@ public:
     static void sendMessage(const std::string& message);
     static void sendMessage(const std::string& recipient, const std::string& message);
 
+    static const sf::SocketSelector& getSocketSelector() {return socketSelector;}
+
 
 private:
     sf::TcpListener socketListener;
-    sf::SocketSelector socketSelector;
+    static sf::SocketSelector socketSelector;
 
 };
 

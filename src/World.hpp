@@ -31,6 +31,11 @@ public:
         return listPlayers; 
     }
 
+    void doUpdate()
+    {
+
+    }
+
 };
 
 

@@ -15,33 +15,43 @@ class PlayerNetworked : public Networked
 
 public:
 
-    PlayerNetworked(std::shared_ptr<Thing> owner): Networked(owner), state(State::Entering)
+    PlayerNetworked(): state(State::Entering)
     {
     }
 
-    void doUpdate( sf::SocketSelector& socketSelector ) override
+    void doUpdate( std::shared_ptr<Thing> owner ) override // Freaking fix this.
     {
+        switch (nState)
+        {
+            case 0:
+                clearStreams();
+                getRequest(owner);
+                nState = 1;
+                break;
 
-        streamRequest.str(std::string()); // Clear the string stream.
-        streamResponse.str(std::string()); 
-        
-      
-        getRequest(socketSelector);
+            case 1:
+
+                handleRequest(owner);
+                nState = 2;
+                break;
+
+            case 2:
+
+                sendResponse();
+                nState = 0;
+                break;
+
+
+        }
     }
     
-    const std::stringstream& getRequestStream() { return streamRequest; }
 
-    void addResponse(const std::string& res)
-    {
-       streamResponse << res; 
-    }
-
-
+     
 private: 
     
-    void getRequest( sf::SocketSelector& socketSelector )
+    void getRequest( std::shared_ptr<Thing> owner )
     {
-        if ( ! socketSelector.isReady( *socket ) ) return;
+        if ( ! Server::getSocketSelector().isReady( *socket ) ) return;
 
         if (socket->receive(cData, 100, nReceived) != sf::Socket::Done)
         {
@@ -58,7 +68,7 @@ private:
     }
 
 public:
-    void handleRequest()
+    void handleRequest(std::shared_ptr<Thing> owner)
     {
         std::stringstream req { getRequestStream().str() };
         
@@ -123,7 +133,7 @@ public:
     void setState(State s) {state = s;}
 
 public:
-    void sendResponse( sf::SocketSelector& socketSelector )
+    void sendResponse( )
     {
         if (! streamResponse.str().size() ) return;
 
@@ -131,16 +141,10 @@ public:
         socket -> send(streamResponse.str().c_str(), streamResponse.str().size());
     }
 
-   
     std::size_t playerId;
     
-    char cData[100];
-    std::size_t nReceived;
-
-    std::stringstream streamRequest;
-    std::stringstream streamResponse;
-
     State state;
+    int nState = 0;
 
     // last online
     // ip
