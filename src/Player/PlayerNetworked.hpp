@@ -17,6 +17,7 @@ public:
 
     PlayerNetworked(): state(State::Entering)
     {
+        state = State::LoggedIn;
     }
 
     void doUpdate( std::shared_ptr<Thing> owner ) override // Freaking fix this.

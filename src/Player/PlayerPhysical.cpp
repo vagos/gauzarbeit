@@ -6,17 +6,17 @@
 void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner)
 {
 
-    std::stringstream requestStream { owner -> networked -> getRequestStream().str() };
+    std::stringstream req { owner -> networked -> getRequestStream().str() }; // The request
 
     std::string sVerb; 
 
-    requestStream >> sVerb;
+    req >> sVerb;
 
     if (sVerb == "move")
     {
         std::string sDirection;
 
-        requestStream >> sDirection;
+        req >> sDirection;
 
         moveDirection(owner, sDirection);
 
@@ -37,7 +37,7 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner)
 
     }
 
-    else if (sVerb == "inventory")
+    else if (sVerb == "inventory" || sVerb == "items" || sVerb == "inv")
     {
         std::stringstream res;
 
@@ -45,10 +45,21 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner)
 
         for (const auto& item : tInventory)
         {
-            res << *item << "\n";
+            res << "-- " << *item << "\n";
         }
 
         owner -> networked -> addResponse( res.str() );
+
+    }
+
+    else if (sVerb == "use")
+    {
+        int itemIndex;
+
+        req >> itemIndex;
+    
+        if (tInventory[itemIndex] && tInventory[itemIndex] -> usable) 
+            tInventory[itemIndex] -> usable -> doUse(owner);
 
     }
 

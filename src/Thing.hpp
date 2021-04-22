@@ -63,7 +63,7 @@ public:
 
     void doMove(std::shared_ptr<Thing> owner, int x, int y); // Move to room on coords x and y.
 
-    std::shared_ptr<Room>& getRoom()
+    std::shared_ptr<Room> getRoom()
     {
         return currentRoom;
     }
@@ -82,6 +82,7 @@ protected:
 
 class Usable 
 {
+public:
     
     virtual void doUse(std::shared_ptr<Thing> user)
     {

@@ -23,13 +23,14 @@ void Server::acceptConnections(World &world)
     }
 
     socketSelector.add(*newPlayer -> networked -> socket);
-
+    
+    newPlayer -> physical -> doMove(newPlayer, 0, 0);
 
     world.addPlayer(newPlayer);
 
     //Testing
     
-    // newPlayer -> physical -> gainItem( std::make_shared<TestItem>() );
+    newPlayer -> physical -> gainItem( std::make_shared<TestItem>() );
 
 }
 

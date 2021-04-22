@@ -15,8 +15,7 @@ public:
         
         if ( user -> networked ) 
         {
-
-
+            user -> networked -> addResponse("u gay!");
         }
 
     }
@@ -29,6 +28,8 @@ public:
     TestItem()
     {
         usable = std::make_shared<TestUsable>();
+
+        sName = "Test Item";
     }
 
 };
