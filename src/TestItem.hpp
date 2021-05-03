@@ -4,13 +4,14 @@
 
 
 #include "Thing.hpp"
+#include <memory>
 
 
 class TestUsable : public Usable
 {
 
 public:
-    void doUse(std::shared_ptr<Thing> user) override
+    void doUse(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> user) override
     {
         
         if ( user -> networked ) 

@@ -1,4 +1,4 @@
-#include <bits/c++config.h>
+#include "lua.hpp"
 
 extern "C"
 {
@@ -10,90 +10,137 @@ extern "C"
 #include <string>
 #include <iostream>
 #include <filesystem>
+#include <chrono>
+#include <cassert>
+#include <cstring>
+
+bool CheckLua(lua_State *L, int r)
+{
+	if (r != LUA_OK)
+	{
+		std::string errormsg = lua_tostring(L, -1);
+		std::cout << "[C++] " << errormsg << std::endl;
+		return false;
+	}
+	return true;
+}
 
 struct Thing
 {
-    int a = 7;
+    std::string name;
 
-    void set(int x) { a = x;}
+    int luaRef;
 
-    void print() {std::cout << "My value: " << a << "\n";}
-    
-    void doUpdate(Thing * owner)
+
+    Thing (const std::string name_, lua_State * L): name(name_)
     {
-        
-    }
+        std::string filename = name + ".lua";
 
-    int doUpdateLua(lua_State * L)
-    {
+        lua_newtable(L);
+        lua_setglobal(L, name.c_str());
+        lua_pop(L, 1);
 
-        lua_getglobal(L, "doUpdate");
-        
-        lua_pushlightuserdata(L, (void *)this);
+        lua_newtable(L);
+
+        luaRef = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        lua_pushlightuserdata(L, this);
 
         luaL_getmetatable(L, "Gauzarbeit.Thing");
         lua_setmetatable(L, -2);
-    
-
-        lua_pcall(L, 1, 0, 0);
         
-        return 0;
+        CheckLua(L, luaL_dofile(L, filename.c_str()) );        
+
     }
 
+    void doUpdate(Thing * owner, lua_State * L)
+    {
+        lua_getglobal(L, name.c_str());
+
+        lua_getfield(L, -1, "doUpdate");
+
+        lua_pushlightuserdata(L, this);
+
+        CheckLua(L, lua_pcall(L, 1, 0, 0));
+        
+    }
+
+    void doInit(Thing * owner, lua_State * L)
+    {
+        lua_getglobal(L, name.c_str());
+
+        lua_getfield(L, -1, "doInit");
+
+        lua_pushlightuserdata(L, this);
+
+        CheckLua(L, lua_pcall(L, 1, 0, 0));
+        
+    }
+
+    static int ThingIndex(lua_State * L)
+    {
+        assert(lua_isuserdata(L, 1)); // 1
+        assert(lua_isstring(L, 2));   // 2
+        
+        Thing * thing = (Thing *)lua_touserdata(L, 1);
+        const char * index = lua_tostring(L, 2);
+
+        lua_rawgeti(L, LUA_REGISTRYINDEX, thing -> luaRef);
+
+        lua_getfield(L, 3, index);
+
+        if (lua_isnil(L, -1))
+        {
+            luaL_getmetatable(L, "Gauzarbeit.Thing");
+            lua_getfield(L, -1, index);
+        }
+    
+        return 1;
+    }
+
+    static int ThingNewIndex(lua_State * L)
+    {
+        Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+        lua_rawgeti(L, LUA_REGISTRYINDEX, ptrThing -> luaRef);
+
+        assert(lua_istable(L, -1));
+        
+        const char * index = lua_tostring(L, 2);
+        
+        lua_pushvalue(L, 2);
+        lua_pushvalue(L, 3);
+        lua_settable(L, 4);	
+
+        return 0;
+    
+    }
+
+    static int getName(lua_State * L)
+    {
+        Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+        lua_pushstring(L, ptrThing -> name.c_str() );
+
+        return 1;
+
+    }
+
+    static int printRef(lua_State * L)
+    {
+        Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+        std::cout << "My ref is " << ptrThing -> luaRef << "\n";
+
+        return 0;
+    }
 
 };
 
 
-int lua_HostFunction(lua_State * L)
-{
-    
-    std::cout << "[C++] Here!";
-
-    return 0;
-}
-
-int lua_NewThing(lua_State * L)
-{
-    Thing * lua_Thing = new Thing();
-   
-    lua_pushlightuserdata(L, (void *)lua_Thing);
-
-    luaL_getmetatable(L, "Gauzarbeit.Thing");
-    lua_setmetatable(L, -2);
-
-    return 1;
-
-}
-
-int lua_PrintSelf(lua_State * L)
-{
-    
-    Thing * thing_ptr = (Thing *)luaL_checkudata(L, 1, "Gauzarbeit.Thing");
-    
-    thing_ptr -> print();
-
-    return 0;
-}
-
-int lua_SetThing(lua_State * L)
-{
-    void * thing_ptr = luaL_checkudata(L, 1, "Gauzarbeit.Thing");
-    //void * thing_ptr = lua_touserdata(L, 1);
-
-    luaL_argcheck(L, thing_ptr != nullptr, 1, "Expected Thing!");
-    
-    Thing * t = (Thing *)thing_ptr; 
-
-    int value = luaL_checkinteger(L, 2); 
-
-    t -> a = value;
-
-    return 0;
-
-}
 
 
-    
+
 int main()
 {
     
@@ -101,55 +148,32 @@ int main()
 
     luaL_openlibs(L);
 
-    luaL_newmetatable(L, "Gauzarbeit.Thing");
+    luaL_newmetatable(L, "Gauzarbeit.Thing");     
 
-    //lua_newtable(L);
     lua_pushstring(L, "__index");
     lua_pushvalue(L, -2);
     lua_settable(L, -3);
 
-    const luaL_Reg myFuncs[] = {
-    {"NewThing", lua_NewThing},
+    const luaL_Reg thingMethods[] = {
+    {"__index", Thing::ThingIndex},
+    {"__newindex", Thing::ThingNewIndex},
+    {"getName", Thing::getName},
+    {"printRef", Thing::printRef},
     {NULL, NULL}
     };
 
-    const luaL_Reg myMethods[] = {
-    {"SetValue", lua_SetThing},
-    {"CreateFriend", lua_NewThing},
-    {"PrintSelf", lua_PrintSelf},
-    {NULL, NULL}
-    };
+    luaL_setfuncs(L, thingMethods, 0);
+
+    Thing * myThing = new Thing("Chair", L); 
+    myThing -> doInit(myThing, L);
+    myThing -> doUpdate(myThing, L);
+    Thing * myThing2 = new Thing("Chair", L); 
+    myThing2 -> doInit(myThing, L);
     
-    luaL_setfuncs(L, myMethods, 0);
-
-    lua_newtable(L);
-    luaL_setfuncs(L, myFuncs, 0);
-    lua_setglobal(L, "Gauzarbeit");
-
-    
-    //lua_register(L, "NewThing", lua_NewThing);
-    //lua_register(L, "SetThing", lua_SetThing);
-    
-    int r = luaL_dofile( L, "test.lua" );
-    
-    if ( r == LUA_OK)
-    {
-        //lua_getglobal(L, "DoAThing");
-
-    }
-    else 
-    {
-        std::string errorMsg = lua_tostring(L, -1); 
-        std::clog << errorMsg;
-    }
-
-    Thing * myThing = new Thing();
-
-    myThing -> doUpdateLua(L);
+    myThing -> doUpdate(myThing, L);
+    myThing2 -> doUpdate(myThing, L);
 
     lua_close(L);
 
-    for (const auto& dirEntry : std::filesystem::recursive_directory_iterator("./"))
-        std::cout << dirEntry << std::endl;
     return 0;
 }

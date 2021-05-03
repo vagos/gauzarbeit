@@ -19,5 +19,3 @@ function doUpdate(owner)
 
     owner:PrintSelf()
 end
-
---myThing:SetThing(888)

@@ -1,9 +1,10 @@
 #include "PlayerPhysical.hpp"
 #include "PlayerNetworked.hpp"
+#include "../World.hpp"
 #include <memory>
 #include <sstream>
 
-void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner)
+void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner, World & world)
 {
 
     std::stringstream req { owner -> networked -> getRequestStream().str() }; // The request
@@ -32,7 +33,14 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner)
         {
             res << "-- " << *thing << "\n";
         }
-
+        
+        res << "\n\n" << "Other things in the room: \n";
+        
+        for (const auto& thing : currentRoom -> listThings) 
+        {
+            res << "-- " << *thing << "\n";
+        }
+       
         owner -> networked -> addResponse( res.str() );
 
     }
@@ -59,10 +67,29 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner)
         req >> itemIndex;
     
         if (tInventory[itemIndex] && tInventory[itemIndex] -> usable) 
-            tInventory[itemIndex] -> usable -> doUse(owner);
+            tInventory[itemIndex] -> usable -> doUse(tInventory[itemIndex], owner);
 
     }
 
+    else if (sVerb == "give")
+    {
+        std::string recipient;
+        int itemIndex;
+
+        req >> recipient >> itemIndex;
+
+        auto pRecipient = world.getPlayer(recipient);
+
+        if (!pRecipient) return;
+         
+        pRecipient -> physical -> gainItem( tInventory [itemIndex] );
+
+        auto item = tInventory[itemIndex];
+
+        owner -> networked -> addResponse("You gave " + recipient + " your " + item -> sName + "\n");
+        
+        tInventory.erase( tInventory.begin() + itemIndex );
+    }
 
 }
 

@@ -7,8 +7,9 @@
 #include <string>
 
 #include "../Thing.hpp"
-#include "../World.hpp"
 #include "../Server.hpp"
+
+class World;
 
 class PlayerNetworked : public Networked 
 {
@@ -20,43 +21,18 @@ public:
         state = State::LoggedIn;
     }
 
-    void doUpdate( std::shared_ptr<Thing> owner ) override // Freaking fix this.
-    {
-        switch (nState)
-        {
-            case 0:
-                clearStreams();
-                getRequest(owner);
-                nState = 1;
-                break;
-
-            case 1:
-
-                handleRequest(owner);
-                nState = 2;
-                break;
-
-            case 2:
-
-                sendResponse();
-                nState = 0;
-                break;
-
-
-        }
-    }
-    
-
-     
-private: 
-    
-    void getRequest( std::shared_ptr<Thing> owner )
+    void getRequest( std::shared_ptr<Thing> owner, World& world )
     {
         if ( ! Server::getSocketSelector().isReady( *socket ) ) return;
 
         if (socket->receive(cData, 100, nReceived) != sf::Socket::Done)
         {
-            std::clog << "Socket error!\n";
+            std::clog << "Socket error!\n"; 
+            
+            // world.removePlayer(owner);
+
+            setState( State::LoggedOut ); // Remove player in a seperate loop.
+
             return;
         }
 
@@ -67,9 +43,20 @@ private:
         std::clog << *owner << ": " << streamRequest.str() << " Received: " << nReceived << " bytes" << "\n";
 
     }
+    
+    void sendResponse(std::shared_ptr<Thing> owner) override
+    {
+        //if ( ! Server::getSocketSelector().isReady( *socket ) ) return;
+        if ( ! streamResponse.str().size() ) goto CLEAR;
 
-public:
-    void handleRequest(std::shared_ptr<Thing> owner)
+        std::clog << "Gonna send response: " << streamResponse.str() << "\n";
+        socket -> send(streamResponse.str().c_str(), streamResponse.str().size());
+        
+        CLEAR:
+            clearStreams();
+    }
+    
+    void handleRequest(std::shared_ptr<Thing> owner, World& world) override
     {
         std::stringstream req { getRequestStream().str() };
         
@@ -77,12 +64,6 @@ public:
 
         req >> sVerb;
 
-        if (sVerb == "" && state == State::Entering)
-        {
-            addResponse("Welcome! Use login {name} to log on: ");
-            return;
-        }
-        
         if ( sVerb == "login" )
         {
             if ( state != State::Entering)
@@ -97,56 +78,47 @@ public:
 
             addResponse("You are logged in as " + owner -> sName + "\n");
 
-            return;
         }
 
-        if ( sVerb == "msg" )
+        else if ( sVerb == "msg" )
         {
             std::string message;
 
             req >> message;
 
-            Server::sendMessage(owner -> sName + " " + message + "\n");
-
-            return;
+            addMessage(message);
 
         }
 
-        if ( sVerb == "whisper" )
+        else if ( sVerb == "whisper" )
         {
             std::string recipient, message;
 
             req >> recipient >> message;
 
-            Server::sendMessage(recipient, owner->sName + " whispers to you: " + message);
+            addMessage(message, recipient);
 
         }
 
     }
-    
+
+    bool isOnline() {return state == State::LoggedIn;}
+
+private: 
     enum class State
     {
         Entering,
         LoggedIn,
+        LoggedOut,
     };
 
 
     void setState(State s) {state = s;}
 
-public:
-    void sendResponse( )
-    {
-        if (! streamResponse.str().size() ) return;
-
-        std::clog << "Gonna send response: " << streamResponse.str() << "\n";
-        socket -> send(streamResponse.str().c_str(), streamResponse.str().size());
-    }
-
-    std::size_t playerId;
     
-    State state;
-    int nState = 0;
 
+public:
+    State state;
     // last online
     // ip
 };

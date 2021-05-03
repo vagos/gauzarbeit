@@ -13,11 +13,13 @@ class Player : public Thing
 public:
     Player(); 
     
-    void doInit();
-
     const std::string getInfo() const override
     {
-        return " (Player)";
+        std::stringstream ss;
+        
+        ss << "(Player) " << "[" << networked -> getID() << "]"; 
+
+        return ss.str();
     }
 
 };

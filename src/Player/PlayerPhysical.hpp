@@ -19,10 +19,9 @@ public:
 
     }
 
-   void doUpdate( std::shared_ptr<Thing> owner) override;
+   void doUpdate( std::shared_ptr<Thing> owner, World& world) override;
 
-   private:
-
+private:
    void moveDirection(std::shared_ptr<Thing> owner, const std::string& direction);
 };
 

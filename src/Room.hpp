@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <list>
 
-
 #include "Thing.hpp"
 
 enum class Direction
@@ -15,7 +14,6 @@ enum class Direction
     DOWN,
     LEFT,
     RIGHT
-
 };
 
 
@@ -47,7 +45,5 @@ public:
     std::list< std::shared_ptr<Thing> > listPlayers;
     std::list< std::shared_ptr<Thing> > listThings;
 };
-
-
 
 #endif//ROOM_HPP

@@ -3,8 +3,6 @@
 #include "PlayerNetworked.hpp"
 #include "PlayerPhysical.hpp"
 
-
-
 Player::Player()
 {
     networked = std::make_unique<PlayerNetworked>();

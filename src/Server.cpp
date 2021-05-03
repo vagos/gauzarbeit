@@ -1,10 +1,14 @@
-#include "Server.hpp"
-
-#include "Player/Player.hpp"
-#include "TestItem.hpp"
 #include <SFML/Network/SocketSelector.hpp>
 #include <memory>
 #include <string>
+
+#include "Server.hpp"
+#include "World.hpp"
+#include "Player/Player.hpp"
+
+#include "Script/ScriptedThing.hpp"
+//#include "TestItem.hpp"
+
 
 void Server::acceptConnections(World &world)
 {
@@ -24,55 +28,27 @@ void Server::acceptConnections(World &world)
 
     socketSelector.add(*newPlayer -> networked -> socket);
     
-    newPlayer -> physical -> doMove(newPlayer, 0, 0);
+
+    newPlayer -> networked -> addResponse("Welcome! Use login {name} to log on: "); 
 
     world.addPlayer(newPlayer);
 
     //Testing
+    newPlayer -> physical -> doMove(newPlayer, 0, 0);
     
-    newPlayer -> physical -> gainItem( std::make_shared<TestItem>() );
+    //newPlayer -> physical -> gainItem( std::make_shared<TestItem>() );
+
+    auto myChair = std::make_shared<ScriptedThing >("Chair");
+
+    //newPlayer -> physical -> getRoom() -> listThings.push_back( myChair );
+    newPlayer -> physical -> gainItem(myChair);
+    newPlayer -> physical -> getRoom() -> listThings.push_back( std::make_shared<ScriptedThing>("Vase") );
 
 }
 
-void Server::sendMessage(const std::string &message)
+void Server::doUpdate()
 {
-
-    for (const auto& p : World::getPlayers())
-    {
-        p -> networked -> addResponse(message);
-    }
-
-}
-
-void Server::sendMessage(const std::string& recipient, const std::string& message)
-{
-    for (auto& p: World::getPlayers())
-    {
-        if (p -> sName == recipient)
-        {
-            p -> networked -> addResponse(message);
-            
-            return;
-        }
-
-    }
-}
-
-void Server::doUpdate(World &world)
-{
-    for (auto& player : world.listPlayers) // Get request
-        player -> networked -> doUpdate(player);    
     
-    for (auto& player : world.listPlayers) // Handle request
-        player -> networked -> doUpdate(player);
-    
-    for (auto& player : world.listPlayers) 
-        player -> physical -> doUpdate(player);
-    
-    for (auto& player : world.listPlayers) // Send response
-        player -> networked -> doUpdate(player);    
-
 }
 
 sf::SocketSelector Server::socketSelector;
-
