@@ -48,7 +48,7 @@ struct Thing
 
         luaL_getmetatable(L, "Gauzarbeit.Thing");
         lua_setmetatable(L, -2);
-        
+
         CheckLua(L, luaL_dofile(L, filename.c_str()) );        
 
     }

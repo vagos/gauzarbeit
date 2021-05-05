@@ -1,6 +1,9 @@
 #include "../Thing.hpp"
 #include "ScriptedThing.hpp"
 #include "LuaHelpers.hpp"
+#include <lua.h>
+
+#include <cassert>
 
 class ScriptedUsable : public Usable
 {
@@ -9,25 +12,23 @@ public:
     {
     }
 
-    void doUse(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> user) override
+    void onUse(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> user) override
     {
         const auto& L = std::static_pointer_cast<ScriptedThing>(owner) -> L;
 
+        //luaL_getmetatable(L, "Gauzarbeit.Thing");
+
         lua_getglobal(  L, owner -> sName.c_str() );
 
-        lua_getfield( L, -1, "doUse" );
+        lua_getfield( L, -1, "onUse" );
 
-        lua_pushvalue(L, -2);
+        lua_pushlightuserdata(L, owner.get());
+        lua_pushlightuserdata(L, user.get());
 
-        CheckLua(L, lua_pcall(L, 1, 0, 0));
+        //luaL_getmetatable(L, "Gauzarbeit.Thing");
+        //lua_setmetatable(L, -2);
+
+        CheckLua(L, lua_pcall(L, 2, 0, 0));
     }
-
-private:
-
-    int lua_doUse(lua_State * L)
-    {
-        return 0;
-    }
-
 
 };

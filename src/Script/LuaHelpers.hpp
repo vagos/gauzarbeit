@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 
+#include "lua.hpp"
+
 extern "C"
 {
     #include <lua5.3/lua.h>

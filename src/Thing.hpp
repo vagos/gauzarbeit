@@ -28,7 +28,7 @@ public:
 
     virtual void doUpdate( std::shared_ptr<Thing> owner, World& world ) {};
 
-    void doMove(std::shared_ptr<Thing> owner, int x, int y); // Move to room on coords x and y.
+    virtual void doMove(std::shared_ptr<Thing> owner, int x, int y); // Move to room on coords x and y.
 
     std::shared_ptr<Room> getRoom()
     {
@@ -51,7 +51,7 @@ class Usable
 {
 public:
     
-    virtual void doUse(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> user)
+    virtual void onUse(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> user)
     {
 
     }
@@ -66,12 +66,23 @@ class Attackable
 {
 public:
 
+    Attackable()
+    {
+
+    }
+
     virtual void doAttack(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> target)
-    {}
+    {
+    }
 
-private:
+    virtual void doUpdate(std::shared_ptr<Thing> owner)
+    {
 
-    int maxHealth, currentHealth, attack, defense;
+    }
+
+public:
+
+    int max_health, current_health, attack, defense;
 };
 
 
@@ -96,6 +107,7 @@ public:
     std::shared_ptr<Networked> networked = nullptr;
     std::shared_ptr<Physical> physical   = nullptr;
     std::shared_ptr<Usable> usable       = nullptr;
+    std::shared_ptr<Attackable> attackable = nullptr;
 
     friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
     {

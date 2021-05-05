@@ -21,9 +21,20 @@ void Room::removePlayer(std::shared_ptr<Thing> player)
     listPlayers.remove(player);
 }
 
+void Room::removeThing(std::shared_ptr<Thing> thing)
+{
+    listThings.remove(thing);
+}
+
+
 void Room::addPlayer(std::shared_ptr<Thing> player)
 {
     listPlayers.push_back(player);
+}
+
+void Room::addThing(std::shared_ptr<Thing> thing)
+{
+    listThings.push_back(thing);
 }
 
 std::unordered_map< std::int64_t, std::shared_ptr< Room > > Room::mapRooms{};

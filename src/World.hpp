@@ -49,6 +49,9 @@ public:
         for (auto& [name, player] : playersOnline)
             player -> physical -> doUpdate(player, *this);
         
+        for (auto& [name, player] : playersOnline)
+            player -> attackable -> doUpdate(player);
+
         for (auto& [name, player] : playersOnline) // Send messages
             player -> networked -> sendMessages(player, *this);    
     

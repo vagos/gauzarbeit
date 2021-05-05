@@ -1,5 +1,6 @@
 #include <random>
 
+#include "Script/ScriptedThing.hpp"
 #include "Server.hpp"
 #include "World.hpp"
 
@@ -12,7 +13,6 @@ int main()
     //Server server(1234);
     World world;
 
-    
     while (true)
     {
       // server.doUpdate();

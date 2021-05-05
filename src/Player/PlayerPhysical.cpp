@@ -67,7 +67,7 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner, World & world)
         req >> itemIndex;
     
         if (tInventory[itemIndex] && tInventory[itemIndex] -> usable) 
-            tInventory[itemIndex] -> usable -> doUse(tInventory[itemIndex], owner);
+            tInventory[itemIndex] -> usable -> onUse(tInventory[itemIndex], owner);
 
     }
 
@@ -125,5 +125,15 @@ void PlayerPhysical::moveDirection(std::shared_ptr<Thing> owner, const std::stri
         res << "Moved into Room: " << currentRoom -> x << " " << currentRoom -> y << "\n";
 
         owner -> networked -> addResponse( res.str() );
+
+}
+
+void PlayerPhysical::doMove(std::shared_ptr<Thing> owner, int x, int y)
+{
+    if (currentRoom) currentRoom -> removeThing(owner);
+
+    currentRoom = Room::get(x, y); 
+
+    currentRoom -> addPlayer(owner);
 
 }

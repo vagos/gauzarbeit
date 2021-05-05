@@ -34,16 +34,18 @@ void Server::acceptConnections(World &world)
     world.addPlayer(newPlayer);
 
     //Testing
+    ScriptedThing::InitLua();
+    
     newPlayer -> physical -> doMove(newPlayer, 0, 0);
     
-    //newPlayer -> physical -> gainItem( std::make_shared<TestItem>() );
+    auto myChair = std::make_shared<ScriptedThing>("Chair");
+    auto myGoblin = std::make_shared<ScriptedThing>("Goblin");
 
-    auto myChair = std::make_shared<ScriptedThing >("Chair");
 
     //newPlayer -> physical -> getRoom() -> listThings.push_back( myChair );
     newPlayer -> physical -> gainItem(myChair);
-    newPlayer -> physical -> getRoom() -> listThings.push_back( std::make_shared<ScriptedThing>("Vase") );
 
+    newPlayer -> physical -> getRoom() -> addThing(myGoblin);
 }
 
 void Server::doUpdate()

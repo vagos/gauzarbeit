@@ -30,9 +30,11 @@ public:
     int x, y;
 
     void removePlayer(std::shared_ptr<Thing> player);
+    void removeThing(std::shared_ptr<Thing> thing);
         
     void addPlayer(std::shared_ptr<Thing> player);
-    
+    void addThing(std::shared_ptr<Thing> thing);
+
 public:
 
     static std::unordered_map< std::int64_t, std::shared_ptr< Room > > mapRooms;
