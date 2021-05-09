@@ -20,7 +20,7 @@ ScriptedThing::ScriptedThing(const std::string& name):
             lua_setglobal(L, sName.c_str()); // Create a Lua table.
         }
 
-        std::string filename( sName + ".lua" );
+        std::string filename( scriptDir + sName + ".lua" );
 
         lua_newtable(L);
 
@@ -110,7 +110,7 @@ int ScriptedThing::SetMaxHealth(lua_State *L)
 
     int max_health = (int)lua_tonumber(L, 2);
 
-    ptrThing -> attackable -> max_health = max_health;
+    ptrThing -> attackable -> setMaxHealth(max_health);
 
     return 0;
 }
@@ -139,3 +139,4 @@ void ScriptedThing::InitLua()
 
 lua_State * ScriptedThing::L = luaL_newstate(); 
 
+const std::string ScriptedThing::scriptDir{"./Scripts/"};

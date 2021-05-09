@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <map>
 #include <string>
+#include <algorithm>
 
 #include "Player/PlayerNetworked.hpp"
 #include "Thing.hpp"
@@ -46,6 +47,9 @@ public:
                goto SKIP;
         }         
 
+        for (auto& [name, player] : playersOnline) 
+            player -> talker -> doUpdate(player);
+
         for (auto& [name, player] : playersOnline)
             player -> physical -> doUpdate(player, *this);
         
@@ -59,6 +63,8 @@ public:
 
         for (auto& [name, player] : playersOnline) // Send response
             player -> networked -> sendResponse(player);    
+
+        removeOfflinePlayers();
     }
 
     void addPlayer(std::shared_ptr<Thing> player) 
@@ -69,6 +75,12 @@ public:
     void removePlayer(std::shared_ptr<Thing> player)
     {
         playersOnline.erase(player -> networked -> getID());
+    }
+
+    void removeOfflinePlayers()
+    {
+        //std::remove_if( playersOnline.begin(), playersOnline.end(), 
+        //        [](auto& p){ return std::static_pointer_cast<PlayerNetworked>(p.second -> networked) -> isOffline(); } );
     }
 };
 #endif//WORLD_HPP

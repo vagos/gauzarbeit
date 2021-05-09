@@ -22,7 +22,7 @@ public:
 
         if (verb == "attack")
         {
-            auto enemy = * (owner -> physical -> getRoom() -> listThings.begin() ) ;
+            auto enemy = * ( owner -> physical -> getRoom() -> listThings.begin() ) ;
 
             if (enemy -> attackable)
             {
@@ -35,6 +35,20 @@ public:
             }
         }
 
+    }
+
+    void doAttack(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> target) override
+    {
+        target -> attackable -> current_health -= attack;
+
+        std::stringstream res;
+
+        res << "You attacked " << target -> sName << " for " << attack << "\n";
+
+        res << "He now has " << target -> attackable -> current_health << " HP\n"; 
+
+        owner -> networked -> addResponse( res.str() );
+        
     }
     
 

@@ -16,7 +16,7 @@ void Networked::sendMessages(std::shared_ptr<Thing> owner, const World &world)
                p -> networked -> addResponse(messagePair.first);
             }
 
-            else 
+            else  // Broadbcast the message
             {
                 for (auto& [name, player] : world.playersOnline)
                 {

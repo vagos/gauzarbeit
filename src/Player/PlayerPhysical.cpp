@@ -13,13 +13,13 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner, World & world)
 
     req >> sVerb;
 
-    if (sVerb == "move")
+    if ( sVerb == "move"  )
     {
-        std::string sDirection;
+        std::string direction;
 
-        req >> sDirection;
+        req >> direction;
 
-        moveDirection(owner, sDirection);
+        moveDirection(owner, direction);
 
     }
 
@@ -27,7 +27,7 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner, World & world)
     {
         std::stringstream res;
 
-        res << "\n\n" << "Players in the room: \n";
+        res << "Players in the room: \n";
 
         for (const auto& thing : currentRoom -> listPlayers) 
         {
@@ -83,6 +83,12 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner, World & world)
         if (!pRecipient) return;
          
         pRecipient -> physical -> gainItem( tInventory [itemIndex] );
+
+        std::stringstream message;
+
+        message << "You were given a " << tInventory[itemIndex] -> sName << " by " << owner -> sName << "\n"; 
+
+        owner -> networked -> addMessage( message.str() , recipient);
 
         auto item = tInventory[itemIndex];
 

@@ -7,7 +7,7 @@
 #include "Player/Player.hpp"
 
 #include "Script/ScriptedThing.hpp"
-//#include "TestItem.hpp"
+#include "Character/Character.hpp"
 
 
 void Server::acceptConnections(World &world)
@@ -29,7 +29,7 @@ void Server::acceptConnections(World &world)
     socketSelector.add(*newPlayer -> networked -> socket);
     
 
-    newPlayer -> networked -> addResponse("Welcome! Use login {name} to log on: "); 
+    newPlayer -> networked -> addResponse("Welcome! Use login {name} to log on.\n"); 
 
     world.addPlayer(newPlayer);
 
@@ -41,11 +41,13 @@ void Server::acceptConnections(World &world)
     auto myChair = std::make_shared<ScriptedThing>("Chair");
     auto myGoblin = std::make_shared<ScriptedThing>("Goblin");
 
+    auto myShopKeeper = std::make_shared<Character>("Shop Man");
 
-    //newPlayer -> physical -> getRoom() -> listThings.push_back( myChair );
+
     newPlayer -> physical -> gainItem(myChair);
 
     newPlayer -> physical -> getRoom() -> addThing(myGoblin);
+    newPlayer -> physical -> getRoom() -> addThing(myShopKeeper);
 }
 
 void Server::doUpdate()

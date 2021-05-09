@@ -9,7 +9,7 @@ int main()
 {
     std::srand(std::time(NULL));
     
-    Server server(rand() % 9999 + 100);
+    Server server(rand() % 9999 + 1000);
     //Server server(1234);
     World world;
 

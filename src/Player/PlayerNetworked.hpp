@@ -18,7 +18,7 @@ public:
 
     PlayerNetworked(): state(State::Entering)
     {
-        state = State::LoggedIn;
+        //state = State::LoggedIn;
     }
 
     void getRequest( std::shared_ptr<Thing> owner, World& world )
@@ -49,11 +49,12 @@ public:
         //if ( ! Server::getSocketSelector().isReady( *socket ) ) return;
         if ( ! streamResponse.str().size() ) goto CLEAR;
 
-        std::clog << "Gonna send response: " << streamResponse.str() << "\n";
+        // std::clog << "Gonna send response: " << streamResponse.str() << "\n";
         socket -> send(streamResponse.str().c_str(), streamResponse.str().size());
         
         CLEAR:
-            clearStreams();
+            
+        clearStreams();
     }
     
     void handleRequest(std::shared_ptr<Thing> owner, World& world) override
@@ -68,7 +69,7 @@ public:
         {
             if ( state != State::Entering)
             {
-                addResponse("You are already loggen in!\n");
+                addResponse("You are already loggen in!\n", Color::Red);
                 return;
             }
 
@@ -103,6 +104,8 @@ public:
     }
 
     bool isOnline() {return state == State::LoggedIn;}
+
+    bool isOffline() {return state == State::LoggedOut;}
 
 private: 
     enum class State

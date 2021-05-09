@@ -36,6 +36,8 @@ public:
 
     int luaRef;
 
+    static const std::string scriptDir;
+
 };
 
 

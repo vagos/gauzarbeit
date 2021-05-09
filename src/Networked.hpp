@@ -14,6 +14,18 @@
 class Thing;
 class World;
 
+enum class Color
+{
+    None,
+    Red,
+    Green,
+    Blue,
+    White,
+
+};
+
+
+
 class Networked 
 {
 public:
@@ -22,7 +34,7 @@ public:
     {
         socket = std::make_unique<sf::TcpSocket>();
 
-        ID = lastID; lastID ++;
+        ID = lastID; ++lastID;
 
     }
 
@@ -34,9 +46,9 @@ public:
     virtual void sendResponse(std::shared_ptr<Thing> owner) {}
 
     
-    void addResponse(const std::string& res)
+    void addResponse(const std::string& res, Color color = Color::None)
     {
-       streamResponse << res; 
+       streamResponse << GetColor(color) << res << GetColor(Color::White); 
     }
 
     void addMessage(const std::string message, const std::string recipient = "")
@@ -70,7 +82,21 @@ protected:
     std::stringstream streamResponse;
 
     std::queue< std::pair < const std::string, const std::string > > qMessages;
+    
+    static std::string GetColor(Color color_code)
+    {
+        switch (color_code)
+        {
+            case Color::Red:
+                return "\u001b[31m"; break;
+            case Color::White:
+                return "\u001b[0m"; break;
+            default:
+                return ""; break;
+        }
 
+        return "";
+    }
 
 };
 
