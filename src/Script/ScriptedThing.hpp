@@ -13,7 +13,7 @@ public:
 
     ~ScriptedThing()
     {
-        std::clog << "I got done!" << "\n";
+        std::clog << sName << " got deleted!\n";
     }
 
     const std::string getInfo() const override
@@ -26,6 +26,9 @@ public:
     static int NewIndex(lua_State * L);
     
     static int GetName(lua_State * L);
+
+    static int LoseItem(lua_State * L);
+    static int GetThing(lua_State * L);
     
     static int SendMessage(lua_State * L);
     static int SetMaxHealth(lua_State * L);
@@ -39,9 +42,5 @@ public:
     static const std::string scriptDir;
 
 };
-
-
-
-
 
 #endif

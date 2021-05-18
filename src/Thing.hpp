@@ -10,8 +10,11 @@
 #include <string>
 #include <sstream>
 #include <queue>
+#include <algorithm>
 
 #include "Networked.hpp"
+
+#include "Helpers.hpp"
 
 class World;
 class Thing;
@@ -55,6 +58,22 @@ public:
 
 };
 
+class Inspectable
+{
+public:
+    Inspectable()
+    {
+
+    }
+
+
+    virtual void onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector)
+    {
+
+    }
+
+};
+
 
 class Physical
 {
@@ -77,6 +96,29 @@ public:
     void gainItem(std::shared_ptr<Thing> item)
     {
         tInventory.push_back(item);
+    }
+
+    std::shared_ptr<Thing> getItem(std::string item_name)
+    {
+        auto r = std::find_if(tInventory.begin(), tInventory.end(), 
+                [&item_name](const std::shared_ptr<Thing> t) {return (t -> sName == item_name);}); 
+
+        return r != tInventory.end() ? *r : nullptr;
+    }
+    
+    std::shared_ptr<Thing> getItem(int item_index)
+    {
+        return tInventory[item_index];
+    }
+
+    void loseItem(std::shared_ptr<Thing> item)
+    {
+        tInventory.erase( std::remove(tInventory.begin(), tInventory.end(), item), tInventory.end() );
+    }
+
+    bool hasItem(std::shared_ptr<Thing> item)
+    {
+        return std::find( tInventory.begin(), tInventory.end(), item ) != tInventory.end();
     }
 
     //void giveItem(std::shared_ptr<>)
@@ -126,10 +168,8 @@ protected:
 class Notifier
 {
 public:
-    class Event
+    struct Event
     {
-    public:
-
         enum class Type
         {
             Invalid,
@@ -140,7 +180,13 @@ public:
             Move,
             Use,
             Look,
+            Whisper,
+            Message,
         };
+
+        std::string verb;
+        std::string noun;
+        std::string extra;
     };
 
     Notifier() 
@@ -160,17 +206,22 @@ public:
 
     }
 
-    //void setEvent(std::shared_ptr<Thing> owner, Event::Type type, std::string eventInfo) 
-    //{
-    ////    last = Event( owner, type, eventInfo );
-    //}
+    virtual void setEvent(std::shared_ptr<Thing> owner)
+    {
+
+    }
+
+    void clearEvent()
+    {
+        event.verb = "";
+    }
 
     virtual void doUpdate(std::shared_ptr<Thing> owner)
     {
 
     }
 
-    //Event last;
+    Event event;
 };
 
 class Thinker 

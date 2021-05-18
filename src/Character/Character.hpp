@@ -24,6 +24,7 @@ class ShopNotifier : public Notifier
 
 class Character : public Thing
 {
+
 public:
     Character(const std::string& name): Thing(name)
     {
@@ -35,6 +36,5 @@ public:
 
 
 };
-
 
 #endif

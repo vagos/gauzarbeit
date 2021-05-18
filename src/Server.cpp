@@ -39,20 +39,23 @@ void Server::acceptConnections(World &world)
     newPlayer -> physical -> doMove(newPlayer, 0, 0);
     
     auto myChair = std::make_shared<ScriptedThing>("Chair");
+    auto myWinston = std::make_shared<ScriptedThing>("Winston");
     auto myGoblin = std::make_shared<ScriptedThing>("Goblin");
+    auto myBokeBall = std::make_shared<ScriptedThing>("BokeBall");
 
     auto myShopKeeper = std::make_shared<Character>("Shop Man");
 
-
     newPlayer -> physical -> gainItem(myChair);
+    newPlayer -> physical -> gainItem(myWinston);
+    newPlayer -> physical -> gainItem(myBokeBall);
 
     newPlayer -> physical -> getRoom() -> addThing(myGoblin);
     newPlayer -> physical -> getRoom() -> addThing(myShopKeeper);
 }
 
-void Server::doUpdate()
+void Server::doUpdate(World& world)
 {
-    
+    acceptConnections(world);
 }
 
 sf::SocketSelector Server::socketSelector;

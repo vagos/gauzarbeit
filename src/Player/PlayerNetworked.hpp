@@ -29,9 +29,7 @@ public:
         {
             std::clog << "Socket error!\n"; 
             
-            // world.removePlayer(owner);
-
-            setState( State::LoggedOut ); // Remove player in a seperate loop.
+            setState( State::LoggedOut ); 
 
             return;
         }
@@ -59,13 +57,10 @@ public:
     
     void handleRequest(std::shared_ptr<Thing> owner, World& world) override
     {
-        std::stringstream req { getRequestStream().str() };
-        
-        std::string sVerb;
 
-        req >> sVerb;
+        auto& event = owner -> notifier -> event;
 
-        if ( sVerb == "login" )
+        if ( event.verb == "login" )
         {
             if ( state != State::Entering)
             {
@@ -73,7 +68,7 @@ public:
                 return;
             }
 
-            req >> owner -> sName;
+            owner -> sName = owner -> notifier -> event.noun;
 
             setState( State::LoggedIn ); 
 
@@ -81,23 +76,17 @@ public:
 
         }
 
-        else if ( sVerb == "msg" )
+        else if ( event.verb == "msg" )
         {
-            std::string message;
-
-            req >> message;
-
-            addMessage(message);
+            addMessage(event.extra);
 
         }
 
-        else if ( sVerb == "whisper" )
+        else if ( event.verb == "whisper" )
         {
-            std::string recipient, message;
+            //addMessage(event.extra, event.noun);
 
-            req >> recipient >> message;
-
-            addMessage(message, recipient);
+            owner -> notifier -> doNotify(owner, Notifier::Event::Type::Whisper);
 
         }
 

@@ -2,6 +2,7 @@
 #include "ScriptedThing.hpp"
 #include "ScriptedUsable.hpp"
 #include "ScriptedAttackable.hpp"
+#include "../Room.hpp"
 #include <lua.h>
 #include <memory>
 
@@ -115,10 +116,41 @@ int ScriptedThing::SetMaxHealth(lua_State *L)
     return 0;
 }
 
+int ScriptedThing::LoseItem(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+    
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
+
+    auto item = std::find_if( ptrThing -> physical -> tInventory.begin(), ptrThing -> physical -> tInventory.end(), 
+            [&ptrThingItem](std::shared_ptr<Thing>& p) {return p.get() == ptrThingItem;});
+
+    ptrThing -> physical -> loseItem(*item);
+
+    return 0;
+}
+
+int ScriptedThing::GetThing(lua_State *L)
+{
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    auto thing = ptrThing -> physical -> getRoom() -> listThings.front();
+
+    ptrThing -> physical -> getRoom() -> listThings.pop_front();
+
+    lua_pushlightuserdata(L, thing.get());
+
+    return 1;
+
+}
+
+
 void ScriptedThing::InitLua()
 {
     luaL_openlibs(L);
-
+    
     luaL_newmetatable(L, "Gauzarbeit.Thing");
 
     lua_pushstring(L, "__index");
@@ -128,9 +160,11 @@ void ScriptedThing::InitLua()
     const luaL_Reg thingMethods[] = {
     {"__index", ScriptedThing::Index},
     {"__newindex", ScriptedThing::NewIndex},
+    {"getName", ScriptedThing::GetName},
     {"setMaxHealth", ScriptedThing::SetMaxHealth},
     {"sendMessage", ScriptedThing::SendMessage},
-    {"getName", ScriptedThing::GetName},
+    {"loseItem", ScriptedThing::LoseItem},
+    {"getThing", ScriptedThing::GetThing},
     {NULL, NULL}
     };
 

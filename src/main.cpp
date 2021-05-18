@@ -15,14 +15,8 @@ int main()
 
     while (true)
     {
-      // server.doUpdate();
-
        world.doUpdate();
-       
-       server.acceptConnections(world);
-
-
-
+       server.doUpdate(world);
     }
 
     return 0;

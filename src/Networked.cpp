@@ -13,7 +13,11 @@ void Networked::sendMessages(std::shared_ptr<Thing> owner, const World &world)
             {
                auto p = world.getPlayer(messagePair.second);
 
-               p -> networked -> addResponse(messagePair.first);
+               if (p)
+                   p -> networked -> addResponse(messagePair.first);
+
+               else
+                   owner -> networked -> addResponse("Player not found!\n", Color::Red);
             }
 
             else  // Broadbcast the message

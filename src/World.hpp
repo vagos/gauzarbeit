@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <regex>
 
 #include "Player/PlayerNetworked.hpp"
 #include "Thing.hpp"
@@ -24,20 +25,25 @@ public:
 
     std::map< std::size_t , std::shared_ptr<Thing> > playersOnline; // A list of all the online players.
     
-    const std::shared_ptr<Thing> getPlayer(const std::string name) const
+    const std::shared_ptr<Thing>& getPlayer(const std::string& name) const
     {
-        for (auto& [id, player] : playersOnline)
-        {
-            if ( player -> sName == name ) return player;
-        }
-        
-        return nullptr;
+       std::regex r { name, std::regex_constants::icase };
+
+       for (auto& [id, player] : playersOnline)
+       {
+           if ( std::regex_match(player->sName, r) ) return player;
+       }
+       
+       return nullptr;
     }
 
     void doUpdate()
     {
         for (auto& [name, player] : playersOnline) // Get request
             player -> networked -> getRequest(player, *this); 
+        
+        for (auto& [name, player] : playersOnline) 
+            player -> notifier -> setEvent(player); 
 
         for (auto& [name, player] : playersOnline) // Handle request
         {
@@ -58,6 +64,10 @@ public:
 
         for (auto& [name, player] : playersOnline) // Send messages
             player -> networked -> sendMessages(player, *this);    
+        
+
+        for (auto& [name, player] : playersOnline) // Send messages
+            player -> notifier -> clearEvent();    
     
         SKIP:
 
@@ -67,20 +77,32 @@ public:
         removeOfflinePlayers();
     }
 
-    void addPlayer(std::shared_ptr<Thing> player) 
+    void addPlayer(const std::shared_ptr<Thing> player) 
     {
         playersOnline[player -> networked -> getID() ] = player; 
     }
 
-    void removePlayer(std::shared_ptr<Thing> player)
+    void removePlayer(const std::shared_ptr<Thing>& player)
     {
         playersOnline.erase(player -> networked -> getID());
     }
 
     void removeOfflinePlayers()
     {
-        //std::remove_if( playersOnline.begin(), playersOnline.end(), 
-        //        [](auto& p){ return std::static_pointer_cast<PlayerNetworked>(p.second -> networked) -> isOffline(); } );
+        for (auto it = playersOnline.begin(); it != playersOnline.end();)
+        {
+            
+            if (std::static_pointer_cast<PlayerNetworked>(it -> second -> networked) -> isOffline())
+            {
+                it = playersOnline.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+            
+        }
+
     }
 };
 #endif//WORLD_HPP

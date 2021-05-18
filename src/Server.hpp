@@ -22,24 +22,22 @@ public:
 
         socketSelector.add(socketListener);
     }
+    
+    void doUpdate(World& world); // Change this
+    static const sf::SocketSelector& getSocketSelector() {return socketSelector;}
+
+private:
 
     void acceptConnections(World& world);
 
-    void doUpdate(); // Change this
     
     static void sendMessage(const std::string& message);
     static void sendMessage(const std::string& recipient, const std::string& message);
-
-    static const sf::SocketSelector& getSocketSelector() {return socketSelector;}
-
-//    const std::vector< std::shared_ptr<Thing> >& getClients() {return clients;};
 
 
 private:
     sf::TcpListener socketListener;
     static sf::SocketSelector socketSelector;
-
-//    std::vector< std::shared_ptr<Thing> > clients;
 
 };
 

@@ -13,6 +13,8 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner, World & world)
 
     req >> sVerb;
 
+    auto event =  owner -> notifier -> event;
+
     if ( sVerb == "move"  )
     {
         std::string direction;
@@ -62,13 +64,15 @@ void PlayerPhysical::doUpdate( std::shared_ptr<Thing> owner, World & world)
 
     else if (sVerb == "use")
     {
-        int itemIndex;
+        std::shared_ptr<Thing> t;
 
-        req >> itemIndex;
+        if (IsNumber(event.noun))
+            t = getItem(std::atoi(event.noun.c_str()));
+        else
+            t = getItem(event.noun);
     
-        if (tInventory[itemIndex] && tInventory[itemIndex] -> usable) 
-            tInventory[itemIndex] -> usable -> onUse(tInventory[itemIndex], owner);
-
+        if (t)
+            t -> usable -> onUse(t, owner);
     }
 
     else if (sVerb == "give")
@@ -136,7 +140,7 @@ void PlayerPhysical::moveDirection(std::shared_ptr<Thing> owner, const std::stri
 
 void PlayerPhysical::doMove(std::shared_ptr<Thing> owner, int x, int y)
 {
-    if (currentRoom) currentRoom -> removeThing(owner);
+    if (currentRoom) currentRoom -> removePlayer(owner);
 
     currentRoom = Room::get(x, y); 
 
