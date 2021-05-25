@@ -4,11 +4,11 @@
 
 void Physical::doMove(std::shared_ptr<Thing> owner, int x, int y)
 {
-    if (currentRoom) currentRoom -> removeThing(owner);
+    if (current_room) current_room -> removeThing(owner);
 
-    currentRoom = Room::get(x, y); 
+    current_room = Room::get(x, y); 
 
-    currentRoom -> addThing(owner);
+    current_room -> addThing(owner);
 }
 
 const std::string Thing::getInfo() const

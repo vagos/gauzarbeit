@@ -5,6 +5,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <iomanip>
 
 #include "../Thing.hpp"
 #include "../Server.hpp"
@@ -27,7 +28,7 @@ public:
 
         if (socket->receive(cData, 100, nReceived) != sf::Socket::Done)
         {
-            std::clog << "Socket error!\n"; 
+            std::clog << "User disconnected!\n"; 
             
             setState( State::LoggedOut ); 
 
@@ -47,7 +48,6 @@ public:
         //if ( ! Server::getSocketSelector().isReady( *socket ) ) return;
         if ( ! streamResponse.str().size() ) goto CLEAR;
 
-        // std::clog << "Gonna send response: " << streamResponse.str() << "\n";
         socket -> send(streamResponse.str().c_str(), streamResponse.str().size());
         
         CLEAR:
@@ -64,30 +64,50 @@ public:
         {
             if ( state != State::Entering)
             {
-                addResponse("You are already loggen in!\n", Color::Red);
+                addResponse( ColorString("You are already loggen in!\n", Color::Red) );
                 return;
             }
 
-            owner -> sName = owner -> notifier -> event.noun;
+            owner -> name = owner -> notifier -> event.noun;
 
             setState( State::LoggedIn ); 
 
-            addResponse("You are logged in as " + owner -> sName + "\n");
+            addResponse( ColorString("You are logged in as " + owner -> name + ".\n", Color::Green) );
 
         }
 
         else if ( event.verb == "msg" )
         {
-            addMessage(event.extra);
-
+            owner -> notifier -> doNotify(owner, Notifier::Event::Type::Chat); 
         }
 
         else if ( event.verb == "whisper" )
         {
-            //addMessage(event.extra, event.noun);
+            auto p = owner -> physical -> getRoom() -> getPlayer( event.noun );
 
-            owner -> notifier -> doNotify(owner, Notifier::Event::Type::Whisper);
+            if (!p)
+            {
+                owner -> networked -> addResponse( ColorString("Player not found!\n", Color::Red) );
+                return;
+            }
+            
+            std::stringstream whisper;
 
+            whisper << owner -> name << " whispered to you: " << std::quoted(owner -> notifier -> event.extra) << '\n';
+            
+            p -> networked -> addResponse( ColorString( whisper.str(), Color::Yellow ) );
+        }
+
+        else if ( event.verb == "exit" )
+        {
+            addResponse("Goodbye!\n");
+
+            setState(State::LoggedOut);
+        }
+
+        else if ( event.verb.size() && state == State::Entering )
+        {
+            addResponse( ColorString("You need to log in!\n", Color::Red) );
         }
 
     }
@@ -106,8 +126,6 @@ private:
 
 
     void setState(State s) {state = s;}
-
-    
 
 public:
     State state;

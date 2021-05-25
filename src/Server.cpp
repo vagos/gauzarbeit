@@ -42,15 +42,23 @@ void Server::acceptConnections(World &world)
     auto myWinston = std::make_shared<ScriptedThing>("Winston");
     auto myGoblin = std::make_shared<ScriptedThing>("Goblin");
     auto myBokeBall = std::make_shared<ScriptedThing>("BokeBall");
+    auto myBall = std::make_shared<ScriptedThing>("Ball");
 
-    auto myShopKeeper = std::make_shared<Character>("Shop Man");
+
+    auto myShopKeeper = std::make_shared<Character>("Shop_Man");
 
     newPlayer -> physical -> gainItem(myChair);
     newPlayer -> physical -> gainItem(myWinston);
     newPlayer -> physical -> gainItem(myBokeBall);
+    newPlayer -> physical -> gainItem(myBall);
+
+    newPlayer -> achiever -> addQuest( std::make_shared<ScriptedThing>("Ratz") );
 
     newPlayer -> physical -> getRoom() -> addThing(myGoblin);
     newPlayer -> physical -> getRoom() -> addThing(myShopKeeper);
+
+    // FIX THIS
+    myGoblin -> physical -> current_room = newPlayer -> physical -> current_room; 
 }
 
 void Server::doUpdate(World& world)

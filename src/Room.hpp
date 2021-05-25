@@ -35,6 +35,11 @@ public:
     void addPlayer(std::shared_ptr<Thing> player);
     void addThing(std::shared_ptr<Thing> thing);
 
+    const std::shared_ptr<Thing> getThing(const std::string& name);
+    const std::shared_ptr<Thing> getPlayer(const std::string& name);
+
+    void doUpdate(World& world);
+
 public:
 
     static std::unordered_map< std::int64_t, std::shared_ptr< Room > > mapRooms;

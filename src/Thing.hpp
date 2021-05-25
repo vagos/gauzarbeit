@@ -1,9 +1,6 @@
 #ifndef THING_HPP
 #define THING_HPP
 
-#include <SFML/Network/SocketSelector.hpp>
-#include <SFML/Network/TcpSocket.hpp>
-
 #include <bits/c++config.h>
 #include <memory>
 #include <iostream>
@@ -13,6 +10,8 @@
 #include <algorithm>
 
 #include "Networked.hpp"
+#include "Physical.hpp"
+#include "Attackable.hpp"
 
 #include "Helpers.hpp"
 
@@ -24,39 +23,81 @@ class Usable;
 class Attackable;
 class Talker;
 class Notifier;
+class Achiever;
+class Tasker;
 
 class Thing 
 {
 public:
-    Thing(): sName{"INVALID_NAME"}
+    Thing(): name( "INVALID_NAME" )
     {
 
     }
 
-    Thing(const std::string& name): sName(name)
+    ~Thing()
+    {
+        std::clog << name << " got destroyed!\n";
+    }
+
+    Thing(const std::string& name): name(name)
     {
     }
 
 public:
-    std::string sName; 
+    std::string name; 
 
     virtual const std::string getInfo() const;
 
-    std::shared_ptr<Networked> networked = nullptr;
-    std::shared_ptr<Physical> physical   = nullptr;
-    std::shared_ptr<Usable> usable       = nullptr;
+    std::shared_ptr<Networked> networked   = nullptr;
+    std::shared_ptr<Physical> physical     = nullptr;
+    std::shared_ptr<Usable> usable         = nullptr;
     std::shared_ptr<Attackable> attackable = nullptr;
-    std::shared_ptr<Talker> talker = nullptr;
-    std::shared_ptr<Notifier> notifier = nullptr;
+    std::shared_ptr<Talker> talker         = nullptr;
+    std::shared_ptr<Notifier> notifier     = nullptr;
+    std::shared_ptr<Achiever> achiever     = nullptr;
+    std::shared_ptr<Tasker> tasker         = nullptr;
 
     friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
     {
-        os << thing.sName << thing.getInfo();
+        os << thing.name << " " << thing.getInfo();
 
         return os;
     }
 
 };
+
+class Tasker
+{
+
+public:
+
+    int addTask()
+    {
+        tasks.push_back(false);
+
+        return tasks.size() - 1;
+    }
+
+    void tickTask(int i_task)
+    {
+        tasks[i_task] = true;
+    }
+
+    bool isCompleted()
+    {
+        return std::find_if(tasks.begin(), tasks.end(), 
+                [](const auto& t) {return !t;}) == tasks.end();
+    }
+
+    virtual void giveRewards(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer)
+    {
+
+    }
+
+private:
+   std::vector<bool> tasks;
+};
+
 
 class Inspectable
 {
@@ -66,71 +107,46 @@ public:
 
     }
 
-
-    virtual void onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector)
+    virtual const std::string onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector)
     {
-
+        return "";
     }
+private:
+    std::string description;
 
 };
 
-
-class Physical
+class Achiever 
 {
-
 public:
-
-    Physical()
-    {
-    }
-
-    virtual void doUpdate( std::shared_ptr<Thing> owner, World& world ) {};
-
-    virtual void doMove(std::shared_ptr<Thing> owner, int x, int y); // Move to room on coords x and y.
-
-    std::shared_ptr<Room> getRoom()
-    {
-        return currentRoom;
-    }
+    std::vector< std::shared_ptr<Thing> > quests;
+    std::vector< std::shared_ptr<Thing> > completed_quests;
     
-    void gainItem(std::shared_ptr<Thing> item)
+    void addQuest( std::shared_ptr<Thing> quest)
     {
-        tInventory.push_back(item);
+        quests.push_back(quest);
     }
 
-    std::shared_ptr<Thing> getItem(std::string item_name)
+    virtual void doUpdate(std::shared_ptr<Thing> owner)
     {
-        auto r = std::find_if(tInventory.begin(), tInventory.end(), 
-                [&item_name](const std::shared_ptr<Thing> t) {return (t -> sName == item_name);}); 
 
-        return r != tInventory.end() ? *r : nullptr;
-    }
-    
-    std::shared_ptr<Thing> getItem(int item_index)
-    {
-        return tInventory[item_index];
     }
 
-    void loseItem(std::shared_ptr<Thing> item)
+    void gainXP(int extra_xp)
     {
-        tInventory.erase( std::remove(tInventory.begin(), tInventory.end(), item), tInventory.end() );
+       xp += extra_xp; 
     }
 
-    bool hasItem(std::shared_ptr<Thing> item)
+    int getLevel()
     {
-        return std::find( tInventory.begin(), tInventory.end(), item ) != tInventory.end();
+        return xp / 10;
     }
 
-    //void giveItem(std::shared_ptr<>)
-
-protected:
-    std::shared_ptr<Room> currentRoom = nullptr;
-public:
-    std::vector< std::shared_ptr<Thing> > tInventory;
+private:
+    int xp = 0;
 
 };
 
-class Quest;
 
 class Talker // This component can give quests/dialog
 {
@@ -141,27 +157,13 @@ public:
 
     }
 
-    virtual void doUpdate(std::shared_ptr<Thing> owner)
+    virtual void doUpdate(const std::shared_ptr<Thing>& owner)
     {
 
     }
-
-    void gainQuest(std::shared_ptr<Quest> quest)
-    {
-        quests.push_back(quest);
-    }
-
-    void giveQuest(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> target, int questIndex = 0)
-    {
-        target -> talker -> gainQuest( quests[ questIndex ] );       
-
-        quests.erase( quests.begin() + questIndex );
-    }
-
-    auto& getQuests() {return quests;}
 
 protected:
-    std::vector< std::shared_ptr<Quest> > quests;
+    std::vector< std::string > givable_quests;
 
 };
 
@@ -170,23 +172,27 @@ class Notifier
 public:
     struct Event
     {
-        enum class Type
+        enum class Type 
         {
             Invalid,
-            None,
+            Catch,
             Say,
             Kill,
+            Death,
             Give,
             Move,
             Use,
             Look,
             Whisper,
+            Chat,
             Message,
         };
 
         std::string verb;
         std::string noun;
         std::string extra;
+
+        std::string payload;
     };
 
     Notifier() 
@@ -194,29 +200,36 @@ public:
 
     }
 
-    virtual void doNotify(std::shared_ptr<Thing> owner, Event::Type notification_type, std::shared_ptr<Thing> target = nullptr)
+    virtual void doNotify(const std::shared_ptr<Thing>& owner, Event::Type notification_type, const std::shared_ptr<Thing>& target = nullptr)
     {
 
 
     }
 
-    virtual void onNotify(std::shared_ptr<Thing> owner, 
-            std::shared_ptr<Thing> actor, Event::Type notification_type)
+    virtual void onNotify(const std::shared_ptr<Thing>& owner, 
+            const std::shared_ptr<Thing>& actor, Event::Type notification_type)
     {
 
     }
 
-    virtual void setEvent(std::shared_ptr<Thing> owner)
+    virtual void setEvent(const std::shared_ptr<Thing>& owner)
     {
 
+    }
+
+    void setEventPayload(std::string p)
+    {
+        event.payload = p;
     }
 
     void clearEvent()
     {
         event.verb = "";
+        event.noun = "";
+        event.extra = "";
     }
 
-    virtual void doUpdate(std::shared_ptr<Thing> owner)
+    virtual void doUpdate(const std::shared_ptr<Thing> &owner)
     {
 
     }
@@ -234,50 +247,15 @@ class Usable
 {
 public:
     
-    virtual void onUse(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> user)
+    virtual void onUse(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &user)
     {
 
     }
 
-    virtual void doUpdate(std::shared_ptr<Thing> owner)
+    virtual void doUpdate(const std::shared_ptr<Thing> &owner)
     {
 
     }
-};
-
-class Attackable
-{
-public:
-
-    Attackable()
-    {
-
-    }
-
-    virtual void doAttack(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> target)
-    {
-
-    }
-
-    virtual void onAttack(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> attacker) 
-    {
-
-    }
-
-    virtual void doUpdate(std::shared_ptr<Thing> owner)
-    {
-
-    }
-
-    void setMaxHealth(int max_hp)
-    {
-        max_health = max_hp;
-        current_health = max_health;
-    }
-
-public:
-
-    int max_health, current_health, attack = 1, defense;
 };
 
 #endif//THING_HPP

@@ -12,17 +12,15 @@ public:
 
     }
     
-    void doUpdate(std::shared_ptr<Thing> owner) override
+    void doUpdate(const std::shared_ptr<Thing> &owner) override
     {
-        std::stringstream req { owner -> networked -> getRequestStream().str() };
+        auto event = owner -> notifier -> event;
 
-        std::string verb;
-
-        req >> verb;
-
-        if (verb == "attack")
+        if (event.verb == "attack")
         {
-            auto enemy = * ( owner -> physical -> getRoom() -> listThings.begin() ) ;
+            auto enemy = owner -> physical -> getRoom() -> getThing( event.noun );
+
+            if (!enemy) return;
 
             if (enemy -> attackable)
             {
@@ -31,23 +29,22 @@ public:
 
             else 
             {
-                owner -> networked -> addResponse("You can't attack that!\n");
+                owner -> networked -> addResponse( ColorString ("You can't attack that!\n", Color::Red) );
             }
         }
 
     }
 
-    void doAttack(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> target) override
+    virtual void doAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &target) override
     {
-        target -> attackable -> current_health -= attack;
 
         std::stringstream res;
 
-        res << "You attacked " << target -> sName << " for " << attack << "\n";
-
-        res << "He now has " << target -> attackable -> current_health << " HP\n"; 
+        res << "You attacked " << target -> name << " for " << attack << "\n";
 
         owner -> networked -> addResponse( res.str() );
+        
+        Attackable::doAttack(owner, target);
         
     }
     

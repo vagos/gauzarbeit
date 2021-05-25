@@ -6,11 +6,14 @@
 #include "../Quest.hpp"
 #include "PlayerPhysical.hpp"
 
+#include <cassert>
+#include <sstream>
+
 
 class PlayerNotifier : public Notifier
 {
 
-    void doNotify(std::shared_ptr<Thing> owner, Event::Type notification_type, std::shared_ptr<Thing> target = nullptr) override
+    void doNotify(const std::shared_ptr<Thing> &owner, Event::Type notification_type, const std::shared_ptr<Thing> &target = nullptr) override
     {
         for (auto& thing : owner -> physical -> getRoom() -> listThings)
         {
@@ -23,43 +26,61 @@ class PlayerNotifier : public Notifier
 
         for (auto& p : owner -> physical -> getRoom() -> listPlayers)
         {
+            if (p == owner) continue;
+
             p -> notifier -> onNotify(p, owner, notification_type);
         }
 
-        for (auto& quest : owner -> talker -> getQuests())
+        for (auto& quest : owner -> achiever -> quests)
         {
-           quest -> getNotified(owner, notification_type, nullptr); 
+           quest -> notifier -> onNotify(quest, owner, notification_type); 
+
+           if (quest -> tasker -> isCompleted())
+           {
+               quest -> tasker -> giveRewards( quest, owner );
+           }
         }
     }
 
-    void onNotify(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> actor, Event::Type notification_type) override
+    void onNotify(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &actor, Event::Type notification_type) override
     {
         switch (notification_type)
         {
             
-            case Event::Type::Whisper:
-                {
-                    if ( owner -> notifier -> event.noun == owner -> sName)
-                    {
-                            owner -> networked -> addResponse(actor -> sName + 
-                            "whispered to you: " + actor -> notifier -> event.extra + "\n");
-                    }
+           case Event::Type::Chat:
+           {
+                std::stringstream chat;
 
-                    break;
-                }
+                chat << actor->name << ": " << actor -> notifier -> event.noun << actor -> notifier -> event.extra << '\n';
+                owner -> networked -> addResponse( chat.str() );
+                break;
+            }
+
+            case Event::Type::Message:
+            {
+                owner -> networked -> addResponse( actor -> notifier -> event.payload );
+                break;
+            }
+
+            case Event::Type::Kill:
+            {
+                std::stringstream msg;
+                msg << "You killed " << actor -> name << '\n';
+                
+                owner -> networked -> addResponse(ColorString( msg.str(), Color::Red) );
+
+                break;
+            }
         }
     }
 
-    void setEvent(std::shared_ptr<Thing> owner) override
+    void setEvent(const std::shared_ptr<Thing> &owner) override
     {
         std::stringstream req{ owner -> networked -> getRequestStream().str() };
 
         req >> event.verb >> event.noun;
 
-        std::getline( req, event.extra );
-
-        std::clog << event.verb << " " << event.noun << " " << event.extra << "\n";
-        
+        std::getline( req >> std::ws, event.extra );
     }
    
 };

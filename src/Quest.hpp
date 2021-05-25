@@ -4,23 +4,19 @@
 #include <memory>
 #include <string>
 
+#include "Physical.hpp"
 #include "Thing.hpp"
 
-class Quest
+
+
+
+class Quest : public Thing
 {
 public:
-    const std::string name;
-    std::string description;
 
-    virtual void getNotified(std::shared_ptr<Thing> owner, Notifier::Event::Type notification_type, std::shared_ptr<Thing> target)
+    Quest()
     {
-        
-    }
-
-
-    void doComplete(std::shared_ptr<Thing> actor)
-    {
-
+        tasker = std::make_unique<Tasker>();
     }
 
 };

@@ -25,13 +25,13 @@ public:
 
     std::map< std::size_t , std::shared_ptr<Thing> > playersOnline; // A list of all the online players.
     
-    const std::shared_ptr<Thing>& getPlayer(const std::string& name) const
+    const std::shared_ptr<Thing> getPlayer(const std::string& name) const
     {
        std::regex r { name, std::regex_constants::icase };
 
        for (auto& [id, player] : playersOnline)
        {
-           if ( std::regex_match(player->sName, r) ) return player;
+           if ( std::regex_match(player->name, r) ) return player;
        }
        
        return nullptr;
@@ -49,8 +49,7 @@ public:
         {
            player -> networked -> handleRequest(player, *this);
       
-           if (!std::static_pointer_cast<PlayerNetworked>(player -> networked) -> isOnline() )
-               goto SKIP;
+//      if (!std::static_pointer_cast<PlayerNetworked>(player -> networked) -> isOnline() );
         }         
 
         for (auto& [name, player] : playersOnline) 
@@ -62,22 +61,20 @@ public:
         for (auto& [name, player] : playersOnline)
             player -> attackable -> doUpdate(player);
 
-        for (auto& [name, player] : playersOnline) // Send messages
-            player -> networked -> sendMessages(player, *this);    
-        
-
-        for (auto& [name, player] : playersOnline) // Send messages
+        for (auto& [name, player] : playersOnline) // make this last
             player -> notifier -> clearEvent();    
     
-        SKIP:
-
         for (auto& [name, player] : playersOnline) // Send response
             player -> networked -> sendResponse(player);    
 
         removeOfflinePlayers();
+
+        updateRooms();
     }
 
-    void addPlayer(const std::shared_ptr<Thing> player) 
+
+
+    void addPlayer(std::shared_ptr<Thing> player) 
     {
         playersOnline[player -> networked -> getID() ] = player; 
     }
@@ -87,6 +84,17 @@ public:
         playersOnline.erase(player -> networked -> getID());
     }
 
+    private:
+
+    void updateRooms()
+    {
+        for (auto& [room_id, room] : Room::mapRooms)
+        {
+            room -> doUpdate( *this );
+        }
+        
+    }
+
     void removeOfflinePlayers()
     {
         for (auto it = playersOnline.begin(); it != playersOnline.end();)
@@ -94,6 +102,7 @@ public:
             
             if (std::static_pointer_cast<PlayerNetworked>(it -> second -> networked) -> isOffline())
             {
+                it -> second -> networked -> doDisconnect( it -> second );
                 it = playersOnline.erase(it);
             }
             else

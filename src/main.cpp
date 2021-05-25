@@ -4,7 +4,6 @@
 #include "Server.hpp"
 #include "World.hpp"
 
-
 int main()
 {
     std::srand(std::time(NULL));

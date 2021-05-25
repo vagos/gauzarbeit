@@ -4,21 +4,35 @@
 #include "../Thing.hpp"
 #include "../Script/ScriptedThing.hpp"
 
+#include "../Quest.hpp"
+#include <memory>
+
 class ShopNotifier : public Notifier
 {
-   void onNotify(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> actor, Event::Type notification_type) override
+   void onNotify(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &actor, Event::Type notification_type) override
    {
        if ( notification_type == Event::Type::Say ) 
        {
-            std::stringstream phrase { actor -> networked -> getRequestStream().str() } ;
+            auto event = actor -> notifier -> event;
 
-            phrase.ignore( 20, ' ' ); // Ignore the first word.
-
-            actor -> physical -> gainItem( owner -> physical -> tInventory[0] ); 
-
-            actor -> networked -> addResponse("Here is your item!\n");
+            if (event.noun == "give")
+            {
+                actor -> physical -> gainItem( owner -> physical -> inventory[0] ); 
+                actor -> networked -> addResponse("Here is your item!\n");
+            }
        }
    }
+
+};
+
+
+class TestTalker : public Talker
+{
+
+    void doUpdate(const std::shared_ptr<Thing> &owner) override
+    {
+
+    }
 
 };
 
@@ -30,6 +44,7 @@ public:
     {
         physical = std::make_shared<Physical>();
         notifier = std::make_shared<ShopNotifier>();
+        talker = std::make_shared<TestTalker>();
 
         physical -> gainItem( std::make_shared<ScriptedThing>("Winston") );
     }

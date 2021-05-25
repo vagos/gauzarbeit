@@ -2,6 +2,7 @@
 #define SCRIPTED_THING_HPP
 
 #include "../Thing.hpp"
+#include <lua.h>
 
 class lua_State;
 
@@ -10,11 +11,6 @@ class ScriptedThing : public Thing
 
 public: 
     ScriptedThing(const std::string& name);
-
-    ~ScriptedThing()
-    {
-        std::clog << sName << " got deleted!\n";
-    }
 
     const std::string getInfo() const override
     {
@@ -28,9 +24,20 @@ public:
     static int GetName(lua_State * L);
 
     static int LoseItem(lua_State * L);
+    static int GainItem(lua_State * L);
+    static int DropItem(lua_State * L);
     static int GetThing(lua_State * L);
+    static int HasItem(lua_State * L);
+
+    static int GainXP(lua_State * L);
+    static int GetLevel(lua_State * L);
+
+    static int AddTask(lua_State* L);
+    static int TickTask(lua_State * L);
     
     static int SendMessage(lua_State * L);
+    static int BroadcastMessage(lua_State * L);
+
     static int SetMaxHealth(lua_State * L);
     
     static void InitLua();
@@ -42,5 +49,15 @@ public:
     static const std::string scriptDir;
 
 };
+
+// class ScriptedQuest : public ScriptedThing
+// {
+//     ScriptedQuest(const std::string& name): ScriptedThing(name)
+//     {
+// 
+//     }
+// 
+// 
+// };
 
 #endif

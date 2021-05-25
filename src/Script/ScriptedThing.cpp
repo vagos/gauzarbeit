@@ -2,7 +2,12 @@
 #include "ScriptedThing.hpp"
 #include "ScriptedUsable.hpp"
 #include "ScriptedAttackable.hpp"
+#include "ScriptedNotifier.hpp"
+#include "ScriptedTasker.hpp"
+#include "ScriptedPhysical.hpp"
 #include "../Room.hpp"
+#include "../Helpers.hpp"
+
 #include <lua.h>
 #include <memory>
 
@@ -10,18 +15,21 @@
 ScriptedThing::ScriptedThing(const std::string& name):
     Thing(name) 
 {
-    usable = std::make_unique<ScriptedUsable>(); // Create components
-    attackable = std::make_unique<ScriptedAttackable>();
+        usable = std::make_unique<ScriptedUsable>(); // Create components
+        attackable = std::make_unique<ScriptedAttackable>();
+        notifier = std::make_unique<ScriptedNotifier>();
+        tasker = std::make_unique<ScriptedTasker>();
+        physical = std::make_unique<ScriptedPhysical>();
 
-        lua_getglobal(L, sName.c_str());
+        lua_getglobal(L, name.c_str());
         
         if (lua_isnil(L, -1))
         {
             lua_newtable(L);
-            lua_setglobal(L, sName.c_str()); // Create a Lua table.
+            lua_setglobal(L, name.c_str()); // Create a Lua table.
         }
 
-        std::string filename( scriptDir + sName + ".lua" );
+        std::string filename( scriptDir + name + ".lua" );
 
         lua_newtable(L);
 
@@ -36,7 +44,7 @@ ScriptedThing::ScriptedThing(const std::string& name):
 
         // doInit
         
-        lua_getglobal(L, sName.c_str());
+        lua_getglobal(L, name.c_str());
         lua_getfield(L, -1, "doInit");
 
         if (lua_isfunction(L, -1))
@@ -86,7 +94,7 @@ int ScriptedThing::GetName(lua_State *L)
 {
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
-    lua_pushstring(L, ptrThing -> sName.c_str());
+    lua_pushstring(L, ptrThing -> name.c_str());
 
     return 1;
 }
@@ -124,15 +132,30 @@ int ScriptedThing::LoseItem(lua_State *L)
 
     Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
 
-    auto item = std::find_if( ptrThing -> physical -> tInventory.begin(), ptrThing -> physical -> tInventory.end(), 
-            [&ptrThingItem](std::shared_ptr<Thing>& p) {return p.get() == ptrThingItem;});
+    auto item = GetSmartPtr(ptrThing -> physical -> inventory, ptrThingItem);
 
-    ptrThing -> physical -> loseItem(*item);
+    ptrThing -> physical -> loseItem(item);
 
     return 0;
 }
 
-int ScriptedThing::GetThing(lua_State *L)
+int ScriptedThing::DropItem(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+    
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
+
+    auto item = GetSmartPtr(ptrThing -> physical -> inventory,
+            ptrThingItem);
+
+    ptrThing -> physical -> dropItem(item);
+
+    return 0;
+}
+
+int ScriptedThing::GetThing(lua_State *L) // Return a thing from inside the room.
 {
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
@@ -143,7 +166,116 @@ int ScriptedThing::GetThing(lua_State *L)
     lua_pushlightuserdata(L, thing.get());
 
     return 1;
+}
 
+int ScriptedThing::GainItem(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+    
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
+
+    auto item = GetSmartPtr(ptrThing -> physical -> getRoom() -> listThings, ptrThingItem);
+
+    if (item) ptrThing -> physical -> gainItem(item);
+
+    return 0;
+}
+
+int ScriptedThing::HasItem(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+    
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
+
+    auto item = GetSmartPtr(ptrThing -> physical -> inventory, ptrThingItem);
+
+    lua_pushboolean(L, item && ptrThing -> physical -> hasItem(item));
+    
+    return 1;
+}
+
+int ScriptedThing::BroadcastMessage(lua_State *L)
+{
+    
+    assert(lua_isuserdata(L, 1));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    assert(lua_isstring(L, 2));
+    const std::string message { lua_tostring(L, 2) };
+
+    auto p = GetSmartPtr(ptrThing -> physical -> getRoom() -> listPlayers, ptrThing);
+    assert(p != nullptr);
+
+    p -> notifier -> setEventPayload(message);
+    p -> notifier -> doNotify(p, Notifier::Event::Type::Message);
+
+    return 0;
+}
+
+int ScriptedThing::AddTask(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    if (ptrThing -> tasker)
+    {
+        lua_pushnumber(L, ptrThing -> tasker -> addTask());
+        return 1;
+    }
+
+    return 0;
+}
+
+int ScriptedThing::TickTask(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+    
+    if (ptrThing -> tasker)
+    {
+        ptrThing -> tasker -> tickTask( (int)lua_tonumber(L, 2) );
+    }
+
+    return 0;
+
+}
+
+int ScriptedThing::GainXP(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+    
+    if (ptrThing -> achiever)
+    {
+        ptrThing -> achiever -> gainXP( lua_tonumber(L, 2) );
+    }
+
+    return 0;
+
+}
+
+int ScriptedThing::GetLevel(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+   
+    if (ptrThing -> achiever)
+    {
+        lua_pushnumber( L, ptrThing -> achiever -> getLevel() );
+
+        return 1;
+    }
+   
+    return 0;
 }
 
 
@@ -164,11 +296,30 @@ void ScriptedThing::InitLua()
     {"setMaxHealth", ScriptedThing::SetMaxHealth},
     {"sendMessage", ScriptedThing::SendMessage},
     {"loseItem", ScriptedThing::LoseItem},
+    {"dropItem", ScriptedThing::DropItem},
     {"getThing", ScriptedThing::GetThing},
+    {"gainItem", ScriptedThing::GainItem},
+    {"hasItem", ScriptedThing::HasItem},
+    {"broadcastMessage", ScriptedThing::BroadcastMessage},
+    {"addTask", ScriptedThing::AddTask},
+    {"tickTask", ScriptedThing::TickTask},
+    {"gainXP", ScriptedThing::GainXP},
+    {"getLevel", ScriptedThing::GetLevel},
     {NULL, NULL}
     };
 
     luaL_setfuncs(L, thingMethods, 0);
+
+    // Create the global Gauzarbeit table.
+    lua_newtable(L);
+
+    lua_newtable(L);
+    lua_pushnumber(L, (int)Notifier::Event::Type::Catch);
+    lua_setfield(L, -2, "Catch");
+    lua_setfield(L, -2, "Event");
+
+    lua_setglobal(L, "Gauzarbeit");
+    
 }
 
 lua_State * ScriptedThing::L = luaL_newstate(); 
