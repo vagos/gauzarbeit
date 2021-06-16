@@ -21,9 +21,7 @@ public:
     Networked() 
     {
         socket = std::make_unique<sf::TcpSocket>();
-
         ID = lastID; ++lastID;
-
     }
 
     std::unique_ptr<sf::TcpSocket> socket;
@@ -32,6 +30,7 @@ public:
     virtual void handleRequest(std::shared_ptr<Thing> owner, World& world) {}
     virtual void getRequest(std::shared_ptr<Thing> owner, World& world) {}
     virtual void sendResponse(std::shared_ptr<Thing> owner) {}
+    virtual void doDatabaseLoad(std::shared_ptr<Thing> owner) {}
 
     
     void addResponse(const std::string& res)
@@ -44,6 +43,9 @@ public:
     const std::stringstream& getRequestStream() { return streamRequest; }
 
     std::size_t getID() {return ID;}
+
+    virtual bool isOnline() {return online;}
+    virtual bool isOffline() {return false;}
 
 protected:
     
@@ -61,6 +63,8 @@ protected:
 
     std::stringstream streamRequest;
     std::stringstream streamResponse;
+
+    bool online = false;
 
 };
 

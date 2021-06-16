@@ -5,6 +5,7 @@
 #include "ScriptedNotifier.hpp"
 #include "ScriptedTasker.hpp"
 #include "ScriptedPhysical.hpp"
+#include "ScriptInspectable.hpp"
 #include "../Room.hpp"
 #include "../Helpers.hpp"
 
@@ -12,7 +13,7 @@
 #include <memory>
 
 
-ScriptedThing::ScriptedThing(const std::string& name):
+ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_dir): 
     Thing(name) 
 {
         usable = std::make_unique<ScriptedUsable>(); // Create components
@@ -20,6 +21,7 @@ ScriptedThing::ScriptedThing(const std::string& name):
         notifier = std::make_unique<ScriptedNotifier>();
         tasker = std::make_unique<ScriptedTasker>();
         physical = std::make_unique<ScriptedPhysical>();
+        inspectable = std::make_unique<ScriptedInspectable>();
 
         lua_getglobal(L, name.c_str());
         
@@ -29,7 +31,7 @@ ScriptedThing::ScriptedThing(const std::string& name):
             lua_setglobal(L, name.c_str()); // Create a Lua table.
         }
 
-        std::string filename( scriptDir + name + ".lua" );
+        std::string filename( script_dir + name + ".lua" );
 
         lua_newtable(L);
 
@@ -157,11 +159,13 @@ int ScriptedThing::DropItem(lua_State *L)
 
 int ScriptedThing::GetThing(lua_State *L) // Return a thing from inside the room.
 {
+    assert(lua_isuserdata(L, 1));
+    assert(lua_isstring(L, 2));
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
-    auto thing = ptrThing -> physical -> getRoom() -> listThings.front();
+    auto thing = ptrThing -> physical -> current_room -> getThing( lua_tostring(L, 2) );
 
-    ptrThing -> physical -> getRoom() -> listThings.pop_front();
+    if (!thing) return 0;
 
     lua_pushlightuserdata(L, thing.get());
 
@@ -174,11 +178,24 @@ int ScriptedThing::GainItem(lua_State *L)
     
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
-    Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
+    if (lua_isstring(L, 2))
+    {
+        auto t_n = std::string(lua_tostring(L, 2));
+        auto item = std::make_shared<ScriptedThing>(t_n);
+        
+        ptrThing -> physical -> gainItem(item);
+    }
 
-    auto item = GetSmartPtr(ptrThing -> physical -> getRoom() -> listThings, ptrThingItem);
+    else if (lua_isuserdata(L, 2))
+    {
+        Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
+        auto item = GetSmartPtr(ptrThing -> physical -> current_room -> things, ptrThingItem);
 
-    if (item) ptrThing -> physical -> gainItem(item);
+        if (!item) return 0;
+
+        ptrThing -> physical -> current_room -> removeThing(item);
+        ptrThing -> physical -> gainItem(item);
+    }
 
     return 0;
 }
@@ -208,7 +225,7 @@ int ScriptedThing::BroadcastMessage(lua_State *L)
     assert(lua_isstring(L, 2));
     const std::string message { lua_tostring(L, 2) };
 
-    auto p = GetSmartPtr(ptrThing -> physical -> getRoom() -> listPlayers, ptrThing);
+    auto p = GetSmartPtr(ptrThing -> physical -> getRoom() -> players, ptrThing);
     assert(p != nullptr);
 
     p -> notifier -> setEventPayload(message);
@@ -278,6 +295,78 @@ int ScriptedThing::GetLevel(lua_State *L)
     return 0;
 }
 
+int ScriptedThing::IsValid(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    lua_pushboolean(L, (bool)lua_touserdata(L, 1));
+
+    return 1;
+}
+
+int ScriptedThing::GetEventInfo(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    if (ptrThing -> notifier)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, ptrThing -> notifier -> event.verb.c_str());
+        lua_setfield(L, -2, "verb");
+        
+        lua_pushstring(L, ptrThing -> notifier -> event.target.c_str());
+        lua_setfield(L, -2, "target");
+
+        lua_pushstring(L, ptrThing -> notifier -> event.object.c_str());
+        lua_setfield(L, -2, "object");
+        
+        lua_pushstring(L, ptrThing -> notifier -> event.extra.c_str());
+        lua_setfield(L, -2, "extra");
+
+        return 1;
+    }
+ 
+    return 0;
+}
+
+int ScriptedThing::EquipItem(lua_State * L)
+{
+    assert(lua_isuserdata(L, 1));
+    
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
+
+    auto item = GetSmartPtr(ptrThing -> physical -> inventory, ptrThingItem);
+
+    if (item) ptrThing -> physical -> equipItem(item);
+
+    return 0;
+}
+
+// Returns a Player with the given name in the room the thing is in
+int ScriptedThing::GetPlayer(lua_State *L) 
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    if (!lua_isstring(L, 2)) return 0;
+
+    std::string t_n(lua_tostring(L, 2));
+
+    auto t = ptrThing->physical->current_room->getPlayer(t_n);
+
+    if (!t) return 0;
+        
+    lua_pushlightuserdata(L, t.get());
+
+    return 1;
+
+}
 
 void ScriptedThing::InitLua()
 {
@@ -297,14 +386,18 @@ void ScriptedThing::InitLua()
     {"sendMessage", ScriptedThing::SendMessage},
     {"loseItem", ScriptedThing::LoseItem},
     {"dropItem", ScriptedThing::DropItem},
+    {"equipItem", ScriptedThing::EquipItem},
     {"getThing", ScriptedThing::GetThing},
+    {"getPlayer", ScriptedThing::GetPlayer},
     {"gainItem", ScriptedThing::GainItem},
     {"hasItem", ScriptedThing::HasItem},
     {"broadcastMessage", ScriptedThing::BroadcastMessage},
     {"addTask", ScriptedThing::AddTask},
     {"tickTask", ScriptedThing::TickTask},
     {"gainXP", ScriptedThing::GainXP},
+    {"getEventInfo", ScriptedThing::GetEventInfo},
     {"getLevel", ScriptedThing::GetLevel},
+    {"isValid", ScriptedThing::IsValid},
     {NULL, NULL}
     };
 
@@ -313,9 +406,14 @@ void ScriptedThing::InitLua()
     // Create the global Gauzarbeit table.
     lua_newtable(L);
 
+    // Create the Gauzarbeit.Event table
     lua_newtable(L);
+
     lua_pushnumber(L, (int)Notifier::Event::Type::Catch);
     lua_setfield(L, -2, "Catch");
+    lua_pushnumber(L, (int)Notifier::Event::Type::Info);
+    lua_setfield(L, -2, "Info");
+    
     lua_setfield(L, -2, "Event");
 
     lua_setglobal(L, "Gauzarbeit");
@@ -323,5 +421,3 @@ void ScriptedThing::InitLua()
 }
 
 lua_State * ScriptedThing::L = luaL_newstate(); 
-
-const std::string ScriptedThing::scriptDir{"./Scripts/"};

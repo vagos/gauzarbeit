@@ -39,6 +39,8 @@ public:
 
     void doUpdate()
     {
+        updateRooms();
+        
         for (auto& [name, player] : playersOnline) // Get request
             player -> networked -> getRequest(player, *this); 
         
@@ -46,11 +48,7 @@ public:
             player -> notifier -> setEvent(player); 
 
         for (auto& [name, player] : playersOnline) // Handle request
-        {
            player -> networked -> handleRequest(player, *this);
-      
-//      if (!std::static_pointer_cast<PlayerNetworked>(player -> networked) -> isOnline() );
-        }         
 
         for (auto& [name, player] : playersOnline) 
             player -> talker -> doUpdate(player);
@@ -69,14 +67,11 @@ public:
 
         removeOfflinePlayers();
 
-        updateRooms();
     }
-
-
 
     void addPlayer(std::shared_ptr<Thing> player) 
     {
-        playersOnline[player -> networked -> getID() ] = player; 
+        playersOnline[ player -> networked -> getID() ] = player; 
     }
 
     void removePlayer(const std::shared_ptr<Thing>& player)
@@ -99,8 +94,7 @@ public:
     {
         for (auto it = playersOnline.begin(); it != playersOnline.end();)
         {
-            
-            if (std::static_pointer_cast<PlayerNetworked>(it -> second -> networked) -> isOffline())
+            if (!it -> second -> networked -> isOnline())
             {
                 it -> second -> networked -> doDisconnect( it -> second );
                 it = playersOnline.erase(it);
@@ -111,7 +105,6 @@ public:
             }
             
         }
-
     }
 };
 #endif//WORLD_HPP

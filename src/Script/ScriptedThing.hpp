@@ -10,7 +10,7 @@ class ScriptedThing : public Thing
 {
 
 public: 
-    ScriptedThing(const std::string& name);
+    ScriptedThing(const std::string& name, const std::string& script_dir = "./Scripts/");
 
     const std::string getInfo() const override
     {
@@ -20,14 +20,21 @@ public:
     static int Index(lua_State * L);
     
     static int NewIndex(lua_State * L);
+
+    static int IsValid(lua_State *L);
     
     static int GetName(lua_State * L);
+
+    static int GetEventInfo(lua_State *L);
 
     static int LoseItem(lua_State * L);
     static int GainItem(lua_State * L);
     static int DropItem(lua_State * L);
     static int GetThing(lua_State * L);
     static int HasItem(lua_State * L);
+    static int EquipItem(lua_State * L);
+
+    static int GetPlayer(lua_State *L);
 
     static int GainXP(lua_State * L);
     static int GetLevel(lua_State * L);
@@ -45,19 +52,6 @@ public:
     static lua_State * L;
 
     int luaRef;
-
-    static const std::string scriptDir;
-
 };
-
-// class ScriptedQuest : public ScriptedThing
-// {
-//     ScriptedQuest(const std::string& name): ScriptedThing(name)
-//     {
-// 
-//     }
-// 
-// 
-// };
 
 #endif

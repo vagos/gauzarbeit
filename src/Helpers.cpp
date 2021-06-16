@@ -1,6 +1,10 @@
 #include <memory>
+#include <iostream>
+#include <sstream>
+#include <regex>
 
 #include "Helpers.hpp"
+#include "Thing.hpp"
 
 bool IsNumber(const std::string& s)
 {
@@ -51,6 +55,22 @@ const std::string ColorString(const std::string &s, Color color_code)
     return GetColor(color_code) + s + GetColor(Color::None);
 }
 
+const std::string HeaderString(const std::string &s, const std::string &title, const char h, int size)
+{
+    int g = (size - title.size()) / 2;
+    std::string r(g, h);
+
+    r += title;
+    r.resize( size, h ); 
+    r += '\n';
+    r += s;
+    r.resize(r.size() + size, h);
+    r += '\n';
+
+    return r;
+    
+}
+
 
 class Thing;
 template<typename T>
@@ -60,4 +80,22 @@ const std::shared_ptr<Thing> GetSmartPtr(const T& c, Thing * t_ptr)
             {return t.get() == t_ptr;});    
     
     return r != c.end() ? *r : nullptr;
+}
+
+template <typename T>
+const std::shared_ptr<Thing> FindByName(const T &container, const std::string &s)
+{
+   auto r = std::find_if(container.begin(), container.end(), 
+           [&s](const auto& i){return i -> name == s;});
+
+   return r != container.end() ? *r : nullptr;
+}
+
+std::vector<std::string> TokenizeString(const std::string &s)
+{
+    auto const re = std::regex{R"(\s+)"};
+    
+    return std::vector<std::string>(
+        std::sregex_token_iterator{begin(s), end(s), re, -1},
+        std::sregex_token_iterator{});
 }

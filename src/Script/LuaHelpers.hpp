@@ -10,13 +10,6 @@ class Thing;
 
 #include "lua.hpp"
 
-extern "C"
-{
-    #include <lua5.3/lua.h>
-    #include <lua5.3/lauxlib.h>
-    #include <lua5.3/lualib.h>
-}
-
 bool CheckLua(lua_State *L, int r)
 {
 	if (r != LUA_OK)

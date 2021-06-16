@@ -10,6 +10,14 @@
 #include "../Thing.hpp"
 #include "../Server.hpp"
 
+#include "PlayerPhysical.hpp"
+#include "PlayerAttackable.hpp"
+#include "PlayerNotifier.hpp"
+#include "PlayerTalker.hpp"
+#include "PlayerInspectable.hpp"
+
+
+
 class World;
 
 class PlayerNetworked : public Networked 
@@ -20,6 +28,7 @@ public:
     PlayerNetworked(): state(State::Entering)
     {
         //state = State::LoggedIn;
+        online = true;
     }
 
     void getRequest( std::shared_ptr<Thing> owner, World& world )
@@ -35,17 +44,19 @@ public:
             return;
         }
 
-        if (  cData[nReceived - 1] != '\n' ) return;
+        if (!nReceived) return;
+
+        if ( cData[nReceived - 1] != '\n' ) return;
         
         streamRequest << std::string{cData, nReceived - 2};
 
         std::clog << *owner << ": " << streamRequest.str() << " Received: " << nReceived << " bytes" << "\n";
-
     }
     
     void sendResponse(std::shared_ptr<Thing> owner) override
     {
         //if ( ! Server::getSocketSelector().isReady( *socket ) ) return;
+
         if ( ! streamResponse.str().size() ) goto CLEAR;
 
         socket -> send(streamResponse.str().c_str(), streamResponse.str().size());
@@ -57,7 +68,6 @@ public:
     
     void handleRequest(std::shared_ptr<Thing> owner, World& world) override
     {
-
         auto& event = owner -> notifier -> event;
 
         if ( event.verb == "login" )
@@ -68,34 +78,15 @@ public:
                 return;
             }
 
-            owner -> name = owner -> notifier -> event.noun;
+            owner -> name = owner -> notifier -> event.target;
 
             setState( State::LoggedIn ); 
+            online = true;
 
             addResponse( ColorString("You are logged in as " + owner -> name + ".\n", Color::Green) );
 
-        }
+            doDatabaseLoad(owner);
 
-        else if ( event.verb == "msg" )
-        {
-            owner -> notifier -> doNotify(owner, Notifier::Event::Type::Chat); 
-        }
-
-        else if ( event.verb == "whisper" )
-        {
-            auto p = owner -> physical -> getRoom() -> getPlayer( event.noun );
-
-            if (!p)
-            {
-                owner -> networked -> addResponse( ColorString("Player not found!\n", Color::Red) );
-                return;
-            }
-            
-            std::stringstream whisper;
-
-            whisper << owner -> name << " whispered to you: " << std::quoted(owner -> notifier -> event.extra) << '\n';
-            
-            p -> networked -> addResponse( ColorString( whisper.str(), Color::Yellow ) );
         }
 
         else if ( event.verb == "exit" )
@@ -105,16 +96,17 @@ public:
             setState(State::LoggedOut);
         }
 
-        else if ( event.verb.size() && state == State::Entering )
+        else if ( event.verb.size() && !isOnline() )
         {
             addResponse( ColorString("You need to log in!\n", Color::Red) );
         }
 
     }
 
-    bool isOnline() {return state == State::LoggedIn;}
+    void doDatabaseLoad(std::shared_ptr<Thing> owner) override
+    {
+    }
 
-    bool isOffline() {return state == State::LoggedOut;}
 
 private: 
     enum class State

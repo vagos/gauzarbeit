@@ -33,6 +33,8 @@ public:
         inventory.push_back(item);
     }
 
+    void giveItem(std::shared_ptr<Thing> target, std::shared_ptr<Thing> item);
+
     std::shared_ptr<Thing> getItem(std::string item_name);
         
     std::shared_ptr<Thing> getItem(int item_index)
@@ -52,11 +54,16 @@ public:
         return std::find( inventory.begin(), inventory.end(), item ) != inventory.end();
     }
 
-    //void giveItem(std::shared_ptr<>)
+    void equipItem( std::shared_ptr<Thing> item )
+    {
+        equipment.push_back(item);
+        loseItem(item);
+    }
 
     std::shared_ptr<Room> current_room = nullptr;
     std::vector< std::shared_ptr<Thing> > inventory;
-
+    std::vector< std::shared_ptr<Thing> > equipment;
+    
 };
 
 #endif//PHYSICAL_HPP

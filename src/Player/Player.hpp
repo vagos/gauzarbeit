@@ -7,12 +7,17 @@
 
 #include "PlayerNetworked.hpp"
 #include "PlayerPhysical.hpp"
+#include "PlayerAttackable.hpp"
+#include "PlayerNotifier.hpp"
+#include "PlayerTalker.hpp"
+#include "PlayerInspectable.hpp"
+
 
 class Player : public Thing
 {
 public:
     Player(); 
-    
+
     const std::string getInfo() const override
     {
         std::stringstream ss;

@@ -15,8 +15,6 @@ public:
     {
         const auto& L = std::static_pointer_cast<ScriptedThing>(owner) -> L;
 
-        //luaL_getmetatable(L, "Gauzarbeit.Thing");
-
         lua_getglobal(  L, owner -> name.c_str() );
 
         lua_getfield( L, -1, "onUse" );

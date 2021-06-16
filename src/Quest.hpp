@@ -5,21 +5,19 @@
 #include <string>
 
 #include "Physical.hpp"
+#include "Script/ScriptedThing.hpp"
 #include "Thing.hpp"
 
 
-
-
-class Quest : public Thing
+class ScriptedQuest : public ScriptedThing
 {
 public:
-
-    Quest()
+    ScriptedQuest(const std::string& name):
+        ScriptedThing(name, "./Scripts/Quests/")
     {
-        tasker = std::make_unique<Tasker>();
+
     }
 
 };
-
 
 #endif//QUEST_HPP

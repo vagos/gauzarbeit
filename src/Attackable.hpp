@@ -30,9 +30,16 @@ public:
         current_health = max_health;
     }
 
+    bool is_alive() {return alive;}
+
+
 public:
 
     int max_health, current_health, attack = 1, defense;
+
+protected:
+    bool alive = true;
+
 };
 
 #endif//ATTACKABLE_HPP

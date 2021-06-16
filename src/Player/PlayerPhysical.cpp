@@ -1,10 +1,10 @@
-#include "PlayerPhysical.hpp"
-#include "PlayerNetworked.hpp"
+#include "../Helpers.hpp"
 #include "../World.hpp"
 #include <memory>
 #include <sstream>
 
-#include "../Helpers.hpp"
+#include "PlayerPhysical.hpp"
+#include "PlayerNetworked.hpp"
 #include "../Script//ScriptedThing.hpp"
 
 void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & world)
@@ -14,12 +14,12 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
 
     if ( event.verb == "move"  )
     {
-        moveDirection(owner, event.extra);
+        moveDirection(owner, event.target);
     }
 
     else if( event.verb == "get" )
     {
-        gainItem( std::make_shared<ScriptedThing>(event.noun) );
+        gainItem( std::make_shared<ScriptedThing>(event.target) );
     }
 
     else if ( event.verb == "catch" )
@@ -31,47 +31,60 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
     {
         std::stringstream res;
 
-        res << "Players in the room: \n";
+        res << HeaderString( VerticalListString(current_room -> players, '*'), "Players in the Room", '=');
+        
+        res << "\n";
 
-        for (const auto& thing : current_room -> listPlayers) 
-        {
-            res << "-- " << *thing << "\n";
-        }
+        res << HeaderString( VerticalListString(current_room -> things, '*'), "Other things in the Room", '=');
         
-        res << "\n\n" << "Other things in the room: \n";
-        
-        for (const auto& thing : current_room -> listThings) 
-        {
-            res << "-- " << *thing << "\n";
-        }
-       
         owner -> networked -> addResponse( res.str() );
 
+    }
+
+    else if ( event.verb == "inspect" )
+    {
+        if (!event.target.size()) return;
+
+        auto p = current_room -> getPlayer( event.target );
+
+        if (p) owner -> networked -> addResponse(p -> inspectable -> onInspect(p, owner));
+
+        auto t = current_room -> getThing( event.target );
+
+        if (t && t -> inspectable) owner -> networked -> addResponse( t -> inspectable -> onInspect(t, owner) );
     }
 
     else if ( event.verb.substr(0, 3) == "inv" )
     {
         std::stringstream res;
 
-        res << owner -> name << "'s Inventory: \n";
+        res << owner -> name << "'s Inventory: \n\n";
 
-        for (const auto& item : inventory)
-        {
-            res << "-- " << *item << "\n";
-        }
+        res << VerticalListString(inventory, '*') << '\n';
 
         owner -> networked -> addResponse( res.str() );
+    }
 
+    else if ( event.verb.substr(0, 3) == "equ" )
+    {
+
+        std::stringstream res;
+
+        res << owner -> name << "'s Equipped Items: \n\n";
+
+        res << VerticalListString(equipment, '*') << '\n';
+
+        owner -> networked -> addResponse( res.str() );
     }
 
     else if (event.verb == "use")
     {
         std::shared_ptr<Thing> t;
 
-        if (IsNumber(event.noun))
-            t = getItem(std::atoi(event.noun.c_str()));
+        if (IsNumber(event.target))
+            t = getItem(std::atoi(event.target.c_str()));
         else
-            t = getItem(event.noun);
+            t = getItem(event.target);
     
         if (t)
             t -> usable -> onUse(t, owner);
@@ -79,7 +92,7 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
 
     else if (event.verb == "give") // fix this
     {
-        auto p = world.getPlayer(event.noun);
+        auto p = world.getPlayer(event.target);
 
         if (!p) 
         {
@@ -96,7 +109,8 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
         std::stringstream message;
         message << "You were given a " << item -> name << " by " << owner -> name << "\n"; 
         p -> networked -> addResponse( message .str() );
-        owner -> networked -> addResponse("You gave " + event.noun + " your " + item -> name + "\n");
+
+        owner -> networked -> addResponse("You gave " + event.target + " your " + item -> name + "\n");
         
         loseItem(item);
     }
@@ -145,5 +159,4 @@ void PlayerPhysical::doMove(std::shared_ptr<Thing> owner, int x, int y)
     current_room = Room::get(x, y); 
 
     current_room -> addPlayer(owner);
-
 }

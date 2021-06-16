@@ -11,7 +11,7 @@
 class ScriptedNotifier : public Notifier
 {
  
-    void onNotify(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &actor, Event::Type notification_type) override
+    void onNotify(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &actor, Event::Type notification_type, const std::shared_ptr<Thing> &target) override
     {
         const auto& L = std::static_pointer_cast<ScriptedThing>(owner) -> L;
 
@@ -24,8 +24,9 @@ class ScriptedNotifier : public Notifier
         lua_pushlightuserdata(L, owner.get());
         lua_pushlightuserdata(L, actor.get());
         lua_pushnumber(L, (int)notification_type);
+        lua_pushlightuserdata(L, target.get());
         
-        CheckLua(L, lua_pcall(L, 3, 0, 0));
+        CheckLua(L, lua_pcall(L, 4, 0, 0));
 
     }
 

@@ -8,6 +8,7 @@
 #include <sstream>
 #include <queue>
 #include <algorithm>
+#include <cassert>
 
 #include "Networked.hpp"
 #include "Physical.hpp"
@@ -25,6 +26,7 @@ class Talker;
 class Notifier;
 class Achiever;
 class Tasker;
+class Inspectable;
 
 class Thing 
 {
@@ -48,14 +50,15 @@ public:
 
     virtual const std::string getInfo() const;
 
-    std::shared_ptr<Networked> networked   = nullptr;
-    std::shared_ptr<Physical> physical     = nullptr;
-    std::shared_ptr<Usable> usable         = nullptr;
-    std::shared_ptr<Attackable> attackable = nullptr;
-    std::shared_ptr<Talker> talker         = nullptr;
-    std::shared_ptr<Notifier> notifier     = nullptr;
-    std::shared_ptr<Achiever> achiever     = nullptr;
-    std::shared_ptr<Tasker> tasker         = nullptr;
+    std::shared_ptr<Networked>   networked    = nullptr;
+    std::shared_ptr<Physical>    physical     = nullptr;
+    std::shared_ptr<Usable>      usable       = nullptr;
+    std::shared_ptr<Attackable>  attackable   = nullptr;
+    std::shared_ptr<Talker>      talker       = nullptr;
+    std::shared_ptr<Notifier>    notifier     = nullptr;
+    std::shared_ptr<Achiever>    achiever     = nullptr;
+    std::shared_ptr<Tasker>      tasker       = nullptr;
+    std::shared_ptr<Inspectable> inspectable  = nullptr;
 
     friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
     {
@@ -109,7 +112,13 @@ public:
 
     virtual const std::string onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector)
     {
-        return "";
+        if (owner -> physical)
+        {
+            return VerticalListString(owner -> physical -> inventory, '*');
+        }
+
+        return description;
+
     }
 private:
     std::string description;
@@ -139,7 +148,7 @@ public:
 
     int getLevel()
     {
-        return xp / 10;
+        return xp/10;
     }
 
 private:
@@ -158,6 +167,11 @@ public:
     }
 
     virtual void doUpdate(const std::shared_ptr<Thing>& owner)
+    {
+
+    }
+
+    virtual void onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker)
     {
 
     }
@@ -186,10 +200,15 @@ public:
             Whisper,
             Chat,
             Message,
+            Buy,
+            Info,
+            Ask,
         };
 
         std::string verb;
-        std::string noun;
+        std::string target;
+        std::string object;
+        
         std::string extra;
 
         std::string payload;
@@ -206,8 +225,7 @@ public:
 
     }
 
-    virtual void onNotify(const std::shared_ptr<Thing>& owner, 
-            const std::shared_ptr<Thing>& actor, Event::Type notification_type)
+    virtual void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor, Event::Type notification_type, const std::shared_ptr<Thing>& target = nullptr)
     {
 
     }
@@ -225,8 +243,8 @@ public:
     void clearEvent()
     {
         event.verb = "";
-        event.noun = "";
-        event.extra = "";
+        event.object = "";
+        event.target = "";
     }
 
     virtual void doUpdate(const std::shared_ptr<Thing> &owner)
