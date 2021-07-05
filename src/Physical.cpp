@@ -1,4 +1,5 @@
 #include "Physical.hpp"
+#include "Helpers.hpp"
 #include "Thing.hpp"
 #include "Room.hpp"
 
@@ -13,15 +14,21 @@ void Physical::dropItem(std::shared_ptr<Thing> item)
 
 std::shared_ptr<Thing> Physical::getItem(std::string item_name)
 {
-    auto r = std::find_if(inventory.begin(), inventory.end(), 
-            [&item_name](const std::shared_ptr<Thing>& t) {return (t -> name == item_name);}); 
+       auto container = inventory;
+       auto s = item_name;
 
-    return r != inventory.end() ? *r : nullptr;
+       auto r = std::find_if(container.begin(), container.end(), 
+               [&s](const auto& i){return i -> name == s;});
+
+       return r != container.end() ? *r : nullptr;
+
+
+    //return FindByName(inventory, item_name);
 }
 
 void Physical::giveItem(std::shared_ptr<Thing> target, std::shared_ptr<Thing> item)
 {
-    target -> physical -> gainItem(item);
+    target -> physical() -> gainItem(item);
     loseItem(item);
 }
 

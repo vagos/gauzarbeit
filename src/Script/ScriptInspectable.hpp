@@ -16,7 +16,7 @@ class ScriptedInspectable : public Inspectable
 
         lua_getfield( L, -1, "onInspect" );
 
-        if (!lua_isfunction(L, -1)) return "";
+        if (!lua_isfunction(L, -1)) return Inspectable::onInspect(owner, inspector);
 
         lua_pushlightuserdata(L, owner.get());
         lua_pushlightuserdata(L, inspector.get());
@@ -25,9 +25,7 @@ class ScriptedInspectable : public Inspectable
 
         assert(lua_isstring(L, -1));
 
-        // testing!
-
-        return std::string(lua_tostring(L, -1)) + Inspectable::onInspect(owner, inspector);
+        return  Inspectable::onInspect(owner, inspector) + std::string(lua_tostring(L, -1));
     }
 
 };

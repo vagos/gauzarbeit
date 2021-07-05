@@ -25,7 +25,7 @@ public:
             doAttack(owner, e);
        }
 
-       std::erase_if(enemies, [](const auto& e){return !e -> attackable -> is_alive();});
+       std::erase_if(enemies, [](const auto& e){return !e -> attackable() -> is_alive();});
         
     }
 
@@ -56,11 +56,11 @@ class BasicEnemy : public Thing
 public:
     BasicEnemy(const std::string& name): Thing(name)
     {
-        attackable = std::make_unique<BasicEnemyAttackable>();
-        notifier = std::make_unique<BasicEnemyNotifier>();
-        physical = std::make_unique<Physical>();
+        //_attackable = std::make_unique<BasicEnemyAttackable>();
+        _notifier = std::make_unique<BasicEnemyNotifier>();
+        _physical = std::make_unique<Physical>();
 
-        attackable -> setMaxHealth(2);
+        //attackable() -> setMaxHealth(2);
     }
 
 };

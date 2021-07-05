@@ -4,13 +4,7 @@
 #include "../Thing.hpp"
 #include <memory>
 #include <sstream>
-
-#include "PlayerNetworked.hpp"
-#include "PlayerPhysical.hpp"
-#include "PlayerAttackable.hpp"
-#include "PlayerNotifier.hpp"
-#include "PlayerTalker.hpp"
-#include "PlayerInspectable.hpp"
+#include <unordered_map>
 
 
 class Player : public Thing
@@ -22,11 +16,17 @@ public:
     {
         std::stringstream ss;
         
-        ss << "(Player) " << "[" << networked -> getID() << "]"; 
+        ss << "(Player) " << "[" << _networked -> getID() << "]"; 
 
         return ss.str();
     }
 
+    static std::unordered_map<std::string, Event::Type> playerCommands;
+
+    static void setPlayerCommands();
 };
+
+
+
 
 #endif//PLAYER_HPP

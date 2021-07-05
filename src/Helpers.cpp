@@ -3,6 +3,7 @@
 #include <sstream>
 #include <regex>
 
+#include "Exceptions.hpp"
 #include "Helpers.hpp"
 #include "Thing.hpp"
 
@@ -31,6 +32,15 @@ bool PartlyMatch(const std::string& s1, const std::string& s2, int n)
     return m == n;
 }
 
+std::vector<std::string> TokenizeString(const std::string &s)
+{
+    auto const re = std::regex{R"(\s+)"};
+    
+    return std::vector<std::string>(
+        std::sregex_token_iterator{begin(s), end(s), re, -1},
+        std::sregex_token_iterator{});
+}
+
 const std::string GetColor(Color color_code)
 {
     switch (color_code)
@@ -55,12 +65,23 @@ const std::string ColorString(const std::string &s, Color color_code)
     return GetColor(color_code) + s + GetColor(Color::None);
 }
 
+const std::string CenteredString(const std::string &s, int size)
+{
+    int g = (size - s.size()) / 2;
+
+    std::string c(g, ' ');
+
+    c += s;
+
+    c.resize(size, ' ');
+
+    return c;
+}
+
 const std::string HeaderString(const std::string &s, const std::string &title, const char h, int size)
 {
-    int g = (size - title.size()) / 2;
-    std::string r(g, h);
+    std::string r( CenteredString(title, size) );
 
-    r += title;
     r.resize( size, h ); 
     r += '\n';
     r += s;
@@ -68,7 +89,21 @@ const std::string HeaderString(const std::string &s, const std::string &title, c
     r += '\n';
 
     return r;
-    
+}
+
+const std::string BarString(float filled, int max_size, const char f, const char lb, const char rb)
+{
+    std::string s(1, lb);
+
+    std::clog << filled << '\n';
+
+    s.resize(int(max_size * filled + 1), ':');
+
+    s.resize(max_size, ' ');
+
+    s += rb;
+
+    return s;
 }
 
 
@@ -82,20 +117,21 @@ const std::shared_ptr<Thing> GetSmartPtr(const T& c, Thing * t_ptr)
     return r != c.end() ? *r : nullptr;
 }
 
-template <typename T>
-const std::shared_ptr<Thing> FindByName(const T &container, const std::string &s)
+const std::shared_ptr<Thing> FindByName(std::vector<std::shared_ptr<Thing>> &c, const std::string &s)
 {
-   auto r = std::find_if(container.begin(), container.end(), 
+   auto r = std::find_if(c.begin(), c.end(), 
            [&s](const auto& i){return i -> name == s;});
 
-   return r != container.end() ? *r : nullptr;
+   return r != c.end() ? *r : nullptr;
 }
 
-std::vector<std::string> TokenizeString(const std::string &s)
+
+
+void HandleException(const std::shared_ptr<Thing> &t, std::exception &e)
 {
-    auto const re = std::regex{R"(\s+)"};
-    
-    return std::vector<std::string>(
-        std::sregex_token_iterator{begin(s), end(s), re, -1},
-        std::sregex_token_iterator{});
+    if (!t -> _networked) return;
+
+    t -> networked() -> addResponse( ColorString( e.what(), Color::Red ) );
+
+    return;
 }

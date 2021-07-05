@@ -3,6 +3,7 @@
 
 #include <iomanip>
 #include <cassert>
+#include <sstream>
 
 
 #include "../Thing.hpp"
@@ -14,73 +15,85 @@ class PlayerTalker : public Talker
     
     void doUpdate(const std::shared_ptr<Thing> &owner) override
     {
-        auto& event = owner -> notifier -> event;
+        auto& event = owner -> notifier() -> event;
+
+        switch ( event.type )
+        {
+            case Event::Type::Do:
+            {
+                owner -> notifier() -> doNotify(owner, Event::Type::Do, nullptr);
+                break;
+            }
+
+            case Event::Type::Greet:
+            {
+                auto t = owner -> physical() -> current_room -> getThing( event.target );
+
+                t -> notifier() -> onNotify(t, owner, Event::Type::Greet);
+            }
+
+            case Event::Type::Ask:
+            {
+                auto t = owner -> physical() -> current_room -> getThing(event.target);
+
+                if (!t) throw TargetNotFound();
+
+                std::stringstream res;
+                res << "You ask " << *t << " about " << event.object << '\n';
+                owner -> networked() -> addResponse(res.str());
+                
+                t -> talker() -> onTalk(t, owner); 
+            }
+
+        }
         
-        std::stringstream res;
-
-        if ( event.verb == "quests")
-        {
-            res << owner -> name << "'s Quests: \n";
-
-            res << VerticalListString(owner->achiever->quests, '*' ,
-            [](const Thing& t) {return t.name;});
-
-            owner -> networked -> addResponse(res.str());
-        }
  
-        if ( event.verb == "say" && event.object == "aloud")
-        {
-            res << "You said: " << std::quoted( event.extra ) << '\n';
-
-            owner -> networked -> addResponse(res.str());
-
-            owner -> notifier -> doNotify(owner, Notifier::Event::Type::Chat);
-        }
-
         if ( event.verb == "tell" )
         {
-            auto p = owner -> physical -> getRoom() -> getPlayer( event.target );
+            std::stringstream res;
 
-            if (!p)
+            if (event.target == "everyone") 
             {
-                owner -> networked -> addResponse( ColorString("Player not found!\n", Color::Red) );
+                res << "You said: " << std::quoted( event.object + event.extra ) << '\n';
+
+                owner -> networked() -> addResponse(res.str());
+
+                owner -> notifier() -> doNotify(owner, Event::Type::Chat);
+
                 return;
             }
+
+            auto p = owner -> physical() -> current_room -> getPlayer( event.target );
+
+            if (!p) throw TargetNotFound();
             
             std::stringstream whisper;
 
-            whisper << owner -> name << " whispered to you: " << std::quoted(owner -> notifier -> event.extra) << '\n';
+            whisper << owner -> name << " whispered to you: " << std::quoted(event.object + event.extra) << '\n';
             
-            p -> networked -> addResponse( ColorString( whisper.str(), Color::Yellow ) );
+            p -> networked() -> addResponse( ColorString( whisper.str(), Color::Yellow ) );
  
         }
 
-        if ( event.verb == "inform" )
-        {
-            auto p = owner -> physical -> current_room -> getPlayer( event.target );
-
-            if (p) p -> notifier -> onNotify(p, owner, Notifier::Event::Type::Info);
-            else owner -> networked -> addResponse( ColorString("No player with that name found!\n", Color::Red) );
-        }
+//        if ( event.verb == "do" )
+//        {
+//            auto p = owner -> physical -> current_room -> getPlayer( event.target );
+//
+//            if (p) p -> notifier -> onNotify(p, owner, Event::Type::Info);
+//            else owner -> networked -> addResponse( ColorString("No player with that name found!\n", Color::Red) );
+//        }
         
-        if ( event.verb == "buy" )
-        {
-            auto t = owner -> physical -> current_room -> getThing( event.target );
-
-            if (t)
-            {
-                assert(t -> notifier);
-                t -> notifier -> onNotify(t, owner, Notifier::Event::Type::Buy);
-            }
-        }
-
-        if (event.verb == "ask")
-        {
-            auto t = owner -> physical -> current_room -> getThing(event.target);
-
-            if (t) t -> notifier -> onNotify(t, owner, Notifier::Event::Type::Ask);
-            else owner -> networked -> addResponse( ColorString("Nothing with that name found!\n", Color::Red) );
-        }
+//        if ( event.verb == "buy" )
+//        {
+//            auto t = owner -> physical -> current_room -> getThing( event.target );
+//
+//            if (t)
+//            {
+//                assert(t -> notifier);
+//                t -> notifier -> onNotify(t, owner, Notifier::Event::Type::Buy);
+//            }
+//        }
+//
     }
 };
 

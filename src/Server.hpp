@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "Room.hpp"
+#include "Player/Player.hpp"
 
 class Server
 {
@@ -21,6 +22,7 @@ public:
         std::clog << "Server started on port " << port << "\n";
 
         socketSelector.add(socketListener);
+
     }
     
     void doUpdate(World& world); // Change this

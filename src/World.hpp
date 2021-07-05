@@ -24,6 +24,11 @@ class World
 public:
 
     std::map< std::size_t , std::shared_ptr<Thing> > playersOnline; // A list of all the online players.
+
+    World()
+    {
+        Player::setPlayerCommands();
+    }
     
     const std::shared_ptr<Thing> getPlayer(const std::string& name) const
     {
@@ -42,41 +47,44 @@ public:
         updateRooms();
         
         for (auto& [name, player] : playersOnline) // Get request
-            player -> networked -> getRequest(player, *this); 
+            player -> networked() -> getRequest(player, *this); 
         
         for (auto& [name, player] : playersOnline) 
-            player -> notifier -> setEvent(player); 
+            player -> notifier() -> setEvent(player); 
 
         for (auto& [name, player] : playersOnline) // Handle request
-           player -> networked -> handleRequest(player, *this);
+           player -> networked() -> handleRequest(player, *this);
 
         for (auto& [name, player] : playersOnline) 
-            player -> talker -> doUpdate(player);
+            player -> talker() -> doUpdate(player);
 
         for (auto& [name, player] : playersOnline)
-            player -> physical -> doUpdate(player, *this);
+            player -> physical() -> doUpdate(player, *this);
         
         for (auto& [name, player] : playersOnline)
-            player -> attackable -> doUpdate(player);
+        {
+            try { player -> attackable() -> doUpdate(player); } 
+            catch (std::exception& e) { HandleException(player, e); }
+        }
 
         for (auto& [name, player] : playersOnline) // make this last
-            player -> notifier -> clearEvent();    
+            player -> notifier() -> clearEvent();    
     
         for (auto& [name, player] : playersOnline) // Send response
-            player -> networked -> sendResponse(player);    
+            player -> networked() -> sendResponse(player);    
 
-        removeOfflinePlayers();
+        //removeOfflinePlayers();
 
     }
 
     void addPlayer(std::shared_ptr<Thing> player) 
     {
-        playersOnline[ player -> networked -> getID() ] = player; 
+        playersOnline[ player -> networked() -> getID() ] = player; 
     }
 
     void removePlayer(const std::shared_ptr<Thing>& player)
     {
-        playersOnline.erase(player -> networked -> getID());
+        playersOnline.erase(player -> networked() -> getID());
     }
 
     private:
@@ -94,9 +102,9 @@ public:
     {
         for (auto it = playersOnline.begin(); it != playersOnline.end();)
         {
-            if (!it -> second -> networked -> isOnline())
+            if (!it -> second -> networked() -> isOnline())
             {
-                it -> second -> networked -> doDisconnect( it -> second );
+                it -> second -> networked() -> doDisconnect( it -> second );
                 it = playersOnline.erase(it);
             }
             else

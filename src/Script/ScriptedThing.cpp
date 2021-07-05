@@ -8,20 +8,24 @@
 #include "ScriptInspectable.hpp"
 #include "../Room.hpp"
 #include "../Helpers.hpp"
+#include "../Quest.hpp"
 
 #include <lua.h>
 #include <memory>
+#include <string>
 
 
 ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_dir): 
     Thing(name) 
 {
-        usable = std::make_unique<ScriptedUsable>(); // Create components
-        attackable = std::make_unique<ScriptedAttackable>();
-        notifier = std::make_unique<ScriptedNotifier>();
-        tasker = std::make_unique<ScriptedTasker>();
-        physical = std::make_unique<ScriptedPhysical>();
-        inspectable = std::make_unique<ScriptedInspectable>();
+        _usable = std::make_unique<ScriptedUsable>(); // Create components
+        _attackable = std::make_unique<ScriptedAttackable>();
+        _notifier = std::make_unique<ScriptedNotifier>();
+        _tasker = std::make_unique<ScriptedTasker>();
+        _physical = std::make_unique<ScriptedPhysical>();
+        _inspectable = std::make_unique<ScriptedInspectable>();
+        _achiever = std::make_unique<Achiever>();
+        _talker = std::make_unique<Talker>();
 
         lua_getglobal(L, name.c_str());
         
@@ -107,7 +111,7 @@ int ScriptedThing::SendMessage(lua_State * L)
 
     std::string message{ lua_tostring(L, 2) };
     
-    ptrThing -> networked -> addResponse(message);
+    ptrThing -> networked() -> addResponse(message);
 
     return 0;
 
@@ -121,7 +125,7 @@ int ScriptedThing::SetMaxHealth(lua_State *L)
 
     int max_health = (int)lua_tonumber(L, 2);
 
-    ptrThing -> attackable -> setMaxHealth(max_health);
+    ptrThing -> attackable() -> setMaxHealth(max_health);
 
     return 0;
 }
@@ -134,9 +138,9 @@ int ScriptedThing::LoseItem(lua_State *L)
 
     Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
 
-    auto item = GetSmartPtr(ptrThing -> physical -> inventory, ptrThingItem);
+    auto item = GetSmartPtr(ptrThing -> physical() -> inventory, ptrThingItem);
 
-    ptrThing -> physical -> loseItem(item);
+    ptrThing -> physical() -> loseItem(item);
 
     return 0;
 }
@@ -149,10 +153,10 @@ int ScriptedThing::DropItem(lua_State *L)
 
     Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
 
-    auto item = GetSmartPtr(ptrThing -> physical -> inventory,
+    auto item = GetSmartPtr(ptrThing -> physical() -> inventory,
             ptrThingItem);
 
-    ptrThing -> physical -> dropItem(item);
+    ptrThing -> physical() -> dropItem(item);
 
     return 0;
 }
@@ -163,7 +167,7 @@ int ScriptedThing::GetThing(lua_State *L) // Return a thing from inside the room
     assert(lua_isstring(L, 2));
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
-    auto thing = ptrThing -> physical -> current_room -> getThing( lua_tostring(L, 2) );
+    auto thing = ptrThing -> physical() -> current_room -> getThing( lua_tostring(L, 2) );
 
     if (!thing) return 0;
 
@@ -183,18 +187,18 @@ int ScriptedThing::GainItem(lua_State *L)
         auto t_n = std::string(lua_tostring(L, 2));
         auto item = std::make_shared<ScriptedThing>(t_n);
         
-        ptrThing -> physical -> gainItem(item);
+        ptrThing -> physical() -> gainItem(item);
     }
 
     else if (lua_isuserdata(L, 2))
     {
         Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
-        auto item = GetSmartPtr(ptrThing -> physical -> current_room -> things, ptrThingItem);
+        auto item = GetSmartPtr(ptrThing -> physical() -> current_room -> things, ptrThingItem);
 
         if (!item) return 0;
 
-        ptrThing -> physical -> current_room -> removeThing(item);
-        ptrThing -> physical -> gainItem(item);
+        ptrThing -> physical() -> current_room -> removeThing(item);
+        ptrThing -> physical() -> gainItem(item);
     }
 
     return 0;
@@ -208,9 +212,9 @@ int ScriptedThing::HasItem(lua_State *L)
 
     Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
 
-    auto item = GetSmartPtr(ptrThing -> physical -> inventory, ptrThingItem);
+    auto item = GetSmartPtr(ptrThing -> physical() -> inventory, ptrThingItem);
 
-    lua_pushboolean(L, item && ptrThing -> physical -> hasItem(item));
+    lua_pushboolean(L, item && ptrThing -> physical() -> hasItem(item));
     
     return 1;
 }
@@ -225,11 +229,11 @@ int ScriptedThing::BroadcastMessage(lua_State *L)
     assert(lua_isstring(L, 2));
     const std::string message { lua_tostring(L, 2) };
 
-    auto p = GetSmartPtr(ptrThing -> physical -> getRoom() -> players, ptrThing);
+    auto p = GetSmartPtr(ptrThing -> physical() -> getRoom() -> players, ptrThing);
     assert(p != nullptr);
 
-    p -> notifier -> setEventPayload(message);
-    p -> notifier -> doNotify(p, Notifier::Event::Type::Message);
+    p -> notifier() -> setEventPayload(message);
+    p -> notifier()-> doNotify(p, Event::Type::Message);
 
     return 0;
 }
@@ -240,9 +244,9 @@ int ScriptedThing::AddTask(lua_State *L)
 
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
-    if (ptrThing -> tasker)
+    if (ptrThing -> _tasker)
     {
-        lua_pushnumber(L, ptrThing -> tasker -> addTask());
+        lua_pushnumber(L, ptrThing -> tasker() -> addTask());
         return 1;
     }
 
@@ -255,9 +259,9 @@ int ScriptedThing::TickTask(lua_State *L)
 
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
     
-    if (ptrThing -> tasker)
+    if (ptrThing -> _tasker)
     {
-        ptrThing -> tasker -> tickTask( (int)lua_tonumber(L, 2) );
+        ptrThing -> tasker() -> tickTask( (int)lua_tonumber(L, 2) );
     }
 
     return 0;
@@ -270,9 +274,9 @@ int ScriptedThing::GainXP(lua_State *L)
 
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
     
-    if (ptrThing -> achiever)
+    if (ptrThing -> _achiever)
     {
-        ptrThing -> achiever -> gainXP( lua_tonumber(L, 2) );
+        ptrThing -> achiever() -> gainXP( lua_tonumber(L, 2) );
     }
 
     return 0;
@@ -285,9 +289,9 @@ int ScriptedThing::GetLevel(lua_State *L)
 
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
    
-    if (ptrThing -> achiever)
+    if (ptrThing -> _achiever)
     {
-        lua_pushnumber( L, ptrThing -> achiever -> getLevel() );
+        lua_pushnumber( L, ptrThing -> achiever() -> getLevel() );
 
         return 1;
     }
@@ -310,20 +314,20 @@ int ScriptedThing::GetEventInfo(lua_State *L)
 
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
-    if (ptrThing -> notifier)
+    if (ptrThing -> _notifier)
     {
         lua_newtable(L);
 
-        lua_pushstring(L, ptrThing -> notifier -> event.verb.c_str());
+        lua_pushstring(L, ptrThing -> notifier() -> event.verb.c_str());
         lua_setfield(L, -2, "verb");
         
-        lua_pushstring(L, ptrThing -> notifier -> event.target.c_str());
+        lua_pushstring(L, ptrThing -> notifier() -> event.target.c_str());
         lua_setfield(L, -2, "target");
 
-        lua_pushstring(L, ptrThing -> notifier -> event.object.c_str());
+        lua_pushstring(L, ptrThing -> notifier() -> event.object.c_str());
         lua_setfield(L, -2, "object");
         
-        lua_pushstring(L, ptrThing -> notifier -> event.extra.c_str());
+        lua_pushstring(L, ptrThing -> notifier() -> event.extra.c_str());
         lua_setfield(L, -2, "extra");
 
         return 1;
@@ -340,9 +344,9 @@ int ScriptedThing::EquipItem(lua_State * L)
 
     Thing * ptrThingItem = (Thing *)lua_touserdata(L, 2);
 
-    auto item = GetSmartPtr(ptrThing -> physical -> inventory, ptrThingItem);
+    auto item = GetSmartPtr(ptrThing -> physical() -> inventory, ptrThingItem);
 
-    if (item) ptrThing -> physical -> equipItem(item);
+    if (item) ptrThing -> physical() -> equipItem(item);
 
     return 0;
 }
@@ -358,7 +362,9 @@ int ScriptedThing::GetPlayer(lua_State *L)
 
     std::string t_n(lua_tostring(L, 2));
 
-    auto t = ptrThing->physical->current_room->getPlayer(t_n);
+    std::clog << "NAME: " << t_n << '\n';
+
+    auto t = ptrThing->physical()->current_room->getPlayer(t_n);
 
     if (!t) return 0;
         
@@ -366,6 +372,43 @@ int ScriptedThing::GetPlayer(lua_State *L)
 
     return 1;
 
+}
+
+int ScriptedThing::GainQuest(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+    
+    if (!lua_isstring(L, 2)) return 0;
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    std::string q_n(lua_tostring(L, 2));
+
+    ptrThing -> achiever() -> gainQuest( std::make_shared<ScriptedQuest>(q_n) );
+
+    return 0;
+    
+}
+
+int ScriptedThing::DoSay(lua_State *L)
+{
+    assert(lua_isuserdata(L, 1));
+    
+    if (!lua_isstring(L, 2)) return 0;
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    std::string s(lua_tostring(L, 2));
+
+    Thing * ptrThingTarget = (Thing *)lua_touserdata(L, 3);
+
+    std::stringstream msg;
+
+    msg << ptrThing -> name << ": " << s;
+
+    ptrThingTarget -> networked() -> addResponse(msg.str());
+    
+    return 0;
 }
 
 void ScriptedThing::InitLua()
@@ -384,6 +427,7 @@ void ScriptedThing::InitLua()
     {"getName", ScriptedThing::GetName},
     {"setMaxHealth", ScriptedThing::SetMaxHealth},
     {"sendMessage", ScriptedThing::SendMessage},
+    {"doSay", ScriptedThing::DoSay},
     {"loseItem", ScriptedThing::LoseItem},
     {"dropItem", ScriptedThing::DropItem},
     {"equipItem", ScriptedThing::EquipItem},
@@ -397,6 +441,7 @@ void ScriptedThing::InitLua()
     {"gainXP", ScriptedThing::GainXP},
     {"getEventInfo", ScriptedThing::GetEventInfo},
     {"getLevel", ScriptedThing::GetLevel},
+    {"gainQuest", ScriptedThing::GainQuest},
     {"isValid", ScriptedThing::IsValid},
     {NULL, NULL}
     };
@@ -406,16 +451,38 @@ void ScriptedThing::InitLua()
     // Create the global Gauzarbeit table.
     lua_newtable(L);
 
+    // Set the Event constants
+
+    {
     // Create the Gauzarbeit.Event table
     lua_newtable(L);
+    
+    lua_pushnumber(L, (int)Event::Type::Enter);
+    lua_setfield(L, -2, "Enter");
 
-    lua_pushnumber(L, (int)Notifier::Event::Type::Catch);
-    lua_setfield(L, -2, "Catch");
-    lua_pushnumber(L, (int)Notifier::Event::Type::Info);
-    lua_setfield(L, -2, "Info");
+    lua_pushnumber(L, (int)Event::Type::Ask);
+    lua_setfield(L, -2, "Ask");
+ 
+    lua_pushnumber(L, (int)Event::Type::Do);
+    lua_setfield(L, -2, "Do");
+    
+    lua_pushnumber(L, (int)Event::Type::Greet);
+    lua_setfield(L, -2, "Greet");
+    
+    lua_pushnumber(L, (int)Event::Type::Move);
+    lua_setfield(L, -2, "Move");
+   
+    lua_pushnumber(L, (int)Event::Type::Ask);
+    lua_setfield(L, -2, "Ask");
+
     
     lua_setfield(L, -2, "Event");
 
+
+
+    }
+
+    
     lua_setglobal(L, "Gauzarbeit");
     
 }

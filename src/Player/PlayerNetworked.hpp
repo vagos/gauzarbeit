@@ -16,8 +16,6 @@
 #include "PlayerTalker.hpp"
 #include "PlayerInspectable.hpp"
 
-
-
 class World;
 
 class PlayerNetworked : public Networked 
@@ -28,7 +26,7 @@ public:
     PlayerNetworked(): state(State::Entering)
     {
         //state = State::LoggedIn;
-        online = true;
+        //online = true;
     }
 
     void getRequest( std::shared_ptr<Thing> owner, World& world )
@@ -68,44 +66,54 @@ public:
     
     void handleRequest(std::shared_ptr<Thing> owner, World& world) override
     {
-        auto& event = owner -> notifier -> event;
+        auto& event = owner -> notifier() -> event;
 
-        if ( event.verb == "login" )
+        switch (event.type)
         {
-            if ( state != State::Entering)
+            case Event::Type::Enter:
             {
-                addResponse( ColorString("You are already loggen in!\n", Color::Red) );
-                return;
+                if ( isOnline() )
+                {
+                    addResponse( ColorString("You are already loggen in!\n", Color::Red) );
+                    return;
+                }
+
+                owner -> name = owner -> notifier() -> event.target;
+
+                setState( State::LoggedIn ); 
+
+                online = true;
+
+                addResponse( ColorString("You are logged in as " + owner -> name + ".\n", Color::Green) );
+
+                doDatabaseLoad(owner);
+
+                break;
             }
 
-            owner -> name = owner -> notifier -> event.target;
+            case Event::Type::Leave:
+            {
+                 addResponse("Goodbye!\n");
 
-            setState( State::LoggedIn ); 
-            online = true;
+                setState(State::LoggedOut);
 
-            addResponse( ColorString("You are logged in as " + owner -> name + ".\n", Color::Green) );
+                break;
+            }
 
-            doDatabaseLoad(owner);
+            default:
+            {
+                if ( !isOnline() && event.verb.size() )  
+                   addResponse( ColorString("You need to log in!\n", Color::Red) );
+            }
+
 
         }
-
-        else if ( event.verb == "exit" )
-        {
-            addResponse("Goodbye!\n");
-
-            setState(State::LoggedOut);
-        }
-
-        else if ( event.verb.size() && !isOnline() )
-        {
-            addResponse( ColorString("You need to log in!\n", Color::Red) );
-        }
-
     }
 
     void doDatabaseLoad(std::shared_ptr<Thing> owner) override
     {
     }
+
 
 
 private: 

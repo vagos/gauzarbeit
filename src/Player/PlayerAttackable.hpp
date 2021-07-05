@@ -9,49 +9,43 @@ class PlayerAttackable : public Attackable
 public:
     PlayerAttackable()
     {
-
+        current_health = 10;
+        max_health = 20;
     }
     
     void doUpdate(const std::shared_ptr<Thing> &owner) override
     {
-        auto event = owner -> notifier -> event;
+        auto event = owner -> notifier() -> event;
 
         if (!alive)
         {
             doRespawn(owner);
         }
 
-        if (event.verb == "attack")
+        switch (event.type)
         {
-            auto enemy = owner -> physical -> getRoom() -> getThing( event.target );
-
-            if (!enemy) 
-                owner -> networked -> addResponse("There doesn't seem to be anything with that name here!\n");
-
-            if (enemy -> attackable)
+            case Event::Type::Attack:
             {
+                auto enemy = owner -> physical() -> getRoom() -> getAnything( event.target );
+
+                if (!enemy) throw TargetNotFound();
+
                 doAttack( owner, enemy );
-            }
 
-            else 
-            {
-                owner -> networked -> addResponse( ColorString ("You can't attack that!\n", Color::Red) );
+                break;
             }
         }
-
     }
 
     virtual void doAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &target) override
     {
+        Attackable::doAttack(owner, target);
 
         std::stringstream res;
 
         res << "You attacked " << target -> name << " for " << attack << "\n";
 
-        owner -> networked -> addResponse( res.str() );
-        
-        Attackable::doAttack(owner, target);
-        
+        owner -> networked() -> addResponse( res.str() );
     }
 
     void onAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &attacker) override
@@ -60,7 +54,7 @@ public:
 
         res << attacker -> name << " attacked you!\n";
 
-        owner -> networked -> addResponse(res.str());
+        owner -> networked() -> addResponse(res.str());
 
         Attackable::onAttack(owner, attacker);
     }
@@ -69,18 +63,20 @@ public:
     {
         alive = false;
 
-        owner -> networked -> addResponse( ColorString("You died!\n", Color::Red) );
+        owner -> networked() -> addResponse( ColorString("You died!\n", Color::Red) );
 
-        owner -> notifier -> doNotify(owner, Notifier::Event::Type::Death); // notify everyone about the death
+        owner -> notifier() -> doNotify(owner, Event::Type::Death); // notify everyone about the death
     }
 
     void doRespawn(const std::shared_ptr<Thing> owner)
     {
         alive = true;
 
-        owner -> physical -> doMove(owner, 0, 0);
+        owner -> physical() -> doMove(owner, 0, 0);
 
-        owner -> networked -> addResponse("You respawned!\n");
+        current_health = max_health;
+
+        owner -> networked() -> addResponse("You respawned!\n");
     }
     
 

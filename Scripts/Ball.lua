@@ -7,9 +7,8 @@ end
 
 function Ball:onNotify(actor, notification_type)
     
-    if notification_type == Gauzarbeit.Event.Catch and not actor:hasItem(self) then
+    if notification_type == Gauzarbeit.Event.Do and actor:getEventInfo().target == "catch" and not actor:hasItem(self) then
         actor:gainItem(self)
         actor:sendMessage("You caught the ball!\n")
     end
-
 end

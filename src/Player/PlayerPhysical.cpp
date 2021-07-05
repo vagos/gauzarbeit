@@ -10,110 +10,110 @@
 void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & world)
 {
 
-    auto event =  owner -> notifier -> event;
+    auto event =  owner -> notifier() -> event;
 
-    if ( event.verb == "move"  )
+    switch ( event.type )
     {
-        moveDirection(owner, event.target);
+        case Event::Type::Inspect:
+        {
+            if (event.target.size() == 0)
+            {
+                owner -> networked() -> addResponse(owner -> inspectable() -> onInspect(owner, owner));
+                break;
+            }
+
+            auto p = current_room -> getPlayer( event.target );
+
+            if (p) 
+            {
+                owner -> networked() -> addResponse(p -> inspectable() -> onInspect(p, owner));
+                break;
+            }
+
+            auto t = current_room -> getThing( event.target );
+
+            if (t) 
+            {
+                owner -> networked() -> addResponse( t -> inspectable() -> onInspect(t, owner) );
+                break;
+            }
+
+            auto q = owner -> achiever() -> getQuest( event.target );
+
+            if (q)
+            {
+                owner -> networked() -> addResponse(q -> inspectable() -> onInspect(q, owner));
+                break;
+            }
+
+            throw TargetNotFound();
+        }
+
+        case Event::Type::Use:
+        {
+             std::shared_ptr<Thing> t;
+
+            if (IsNumber(event.target))
+                t = getItem(std::atoi(event.target.c_str()));
+            else
+                t = getItem(event.target);
+
+            if (!t) throw TargetNotFound();
+        
+            t -> usable() -> onUse(t, owner);
+
+            break;
+        }
+
+        case Event::Type::Move:
+        {
+            moveDirection(owner, event.target);
+            owner -> notifier() -> doNotify(owner, event.type);
+            break;
+        }
     }
 
-    else if( event.verb == "get" )
+    if( event.verb == "get" )
     {
         gainItem( std::make_shared<ScriptedThing>(event.target) );
     }
 
-    else if ( event.verb == "catch" )
+    if ( event.verb == "spawn" )
     {
-        owner -> notifier -> doNotify(owner, Notifier::Event::Type::Catch);
+        auto t = std::make_shared<ScriptedThing>(event.target);
+
+        t -> physical() -> doMove(t, current_room -> x, current_room -> y);
     }
 
     else if ( event.verb == "look" )
     {
-        std::stringstream res;
-
-        res << HeaderString( VerticalListString(current_room -> players, '*'), "Players in the Room", '=');
-        
-        res << "\n";
-
-        res << HeaderString( VerticalListString(current_room -> things, '*'), "Other things in the Room", '=');
-        
-        owner -> networked -> addResponse( res.str() );
-
+        owner -> networked() -> addResponse( current_room -> onInspect(current_room, owner) );
     }
 
-    else if ( event.verb == "inspect" )
-    {
-        if (!event.target.size()) return;
-
-        auto p = current_room -> getPlayer( event.target );
-
-        if (p) owner -> networked -> addResponse(p -> inspectable -> onInspect(p, owner));
-
-        auto t = current_room -> getThing( event.target );
-
-        if (t && t -> inspectable) owner -> networked -> addResponse( t -> inspectable -> onInspect(t, owner) );
-    }
-
-    else if ( event.verb.substr(0, 3) == "inv" )
-    {
-        std::stringstream res;
-
-        res << owner -> name << "'s Inventory: \n\n";
-
-        res << VerticalListString(inventory, '*') << '\n';
-
-        owner -> networked -> addResponse( res.str() );
-    }
-
-    else if ( event.verb.substr(0, 3) == "equ" )
-    {
-
-        std::stringstream res;
-
-        res << owner -> name << "'s Equipped Items: \n\n";
-
-        res << VerticalListString(equipment, '*') << '\n';
-
-        owner -> networked -> addResponse( res.str() );
-    }
-
-    else if (event.verb == "use")
-    {
-        std::shared_ptr<Thing> t;
-
-        if (IsNumber(event.target))
-            t = getItem(std::atoi(event.target.c_str()));
-        else
-            t = getItem(event.target);
-    
-        if (t)
-            t -> usable -> onUse(t, owner);
-    }
-
-    else if (event.verb == "give") // fix this
-    {
-        auto p = world.getPlayer(event.target);
-
-        if (!p) 
-        {
-            owner -> networked -> addResponse( ColorString("Player not found!\n", Color::Red) );
-            return;
-        }
-
-        auto item = getItem( event.extra );
-
-        if (!item) return;
-         
-        p -> physical -> gainItem( item );
-
-        std::stringstream message;
-        message << "You were given a " << item -> name << " by " << owner -> name << "\n"; 
-        p -> networked -> addResponse( message .str() );
-
-        owner -> networked -> addResponse("You gave " + event.target + " your " + item -> name + "\n");
-        
-        loseItem(item);
-    }
+//    else if (event.verb == "give") // fix this
+//    {
+//        auto p = world.getPlayer(event.target);
+//
+//        if (!p) 
+//        {
+//            owner -> networked -> addResponse( ColorString("Player not found!\n", Color::Red) );
+//            return;
+//        }
+//
+//        auto item = getItem( event.extra );
+//
+//        if (!item) return;
+//         
+//        p -> physical -> gainItem( item );
+//
+//        std::stringstream message;
+//        message << "You were given a " << item -> name << " by " << owner -> name << "\n"; 
+//        p -> networked -> addResponse( message .str() );
+//
+//        owner -> networked -> addResponse("You gave " + event.target + " your " + item -> name + "\n");
+//        
+//        loseItem(item);
+//    }
 
 }
 
@@ -148,7 +148,7 @@ void PlayerPhysical::moveDirection(std::shared_ptr<Thing> owner, const std::stri
 
         res << "Moved into Room: " << current_room -> x << " " << current_room -> y << "\n";
 
-        owner -> networked -> addResponse( res.str() );
+        owner -> networked() -> addResponse( res.str() );
 
 }
 

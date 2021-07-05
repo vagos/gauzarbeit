@@ -38,11 +38,13 @@ public:
 
     static int GainXP(lua_State * L);
     static int GetLevel(lua_State * L);
+    static int GainQuest(lua_State * L);
 
     static int AddTask(lua_State* L);
     static int TickTask(lua_State * L);
     
     static int SendMessage(lua_State * L);
+    static int DoSay(lua_State * L);
     static int BroadcastMessage(lua_State * L);
 
     static int SetMaxHealth(lua_State * L);

@@ -45,7 +45,6 @@ public:
     std::size_t getID() {return ID;}
 
     virtual bool isOnline() {return online;}
-    virtual bool isOffline() {return false;}
 
 protected:
     

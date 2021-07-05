@@ -15,10 +15,32 @@ public:
         std::stringstream inspect; 
 
         inspect << "Name: " << owner -> name << '\n'
-                << "Level: " << owner -> achiever -> getLevel() << '\n'
-                << "HP: " << owner -> attackable -> current_health << '\n';
+                << "Level: " << owner -> achiever() -> getLevel() << '\n'
+                << "HP: " << BarString(owner -> attackable() -> current_health/owner -> attackable() -> max_health) << "\n\n\n";
 
-//        inspect << VerticalListString(owner -> physical -> inventory, '&');
+        if (owner == inspector)
+        {
+            inspect << CenteredString("---") << "\n\n";
+
+            if (!owner -> physical() -> inventory.empty())
+            {
+                inspect << "Inventory: \n";
+                inspect << BlockListString(owner -> physical() -> inventory, '-') << "\n\n";
+            }
+
+            if (!owner -> physical() -> equipment.empty())
+            {
+                inspect << "Equipment: \n";
+                inspect << VerticalListString(owner -> physical() -> equipment, '-') << "\n\n";
+            }
+            
+            if (!owner -> achiever() -> quests.empty())
+            {
+                inspect << "Quests: \n";
+                inspect << VerticalListString(owner -> achiever() -> quests, '-', 
+                        [](const Thing& t) {return t.name;});
+            }
+        }
 
         return HeaderString( inspect.str(), owner -> name ); 
     }
