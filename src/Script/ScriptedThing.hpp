@@ -48,6 +48,7 @@ public:
     static int BroadcastMessage(lua_State * L);
 
     static int SetMaxHealth(lua_State * L);
+    static int GetHP(lua_State * L);
     
     static void InitLua();
 

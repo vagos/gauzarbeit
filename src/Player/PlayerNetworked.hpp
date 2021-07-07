@@ -74,7 +74,7 @@ public:
             {
                 if ( isOnline() )
                 {
-                    addResponse( ColorString("You are already loggen in!\n", Color::Red) );
+                    addResponse( ColorString("You are already logged in!\n", Color::Red) );
                     return;
                 }
 
@@ -87,7 +87,7 @@ public:
                 addResponse( ColorString("You are logged in as " + owner -> name + ".\n", Color::Green) );
 
                 doDatabaseLoad(owner);
-
+                
                 break;
             }
 

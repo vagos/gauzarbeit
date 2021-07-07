@@ -1,5 +1,8 @@
 
 main
-Chair.lua
-Goblin.lua
-notes/index.md
+notes/
+Scripts/
+
+port.txt
+login.sh
+testing/lua/Chair.lua

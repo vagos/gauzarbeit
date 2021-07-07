@@ -9,7 +9,7 @@ class Attackable
 {
 public:
 
-    Attackable()
+    Attackable(): alive(true)
     {
 
     }
@@ -39,7 +39,7 @@ public:
     float current_health;
 
 protected:
-    bool alive = true;
+    bool alive;
 
 };
 

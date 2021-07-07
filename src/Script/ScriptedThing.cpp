@@ -411,6 +411,19 @@ int ScriptedThing::DoSay(lua_State *L)
     return 0;
 }
 
+int ScriptedThing::GetHP(lua_State * L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    if (!ptrThing -> _attackable) return 0;
+
+    lua_pushnumber(L, (float)ptrThing -> attackable() -> current_health);
+
+    return 1;
+}
+
 void ScriptedThing::InitLua()
 {
     luaL_openlibs(L);
@@ -426,6 +439,7 @@ void ScriptedThing::InitLua()
     {"__newindex", ScriptedThing::NewIndex},
     {"getName", ScriptedThing::GetName},
     {"setMaxHealth", ScriptedThing::SetMaxHealth},
+    {"getHP", ScriptedThing::GetHP},
     {"sendMessage", ScriptedThing::SendMessage},
     {"doSay", ScriptedThing::DoSay},
     {"loseItem", ScriptedThing::LoseItem},
@@ -475,6 +489,8 @@ void ScriptedThing::InitLua()
     lua_pushnumber(L, (int)Event::Type::Ask);
     lua_setfield(L, -2, "Ask");
 
+    lua_pushnumber(L, (int)Event::Type::Inspect);
+    lua_setfield(L, -2, "Inspect");
     
     lua_setfield(L, -2, "Event");
 

@@ -13,12 +13,13 @@ class ScriptedAttackable : public Attackable
 
         lua_getfield( L, -1, "onAttack" );
 
-        if (!lua_isfunction(L, -1)) return;
-
-        lua_pushlightuserdata(L, owner.get());
-        lua_pushlightuserdata(L, attacker.get());
-        
-        CheckLua(L, lua_pcall(L, 2, 0, 0));
+        if (lua_isfunction(L, -1))
+        {
+            lua_pushlightuserdata(L, owner.get());
+            lua_pushlightuserdata(L, attacker.get());
+            
+            CheckLua(L, lua_pcall(L, 2, 0, 0));
+        }
 
         Attackable::onAttack(owner, attacker);
     }

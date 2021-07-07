@@ -16,37 +16,44 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
     {
         case Event::Type::Inspect:
         {
+            
+            std::shared_ptr<Thing> t;
+                
             if (event.target.size() == 0)
             {
                 owner -> networked() -> addResponse(owner -> inspectable() -> onInspect(owner, owner));
                 break;
             }
 
-            auto p = current_room -> getPlayer( event.target );
-
-            if (p) 
-            {
-                owner -> networked() -> addResponse(p -> inspectable() -> onInspect(p, owner));
-                break;
-            }
-
-            auto t = current_room -> getThing( event.target );
+            t = current_room -> getAnything( event.target );
 
             if (t) 
             {
-                owner -> networked() -> addResponse( t -> inspectable() -> onInspect(t, owner) );
-                break;
+                owner -> networked() -> addResponse(t -> inspectable() -> onInspect(t, owner));
+                goto Notify;
             }
 
-            auto q = owner -> achiever() -> getQuest( event.target );
+            t = owner -> achiever() -> getQuest( event.target );
 
-            if (q)
+            if (t)
             {
-                owner -> networked() -> addResponse(q -> inspectable() -> onInspect(q, owner));
-                break;
+                owner -> networked() -> addResponse(t -> inspectable() -> onInspect(t, owner));
+                goto Notify;
+            }
+
+            t = owner -> physical() -> getItem( event.target );
+
+            if (t)
+            {
+                owner -> networked() -> addResponse(t -> inspectable() -> onInspect(t, owner));
+                goto Notify;
             }
 
             throw TargetNotFound();
+
+            Notify:
+
+            owner -> notifier() -> doNotify(owner, event.type, t); break;
         }
 
         case Event::Type::Use:

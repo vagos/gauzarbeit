@@ -39,11 +39,9 @@ void Attackable::onAttack(const std::shared_ptr<Thing> &owner, const std::shared
 {
     if (current_health <= 0) 
     {
-        //assert(attacker -> notifier && owner -> notifier);
-
         // Notify the killer about the kill.
         attacker -> notifier() -> onNotify( attacker, attacker, Event::Type::Kill, owner );
-        
+
         onDeath(owner);
     }
 }

@@ -25,7 +25,7 @@ public:
             doAttack(owner, e);
        }
 
-       std::erase_if(enemies, [](const auto& e){return !e -> attackable() -> is_alive();});
+       //std::erase_if(enemies, [](const auto& e){return !e -> attackable() -> is_alive();});
         
     }
 

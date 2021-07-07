@@ -31,6 +31,12 @@ class PlayerNotifier : public Notifier
             p -> notifier() -> onNotify(p, owner, notification_type, target);
         }
 
+
+        for (auto& t : owner -> physical() -> inventory)
+        {
+            if (t -> _notifier) t -> notifier() -> onNotify(t, owner, notification_type, target);
+        }
+
         for (auto& quest : owner -> achiever() -> quests)
         {
            quest -> notifier() -> onNotify(quest, owner, notification_type, target); 
