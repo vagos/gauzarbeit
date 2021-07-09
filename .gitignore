@@ -1,11 +1,9 @@
 
 main
 notes/
+testing/
 Scripts/
 
 port.txt
 login.sh
-testing/lua/Chair.lua
 .vimspector.json
-Scripts/WelcomeMan.lua
-testing/exceptions/.vimspector.json
