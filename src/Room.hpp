@@ -13,7 +13,6 @@
 #include <memory>
 
 #include "Thing.hpp"
-#include "Script/ScriptedThing.hpp"
 
 class Player;
 class RoomInspectable;
@@ -24,10 +23,10 @@ public:
     Room(int x, int y): x(x), y(y) 
     {
         //inspectable = std::make_unique<RoomInspectable>();
-
     }
 
     static std::shared_ptr<Room> get(std::int32_t x, std::int32_t y);
+    static std::shared_ptr<Room> get(const std::string &r_t, std::int32_t x, std::int32_t y);
 
     int x, y;
 
@@ -123,36 +122,15 @@ public:
 
 class ScriptedRoom : public Room
 {
-    ScriptedRoom(const std::string& room_type, int x, int y): Room(x, y)
-    {
-        const auto& L = ScriptedThing::L;
+public:
+    ScriptedRoom(const std::string& room_type, int x, int y);
 
-//        lua_getglobal(L, room_type.c_str());
-//
-//        if (lua_isnil(L, -1))
-//        {
-//            lua_newtable(L);
-//            lua_setglobal(L, room_type.c_str()); // Create a Lua table.
-//        }
-        
+    void doUpdate(World &world) override; 
 
-        std::string filename( "./Scripts/Rooms/" + room_type + ".lua" );
+    void doGeneration() override;
 
-        //CheckLua(L, luaL_dofile(L, filename.c_str() ));
-    }
-
-    void doUpdate(World &world) override
-    {
-        const auto& L = ScriptedThing::L;
-
-        lua_getglobal( L, name.c_str() );
-
-        lua_getfield( L, -1, "doUpdate" );
-
-        if (!lua_isfunction(L,-1)) return;
-
-
-    }
+    private:
+        std::string room_type;
 
 };
 

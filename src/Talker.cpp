@@ -24,7 +24,7 @@ void Talker::onTalk(const std::shared_ptr<Thing> &owner, const std::shared_ptr<T
 
     res << q -> inspectable() -> onInspect(q, talker) << '\n';
 
-    res << "Quest " << std::quoted( q -> name ) << " added to Quest Log!";
+    res << "Quest " << std::quoted( q -> name ) << " added to your Quest Log!\n";
 
     talker -> networked() -> addResponse( res.str() );
 }

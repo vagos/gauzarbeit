@@ -18,7 +18,7 @@ struct InvalidCommand : public std::exception
 {
     virtual const char* what() const throw()
     {
-        return "Invalid command!\n";
+        return "There is no such command!\n";
     }
 
 };

@@ -1,6 +1,10 @@
 #include "Room.hpp"
 #include "Helpers.hpp"
+#include "Script/ScriptedThing.hpp"
 
+#include "Script/LuaHelpers.hpp"
+
+#include <cstddef>
 #include <exception>
 
 std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
@@ -10,6 +14,21 @@ std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
     if (!mapRooms[key])
     {
         auto newRoom = std::make_shared<Room>(x, y); // Creating BasicRooms for testing.
+        Room::mapRooms[key] = newRoom;
+        
+        newRoom -> doGeneration();
+    }
+        
+    return mapRooms[key]; 
+}
+
+std::shared_ptr<Room> Room::get(const std::string &r_t, std::int32_t x, std::int32_t y)
+{
+    std::int64_t key = (x & 0xFFFF) << 16 | (y & 0xFFFF);
+
+    if (!mapRooms[key])
+    {
+        auto newRoom = std::make_shared<ScriptedRoom>(r_t, x, y); // Creating BasicRooms for testing.
         Room::mapRooms[key] = newRoom;
         
         newRoom -> doGeneration();
@@ -41,7 +60,7 @@ void Room::addThing(std::shared_ptr<Thing> thing)
 
 const std::shared_ptr<Thing> Room::getPlayer(const std::string &name)
 {
-   return FindByName(things, name);
+   return FindByName(players, name);
 }
 
 const std::shared_ptr<Thing> Room::getThing(const std::string &name)
@@ -96,17 +115,79 @@ const std::string Room::onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<
 
     inspect << HeaderString( VerticalListString( players, '*'), "Players here:");
     
-    inspect << "\n\n" << CenteredString("---") << "\n\n";
+    inspect << '\n' << CenteredString("---") << "\n\n";
 
     if (things.size())
     {
         inspect << HeaderString( VerticalListString( things, '*'), "Other things here:");
-
-        inspect << '\n';
     }
 
 
     return inspect.str();
 }
 
+ScriptedRoom::ScriptedRoom(const std::string& room_type, int x, int y): Room(x, y), room_type(room_type)
+{
+}
+
+void ScriptedRoom::doGeneration()
+{
+    const auto& L = ScriptedThing::L;
+    
+    std::string filename( "./Scripts/Rooms/" + room_type + ".lua" );
+
+    CheckLua(L, luaL_dofile(L, filename.c_str() ));
+                                                                       
+    lua_getglobal(L, room_type.c_str());
+
+    if (lua_isnil(L, -1))
+    {
+        // lua_newtable(L);
+        // lua_setglobal(L, room_type.c_str()); // Create a Lua table.
+                                                                       
+        std::clog << "No room type " << room_type << " found!\n";
+
+        return;
+    }
+                                                                       
+    // Spawn Things
+    
+    lua_pushnil(L);
+
+    std::vector<std::string> t_ns;
+
+    while (lua_next(L, -2) != 0)
+    {
+          std::string t_n( lua_tostring(L, -1) );
+
+          std::clog << t_n << '\n';
+
+          t_ns.push_back(t_n);
+
+          lua_pop(L, 1);
+    }
+
+    for (auto t_n : t_ns)
+    {
+          auto t = std::make_shared<ScriptedThing>(t_n);
+
+          t -> physical() -> doMove(t, x, y);
+    }
+}
+
+void ScriptedRoom::doUpdate(World &world)
+{
+
+    return;
+
+    const auto& L = ScriptedThing::L;
+
+    lua_getglobal( L, name.c_str() );
+
+    lua_getfield( L, -1, "doUpdate" );
+
+    if (!lua_isfunction(L,-1)) return;
+}
+
 std::unordered_map< std::int64_t, std::shared_ptr< Room > > Room::mapRooms{};
+

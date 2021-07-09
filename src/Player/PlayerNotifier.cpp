@@ -40,4 +40,6 @@ void PlayerNotifier::setEvent(const std::shared_ptr<Thing> &owner)
         std::getline( req >> std::ws, event.extra );
 
         event.type = Player::playerCommands[event.verb];
+
+        if (event.verb.size() && event.type == Event::Type::Invalid) throw InvalidCommand();
 }

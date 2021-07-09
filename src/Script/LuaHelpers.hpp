@@ -10,16 +10,7 @@ class Thing;
 
 #include "lua.hpp"
 
-bool CheckLua(lua_State *L, int r)
-{
-	if (r != LUA_OK)
-	{
-		std::string errormsg = lua_tostring(L, -1);
-		std::cout << errormsg << std::endl;
-		return false;
-	}
-	return true;
-}
+bool CheckLua(lua_State *L, int r);
 
 template<typename T>
 const std::shared_ptr<Thing> GetSmartPtr(const T& c, Thing * t_ptr)

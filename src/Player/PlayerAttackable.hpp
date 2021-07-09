@@ -30,7 +30,7 @@ public:
 
                 if (!enemy) throw TargetNotFound();
 
-                doAttack( owner, enemy );
+                DoFight( owner, enemy );
 
                 break;
             }
@@ -39,13 +39,14 @@ public:
 
     virtual void doAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &target) override
     {
-        Attackable::doAttack(owner, target);
 
         std::stringstream res;
 
         res << "You attacked " << target -> name << " for " << attack << "\n";
 
         owner -> networked() -> addResponse( res.str() );
+        
+        Attackable::doAttack(owner, target);
     }
 
     void onAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &attacker) override

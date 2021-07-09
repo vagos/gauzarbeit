@@ -92,7 +92,19 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
         t -> physical() -> doMove(t, current_room -> x, current_room -> y);
     }
 
-    else if ( event.verb == "look" )
+    if ( event.verb == "generate" )
+    {
+        int x, y;
+        std::string r_t;
+
+        std::stringstream ss{owner -> networked() -> getRequestStream().str()};
+
+        ss >> r_t >> x >> y;
+
+        Room::get(event.target, x, y);
+    }
+
+    if ( event.verb == "look" )
     {
         owner -> networked() -> addResponse( current_room -> onInspect(current_room, owner) );
     }

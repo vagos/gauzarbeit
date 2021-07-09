@@ -38,9 +38,12 @@ class PlayerTalker : public Talker
 
                 if (!t) throw TargetNotFound();
 
-                std::stringstream res;
-                res << "You ask " << *t << " about " << event.object << '\n';
-                owner -> networked() -> addResponse(res.str());
+                if (event.object.size())
+                {
+                    std::stringstream res;
+                    res << "You ask " << *t << " about " << event.object << '\n';
+                    owner -> networked() -> addResponse(res.str());
+                }
                 
                 t -> talker() -> onTalk(t, owner); 
             }

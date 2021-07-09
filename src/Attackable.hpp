@@ -17,6 +17,8 @@ public:
     virtual void doAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &target);
     virtual void onAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &attacker);
     
+    virtual void getDamaged(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &attacker, int dmg);
+    
     virtual void doUpdate(const std::shared_ptr<Thing> &owner)
     {
 
@@ -42,5 +44,7 @@ protected:
     bool alive;
 
 };
+
+
 
 #endif//ATTACKABLE_HPP

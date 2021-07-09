@@ -135,3 +135,16 @@ void HandleException(const std::shared_ptr<Thing> &t, std::exception &e)
 
     return;
 }
+
+void DoFight(const std::shared_ptr<Thing>& t1, const std::shared_ptr<Thing>& t2)
+{
+
+    while (true)
+    {
+        if (!t1 -> attackable() -> is_alive()) break;
+        t1 -> attackable() -> doAttack(t1, t2);
+        if (!t2 -> attackable() -> is_alive()) break;
+        t2 -> attackable() -> doAttack(t2, t1);
+    }
+
+}

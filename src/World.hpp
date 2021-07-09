@@ -50,14 +50,19 @@ public:
             player -> networked() -> getRequest(player, *this); 
         
         for (auto& [name, player] : playersOnline) 
-            player -> notifier() -> setEvent(player); 
-
+        {
+            try  { player -> notifier() -> setEvent(player); } 
+            catch (std::exception& e) { HandleException(player, e); }
+        }
+            
         for (auto& [name, player] : playersOnline) // Handle request
            player -> networked() -> handleRequest(player, *this);
 
         for (auto& [name, player] : playersOnline) 
-            player -> talker() -> doUpdate(player);
-
+        {
+            try { player -> talker() -> doUpdate(player); }
+            catch (std::exception& e) { HandleException(player, e); }
+        }
         for (auto& [name, player] : playersOnline)
             player -> physical() -> doUpdate(player, *this);
         

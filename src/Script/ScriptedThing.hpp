@@ -2,7 +2,6 @@
 #define SCRIPTED_THING_HPP
 
 #include "../Thing.hpp"
-#include <lua.h>
 
 class lua_State;
 

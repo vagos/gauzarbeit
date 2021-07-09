@@ -6,3 +6,4 @@ Scripts/
 port.txt
 login.sh
 testing/lua/Chair.lua
+.vimspector.json

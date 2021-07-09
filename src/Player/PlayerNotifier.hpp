@@ -67,7 +67,7 @@ class PlayerNotifier : public Notifier
            {
                 std::stringstream chat;
 
-                chat << actor->name << ": " << actor -> notifier() -> event.extra << '\n';
+                chat << actor->name << ": " << actor -> notifier() -> event.object << actor -> notifier() -> event.extra << '\n';
                 owner -> networked() -> addResponse( chat.str() );
                 break;
             }

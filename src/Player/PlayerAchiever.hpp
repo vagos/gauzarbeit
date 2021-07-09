@@ -8,7 +8,7 @@ class PlayerAchiever : public Achiever
 
     void doUpdate(std::shared_ptr<Thing> owner) override
     {
-
+        Achiever::doUpdate(owner);
     }
 
 };

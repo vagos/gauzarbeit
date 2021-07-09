@@ -393,14 +393,15 @@ int ScriptedThing::GainQuest(lua_State *L)
 int ScriptedThing::DoSay(lua_State *L)
 {
     assert(lua_isuserdata(L, 1));
+    assert(lua_isuserdata(L, 2));
     
-    if (!lua_isstring(L, 2)) return 0;
+    if (!lua_isstring(L, 3)) return 0;
 
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+    
+    Thing * ptrThingTarget = (Thing *)lua_touserdata(L, 2);
 
-    std::string s(lua_tostring(L, 2));
-
-    Thing * ptrThingTarget = (Thing *)lua_touserdata(L, 3);
+    std::string s(lua_tostring(L, 3));
 
     std::stringstream msg;
 
@@ -423,6 +424,24 @@ int ScriptedThing::GetHP(lua_State * L)
 
     return 1;
 }
+
+/*
+int ScriptedThing::SetHP(lua_State * L)
+{
+    assert(lua_isuserdata(L, 1));
+    
+    if (!lua_isnumber(L, 2)) return 0;
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    if (!ptrThing -> _attackable) return 0;
+
+    int hp = (int)lua_tonumber(L, 2);
+
+    ptrThing -> attackable() -> current_health = hp;
+    
+}
+*/
 
 void ScriptedThing::InitLua()
 {

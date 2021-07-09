@@ -4,16 +4,26 @@
 
 #include <cassert>
 
-
 void Attackable::doAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &target)
 {
    //assert( owner -> physical && target -> physical ); //testing
 
-   if (owner -> physical() -> current_room != target -> physical() -> current_room) return;
+   if (owner -> physical() -> current_room != target -> physical() -> current_room) throw TargetNotFound();
 
-   target -> attackable() -> current_health -= attack;
+   target -> attackable() -> getDamaged(target, owner, attack);
 
    target -> attackable() -> onAttack(target, owner);
+}
+
+void Attackable::onAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &attacker)
+{
+    if (current_health <= 0) 
+    {
+        // Notify the killer about the kill.
+        attacker -> notifier() -> onNotify( attacker, attacker, Event::Type::Kill, owner );
+
+        onDeath(owner);
+    }
 }
 
 void Attackable::onDeath(const std::shared_ptr<Thing> &owner)
@@ -35,13 +45,7 @@ void Attackable::onDeath(const std::shared_ptr<Thing> &owner)
 
 }
 
-void Attackable::onAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &attacker)
+void Attackable::getDamaged(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &attacker, int dmg)
 {
-    if (current_health <= 0) 
-    {
-        // Notify the killer about the kill.
-        attacker -> notifier() -> onNotify( attacker, attacker, Event::Type::Kill, owner );
-
-        onDeath(owner);
-    }
+    current_health -= dmg;
 }

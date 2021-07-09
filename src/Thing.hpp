@@ -210,15 +210,7 @@ public:
 
     const std::shared_ptr<Thing> getQuest(const std::string& q_name)
     {
-       auto container = quests;
-       auto s = q_name;
-
-       auto r = std::find_if(container.begin(), container.end(), 
-               [&s](const auto& i){return i -> name == s;});
-
-       return r != container.end() ? *r : nullptr;
-
-        //return FindByName(quests, q_name);
+       return FindByName(quests, q_name);
     }
 
     virtual void doUpdate(std::shared_ptr<Thing> owner)
@@ -230,8 +222,14 @@ public:
                 q -> tasker() -> giveRewards( q, owner );
 
                 owner -> achiever() -> getRewards(0);
+
+                completed_quests.push_back(q);
             }
         }
+
+        quests.erase( std::remove_if( quests.begin(), quests.end(), 
+                    [](auto& t){return t -> tasker() -> isCompleted();}), 
+                quests.end()); // Remove completed quests
     }
 
     void gainXP(int extra_xp)

@@ -37,28 +37,6 @@ void Server::acceptConnections(World &world)
     ScriptedThing::InitLua();
     
     newPlayer -> physical() -> doMove(newPlayer, 0, 0);
-
-
-    auto myChair = std::make_shared<ScriptedThing>("Chair");
-    auto myWinston = std::make_shared<ScriptedThing>("Winston");
-    auto myGoblin = std::make_shared<ScriptedThing>("Goblin");
-    auto myBokeBall = std::make_shared<ScriptedThing>("BokeBall");
-    auto myBall = std::make_shared<ScriptedThing>("Ball");
-
-    auto myBigRat = std::make_shared<BasicEnemy>("BigRat");
-    //auto myShopKeeper = std::make_shared<Character>("ShopMan");
-    
-    newPlayer -> physical() -> gainItem(myChair);
-    newPlayer -> physical() -> gainItem(myWinston);
-    newPlayer -> physical() -> gainItem(myBokeBall);
-    newPlayer -> physical() -> gainItem(myBall);
-
-    //newPlayer -> achiever -> gainQuest( std::make_shared<ScriptedQuest>("Ratz") );
-
-    myGoblin -> physical() -> doMove(myGoblin, newPlayer -> physical() -> current_room -> x, newPlayer -> physical() -> current_room -> y);
-    //myShopKeeper -> physical -> doMove(myShopKeeper, newPlayer -> physical -> current_room -> x, newPlayer -> physical -> current_room -> y);
-    myBigRat -> physical() -> doMove(myBigRat, newPlayer -> physical() -> current_room -> x, newPlayer -> physical() -> current_room -> y);
-
 }
 
 void Server::doUpdate(World& world)
