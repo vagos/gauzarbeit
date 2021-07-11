@@ -10,8 +10,8 @@ int main()
 
     int port = rand() % 9999 + 1000;
     
-    Server server(port);
-    //Server server(23);
+    //Server server(port);
+    Server server(23);
     World world;
 
     FILE * f = fopen("port.txt", "w+");

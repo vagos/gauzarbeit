@@ -6,6 +6,7 @@
 #include "ScriptedTasker.hpp"
 #include "ScriptedPhysical.hpp"
 #include "ScriptInspectable.hpp"
+#include "ScriptedTalker.hpp"
 #include "../Room.hpp"
 #include "../Helpers.hpp"
 #include "../Quest.hpp"
@@ -24,8 +25,8 @@ ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_
         _tasker = std::make_unique<ScriptedTasker>();
         _physical = std::make_unique<ScriptedPhysical>();
         _inspectable = std::make_unique<ScriptedInspectable>();
+        _talker = std::make_unique<ScriptedTalker>();
         _achiever = std::make_unique<Achiever>();
-        _talker = std::make_unique<Talker>();
 
         lua_getglobal(L, name.c_str());
         
@@ -107,7 +108,11 @@ int ScriptedThing::GetName(lua_State *L)
 
 int ScriptedThing::SendMessage(lua_State * L)
 {
+    assert(lua_isuserdata(L, 1));
+
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    std::clog << ptrThing -> name << '\n';
 
     std::string message{ lua_tostring(L, 2) };
     
@@ -443,6 +448,22 @@ int ScriptedThing::SetHP(lua_State * L)
 }
 */
 
+int Gauzarbeit_Spawn(lua_State * L)
+{
+    Room * r = (Room *)lua_touserdata(L, 1);
+
+    std::string t_n(lua_tostring(L, 2));
+
+    std::clog << "Spawning: " << t_n << '\n';
+
+    auto t = std::make_shared<ScriptedThing>(t_n);
+
+    r -> addThing(t);
+
+    return 0;
+
+}
+
 void ScriptedThing::InitLua()
 {
     luaL_openlibs(L);
@@ -505,14 +526,17 @@ void ScriptedThing::InitLua()
     lua_pushnumber(L, (int)Event::Type::Move);
     lua_setfield(L, -2, "Move");
    
-    lua_pushnumber(L, (int)Event::Type::Ask);
-    lua_setfield(L, -2, "Ask");
-
     lua_pushnumber(L, (int)Event::Type::Inspect);
     lua_setfield(L, -2, "Inspect");
     
     lua_setfield(L, -2, "Event");
+    
+    const luaL_Reg gauzarbeitFuncs[] = {
+        {"Spawn", Gauzarbeit_Spawn},
+        {NULL, NULL}
+    };
 
+    luaL_setfuncs(L, gauzarbeitFuncs, 0);
 
 
     }

@@ -9,7 +9,7 @@ class ScriptedThing : public Thing
 {
 
 public: 
-    ScriptedThing(const std::string& name, const std::string& script_dir = "./Scripts/");
+    ScriptedThing(const std::string& name, const std::string& script_dir = "./scripts/");
 
     const std::string getInfo() const override
     {

@@ -60,66 +60,6 @@ public:
     std::vector< std::shared_ptr<Thing> > things;
 };
 
-//class BasicRoom : public Room
-//{
-//public:
-//
-//    BasicRoom(int x, int y): Room(x, y)
-//    {
-//     
-//    }
-//
-//    void doGeneration() override
-//    {
-//
-//       // Testing Generation
-//        
-//        std::vector<std::string> script_names;
-// 
-//        
-//        for (const auto& dir_entry : std::filesystem::directory_iterator("./Scripts/"))
-//        {
-//            std::string filename{ dir_entry.path().filename() };
-//
-//            if (filename.substr(filename.size() - 3) == "lua")
-//            {
-//                //std::clog << filename << '\n';
-//
-//                auto name = filename.substr(0, filename.size() - 4);
-//
-//                script_names.push_back(name);
-//            }
-//        }
-//
-//        std::vector<std::string> loaded_scripts;
-//
-//        std::sample(script_names.begin(), script_names.end(), std::back_inserter(loaded_scripts), 2, std::mt19937{std::random_device{}()});
-//
-//        for (const auto& s : loaded_scripts)
-//        {
-//            //std::clog << s << '\n';
-//
-//            auto t = std::make_shared<ScriptedThing>(s);
-//
-//            if (t -> physical) t -> physical -> doMove(t, x, y);
-//            else addThing( t );
-//
-//        }
-//    }
-//
-//    void doUpdate(World &world) override
-//    {
-//        Room::doUpdate(world);
-//    }
-//
-//private:
-//    int max_enemies = 10;
-//
-//};
-
-
-// Work on this later.
-
 class ScriptedRoom : public Room
 {
 public:

@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <exception>
+#include <lua.h>
 
 std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
 {
@@ -133,24 +134,34 @@ ScriptedRoom::ScriptedRoom(const std::string& room_type, int x, int y): Room(x, 
 void ScriptedRoom::doGeneration()
 {
     const auto& L = ScriptedThing::L;
-    
-    std::string filename( "./Scripts/Rooms/" + room_type + ".lua" );
-
-    CheckLua(L, luaL_dofile(L, filename.c_str() ));
                                                                        
     lua_getglobal(L, room_type.c_str());
 
     if (lua_isnil(L, -1))
     {
-        // lua_newtable(L);
-        // lua_setglobal(L, room_type.c_str()); // Create a Lua table.
-                                                                       
-        std::clog << "No room type " << room_type << " found!\n";
-
-        return;
+         lua_newtable(L);
+         lua_setglobal(L, room_type.c_str()); // Create a Lua table.
     }
-                                                                       
+
+    std::string filename( "./scripts/rooms/" + room_type + ".lua" );
+
+    CheckLua(L, luaL_dofile(L, filename.c_str() ));
+
+    // doInit
+    
+    lua_getglobal(L, room_type.c_str());
+
+    lua_getfield(L, -1, "doInit");
+
+    if (lua_isfunction(L, -1))
+    {
+       lua_pushlightuserdata(L, this); 
+       CheckLua(L, lua_pcall(L, 1, 0, 0));
+    }
+
     // Spawn Things
+    
+    lua_getglobal(L, "Respawns");
     
     lua_pushnil(L);
 
@@ -160,8 +171,6 @@ void ScriptedRoom::doGeneration()
     {
           std::string t_n( lua_tostring(L, -1) );
 
-          std::clog << t_n << '\n';
-
           t_ns.push_back(t_n);
 
           lua_pop(L, 1);
@@ -169,24 +178,27 @@ void ScriptedRoom::doGeneration()
 
     for (auto t_n : t_ns)
     {
-          auto t = std::make_shared<ScriptedThing>(t_n);
+         auto t = std::make_shared<ScriptedThing>(t_n);
 
-          t -> physical() -> doMove(t, x, y);
+         if (t -> _physical) t -> physical() -> doMove(t, x, y);
+         else addThing(t);
     }
 }
 
 void ScriptedRoom::doUpdate(World &world)
 {
-
-    return;
-
     const auto& L = ScriptedThing::L;
 
-    lua_getglobal( L, name.c_str() );
+    lua_getglobal( L, room_type.c_str() );
 
     lua_getfield( L, -1, "doUpdate" );
 
     if (!lua_isfunction(L,-1)) return;
+
+    lua_pushlightuserdata(L, this);
+    CheckLua(L, lua_pcall(L, 1, 0, 0));
+
+    Room::doUpdate(world);
 }
 
 std::unordered_map< std::int64_t, std::shared_ptr< Room > > Room::mapRooms{};

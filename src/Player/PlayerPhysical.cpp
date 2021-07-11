@@ -65,6 +65,11 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
             else
                 t = getItem(event.target);
 
+            if (!t) 
+            {
+                t = current_room -> getThing(event.target);
+            }
+
             if (!t) throw TargetNotFound();
         
             t -> usable() -> onUse(t, owner);
@@ -99,9 +104,17 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
 
         std::stringstream ss{owner -> networked() -> getRequestStream().str()};
 
-        ss >> r_t >> x >> y;
+        ss >> r_t >> r_t >> x >> y;
 
-        Room::get(event.target, x, y);
+        auto t = Room::get(event.target, x, y);
+    
+        doMove(owner, x ,y);
+
+        std::stringstream res;
+
+        res << "You are in Room " << x << ' ' << y << '\n';
+
+        owner -> networked() -> addResponse(res.str());
     }
 
     if ( event.verb == "look" )

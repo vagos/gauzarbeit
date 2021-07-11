@@ -213,7 +213,7 @@ public:
        return FindByName(quests, q_name);
     }
 
-    virtual void doUpdate(std::shared_ptr<Thing> owner)
+    virtual void doUpdate(const std::shared_ptr<Thing> &owner)
     {
         for (auto& q : quests)
         {
@@ -221,7 +221,7 @@ public:
             {
                 q -> tasker() -> giveRewards( q, owner );
 
-                owner -> achiever() -> getRewards(0);
+                owner -> achiever() -> getRewards( 0 );
 
                 completed_quests.push_back(q);
             }
@@ -239,7 +239,7 @@ public:
 
     virtual void getRewards(int size)
     {
-        gainXP(size * getLevel());
+        gainXP(size);
     }
 
     int getLevel()
@@ -262,7 +262,7 @@ public:
 
     }
 
-    virtual const std::string onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector)
+    virtual const std::string onInspect(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &inspector)
     {
         std::stringstream inspect;
 
@@ -284,7 +284,11 @@ public:
         }
 
         return HeaderString( inspect.str(), owner -> name );
+    }
 
+    virtual const std::string onHelp(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector)
+    {
+        return "";
     }
 };
 

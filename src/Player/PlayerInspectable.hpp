@@ -10,7 +10,7 @@ class PlayerInspectable : public Inspectable
 {
 public:
 
-    const std::string onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector) override
+    const std::string onInspect(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &inspector) override
     {
         std::stringstream inspect; 
 

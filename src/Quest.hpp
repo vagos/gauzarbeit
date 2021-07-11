@@ -13,7 +13,7 @@ class ScriptedQuest : public ScriptedThing
 {
 public:
     ScriptedQuest(const std::string& name):
-        ScriptedThing(name, "./Scripts/Quests/")
+        ScriptedThing(name, "./scripts/quests/")
     {
 
     }
