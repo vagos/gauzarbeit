@@ -2,7 +2,6 @@
 #define SCRIPTED_NOTIFIER_HPP
 
 #include <cassert>
-#include <lua.h>
 
 #include "../Thing.hpp"
 #include "ScriptedThing.hpp"

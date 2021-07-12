@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <exception>
-#include <lua.h>
 
 std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
 {

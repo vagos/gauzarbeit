@@ -1,6 +1,5 @@
 #include "../Thing.hpp"
 #include "ScriptedThing.hpp"
-#include <lua.h>
 #include "LuaHelpers.hpp"
 
 

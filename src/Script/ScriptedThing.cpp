@@ -11,7 +11,6 @@
 #include "../Helpers.hpp"
 #include "../Quest.hpp"
 
-#include <lua.h>
 #include <memory>
 #include <string>
 
