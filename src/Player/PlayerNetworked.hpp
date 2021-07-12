@@ -23,41 +23,25 @@ class PlayerNetworked : public Networked
 
 public:
 
-    PlayerNetworked(): state(State::Entering)
+    PlayerNetworked()
     {
-        //state = State::LoggedIn;
-        //online = true;
+
     }
 
     void getRequest( std::shared_ptr<Thing> owner, World& world )
     {
-        if ( ! Server::getSocketSelector().isReady( *socket ) ) return;
+            streamRequest.str(Server::getMessage( *socket ));
 
-        if (socket->receive(cData, 100, nReceived) != sf::Socket::Done)
-        {
-            std::clog << "User disconnected!\n"; 
-            
-            setState( State::LoggedOut ); 
+            if (!streamRequest.str().size()) return;
 
-            return;
-        }
-
-        if (!nReceived) return;
-
-        if ( cData[nReceived - 1] != '\n' ) return;
-        
-        streamRequest << std::string{cData, nReceived - 2};
-
-        std::clog << *owner << ": " << streamRequest.str() << " Received: " << nReceived << " bytes" << "\n";
+            std::clog << *owner << ": " << streamRequest.str() << " Received: " << streamRequest.str().size() << " bytes" << "\n";
     }
     
     void sendResponse(std::shared_ptr<Thing> owner) override
     {
-        //if ( ! Server::getSocketSelector().isReady( *socket ) ) return;
-
         if ( ! streamResponse.str().size() ) goto CLEAR;
 
-        socket -> send(streamResponse.str().c_str(), streamResponse.str().size());
+        Server::sendMessage(*socket, streamResponse.str());
         
         CLEAR:
             

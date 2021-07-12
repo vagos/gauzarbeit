@@ -1,56 +1,81 @@
-#include <SFML/Network/SocketSelector.hpp>
+#include <boost/system/detail/error_code.hpp>
 #include <string>
 #include <algorithm>
 
 #include "Networked.hpp"
+#include "Player/PlayerNetworked.hpp"
 #include "Server.hpp"
 #include "World.hpp"
 #include "Player/Player.hpp"
 
-#include "Script/ScriptedThing.hpp"
-//#include "Character/Character.hpp"
-#include "Character/BasicEnemy.hpp"
-
-
-void Server::acceptConnections(World &world)
+void Server::acceptConnections()
 {
-    if (!socketSelector.isReady(socketListener)) return;
 
-    // Create a new Player object. 
+    // new asio stuff
     
-    auto newPlayer = std::make_shared<Player>();
+    acceptor.async_accept( 
+            [this](boost::system::error_code error, tcp::socket socket)
+            {
+                if (!error)
+                {
+                    auto newPlayer = std::make_shared<Player>();
+
+                    clients.push_back(newPlayer); // add the player to clients
+
+                    newPlayer -> networked() -> socket = std::make_unique<tcp::socket>(std::move(socket));
+
+                    std::clog << "Player connected!\n";
+                }
+
+                acceptConnections();
+            });
+}
+
+void Server::sendMessage(tcp::socket &socket, const std::string &msg)
+{
+    boost::system::error_code error;
+
+    boost::asio::write(socket, boost::asio::buffer(msg.c_str(), msg.size()), error);
+
+    if (error) std::clog << error.message() << '\n';
+}
+
+std::string Server::getMessage(tcp::socket &socket)
+{
+    socket.non_blocking(true);
+
+    size_t len;
     
-    if (socketListener.accept( *newPlayer -> networked() -> socket ) == sf::Socket::Done)
-    {
-        std::clog << "Player connected!\n";    
-    }
-
-    socketSelector.add(*newPlayer -> networked() -> socket);
-
-    newPlayer -> networked() -> addResponse("Welcome! Use login {name} to log on.\n"); 
-
-    //clients.push_back(newPlayer);
-
-    world.addPlayer(newPlayer);
-
-    //Testing
-    ScriptedThing::InitLua();
+    char data[100];
     
-    newPlayer -> physical() -> doMove(newPlayer, 0, 0);
+    boost::system::error_code error;
+    
+    len = socket.receive(boost::asio::buffer(data, 100), 0, error);
+
+    if (!error) return std::string(data, len); 
+
+    return "";
 }
 
 void Server::doUpdate(World& world)
 {
-    if (!socketSelector.wait(sf::milliseconds(100))) return;
 
-    acceptConnections(world);
-    //updateClients(world);
+    // CHANGE THIS
+
+    for (auto c : clients)
+    {
+        std::clog << *c << '\n';
+        world.addPlayer(c);
+
+        c -> physical() -> doMove(c, 0, 0);
+    }
+
+    clients.erase(clients.begin(), clients.end());
+    
 }
 
 void Server::updateClients(World& world)
 {
-    //if (!socketSelector.wait(sf::milliseconds(100))) return;
-
     for (const auto& c : clients)
         c -> networked() -> getRequest(c, world);
     for (const auto& c : clients)
@@ -74,5 +99,3 @@ void Server::updateClients(World& world)
                 [](const std::shared_ptr<Thing>& p) 
                 { return p -> networked() -> isOnline();}), clients.end());
 }
-
-sf::SocketSelector Server::socketSelector;

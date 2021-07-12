@@ -47,7 +47,9 @@ public:
         updateRooms();
         
         for (auto& [name, player] : playersOnline) // Get request
+        {
             player -> networked() -> getRequest(player, *this); 
+        }
         
         for (auto& [name, player] : playersOnline) 
         {

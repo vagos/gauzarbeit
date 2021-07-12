@@ -4,7 +4,7 @@
 
 void Networked::doDisconnect(const std::shared_ptr<Thing> &owner)
 {
-    socket -> disconnect();
+    socket -> close();
     owner -> physical() -> current_room -> removePlayer(owner);
     online = false;
 }

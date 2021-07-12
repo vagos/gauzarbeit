@@ -1,27 +1,22 @@
-#include <random>
-
 #include "Script/ScriptedThing.hpp"
 #include "Server.hpp"
 #include "World.hpp"
 
 int main()
 {
-    std::srand(std::time(NULL));
+    boost::asio::io_service io_service;
+    tcp::endpoint endpoint(tcp::v4(), 23);
 
-    int port = rand() % 9999 + 1000;
-    
-    //Server server(port);
-    Server server(23);
+    Server server(23, io_service, endpoint);
     World world;
 
-    FILE * f = fopen("port.txt", "w+");
+    ScriptedThing::InitLua();
 
-    fprintf(f, "%d", port);
+    server.acceptConnections();
 
-    fclose(f);
-
-    while (true)
+    for (;;)
     {
+       io_service.poll();
        world.doUpdate();
        server.doUpdate(world);
     }

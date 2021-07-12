@@ -1,7 +1,7 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "SFML/Network.hpp"
+#include <boost/asio/io_service.hpp>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -9,38 +9,38 @@
 #include "Room.hpp"
 #include "Player/Player.hpp"
 
+#include <boost/asio.hpp>
+
+using boost::asio::ip::tcp;
+
 class Server
 {
 
 
 public:
 
-    Server(int port)
+    Server(int port, boost::asio::io_service &io_service, const tcp::endpoint &endpoint): 
+        acceptor(io_service, endpoint), s_socket(io_service) 
     {
-        if (socketListener.listen(port) != sf::Socket::Done) exit(1);
-
         std::clog << "Server started on port " << port << "\n";
-
-        socketSelector.add(socketListener);
-
     }
     
     void doUpdate(World& world); // Change this
-    static sf::SocketSelector& getSocketSelector() {return socketSelector;}
+
+    static std::string getMessage( tcp::socket& socket );
+    static void sendMessage( tcp::socket& socket, const std::string &msg );
+
+    void acceptConnections();
 
 private:
-
-    void acceptConnections(World& world);
-
     void updateClients(World& world);
 
     
 private:
-    sf::TcpListener socketListener;
-    static sf::SocketSelector socketSelector;
-
     std::vector<std::shared_ptr<Thing>> clients;
 
+    tcp::acceptor acceptor;
+    tcp::socket s_socket;
 };
 
 #endif//SERVER_HPP
