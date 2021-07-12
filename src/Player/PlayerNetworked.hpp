@@ -1,7 +1,6 @@
 #ifndef PLAYER_NETWORKED_HPP
 #define PLAYER_NETWORKED_HPP
 
-#include <SFML/Network/SocketSelector.hpp>
 #include <memory>
 #include <sstream>
 #include <string>
