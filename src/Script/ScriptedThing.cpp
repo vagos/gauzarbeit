@@ -432,6 +432,23 @@ int ScriptedThing::GetHP(lua_State * L)
     return 1;
 }
 
+int ScriptedThing::DoAttack(lua_State *L)
+{
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+    Thing * ptrThingTarget = (Thing *)lua_touserdata(L, 2);
+
+    if (!(ptrThing -> _attackable && ptrThingTarget -> _attackable)) return 0;
+
+    auto t = GetSmartPtr(ptrThing -> physical() -> current_room -> things, ptrThing);
+    auto t_t = ptrThing -> physical() -> current_room -> getAnything(ptrThingTarget -> name);
+
+    if (!t) return 0;
+
+    ptrThing -> attackable() -> doAttack(t, t_t);
+
+    return 0;
+}
+
 /*
 int ScriptedThing::SetHP(lua_State * L)
 {
@@ -512,6 +529,7 @@ void ScriptedThing::InitLua()
     {"getLevel", ScriptedThing::GetLevel},
     {"gainQuest", ScriptedThing::GainQuest},
     {"isValid", ScriptedThing::IsValid},
+    {"doAttack", ScriptedThing::DoAttack},
     {NULL, NULL}
     };
 

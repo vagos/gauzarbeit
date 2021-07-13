@@ -9,7 +9,7 @@ class ScriptedThing : public Thing
 {
 
 public: 
-    ScriptedThing(const std::string& name, const std::string& script_dir = "./scripts/");
+    ScriptedThing(const std::string& name, const std::string& script_dir = "./scripts/things/");
 
     const std::string getInfo() const override
     {
@@ -47,7 +47,11 @@ public:
     static int BroadcastMessage(lua_State * L);
 
     static int SetMaxHealth(lua_State * L);
+    static int SetAttack(lua_State * L);
+    static int SetDefense(lua_State * L);
     static int GetHP(lua_State * L);
+
+    static int DoAttack(lua_State * L);
     
     static void InitLua();
 
