@@ -10,3 +10,5 @@ void Networked::doDisconnect(const std::shared_ptr<Thing> &owner)
 }
 
 std::size_t Networked::lastID = 0;
+
+std::fstream Networked::db;

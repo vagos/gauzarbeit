@@ -7,10 +7,12 @@
 #include "ScriptedPhysical.hpp"
 #include "ScriptInspectable.hpp"
 #include "ScriptedTalker.hpp"
+#include "ScriptedNetworked.hpp"
 #include "../Room.hpp"
 #include "../Helpers.hpp"
 #include "../Quest.hpp"
 
+#include <lua.h>
 #include <memory>
 #include <string>
 
@@ -26,6 +28,7 @@ ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_
         _inspectable = std::make_unique<ScriptedInspectable>();
         _talker = std::make_unique<ScriptedTalker>();
         _achiever = std::make_unique<Achiever>();
+        _networked = std::make_unique<ScriptedNetworked>();
 
         lua_getglobal(L, name.c_str());
         
@@ -463,6 +466,19 @@ int Gauzarbeit_Spawn(lua_State * L)
 
 }
 
+
+int Gauzarbeit_LoadDB(lua_State * L)
+{
+    std::string db_line;
+
+    Networked::getDB() >> db_line;
+
+    lua_pushstring(L, db_line.c_str());
+
+    return 1;
+
+}
+
 void ScriptedThing::InitLua()
 {
     luaL_openlibs(L);
@@ -532,6 +548,7 @@ void ScriptedThing::InitLua()
     
     const luaL_Reg gauzarbeitFuncs[] = {
         {"Spawn", Gauzarbeit_Spawn},
+        {"GetDBLine", Gauzarbeit_LoadDB},
         {NULL, NULL}
     };
 
@@ -545,4 +562,6 @@ void ScriptedThing::InitLua()
     
 }
 
-lua_State * ScriptedThing::L = luaL_newstate(); 
+lua_State * ScriptedThing::L =
+
+luaL_newstate(); 

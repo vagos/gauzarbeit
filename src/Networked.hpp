@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <queue>
 
 #include <boost/asio.hpp>
@@ -21,17 +22,20 @@ public:
 
     Networked()
     {
-        ID = lastID; ++lastID;
+        ID = lastID++;
     }
 
     std::unique_ptr<tcp::socket> socket;
 
     virtual void doUpdate(std::shared_ptr<Thing> owner) {}
+
     virtual void handleRequest(std::shared_ptr<Thing> owner, World& world) {}
     virtual void getRequest(std::shared_ptr<Thing> owner, World& world) {}
     virtual void sendResponse(std::shared_ptr<Thing> owner) {}
-    virtual void doDatabaseLoad(std::shared_ptr<Thing> owner) {}
 
+    virtual void doDatabaseLoad(std::shared_ptr<Thing> owner) {} // Maybe add parent
+    virtual const std::string doDatabaseSave(std::shared_ptr<Thing> owner) {return "";}
+    
     
     void addResponse(const std::string& res)
     {
@@ -44,7 +48,9 @@ public:
 
     std::size_t getID() {return ID;}
 
-    virtual bool isOnline() {return online;}
+    bool isOnline() {return online;}
+
+    static std::fstream& getDB() {return db;}
 
 protected:
     
@@ -59,6 +65,8 @@ protected:
 
     std::stringstream streamRequest;
     std::stringstream streamResponse;
+
+    static std::fstream db;
 
     bool online = false;
 

@@ -95,8 +95,6 @@ const std::string BarString(float filled, int max_size, const char f, const char
 {
     std::string s(1, lb);
 
-    std::clog << filled << '\n';
-
     s.resize(int(max_size * filled + 1), ':');
 
     s.resize(max_size, ' ');

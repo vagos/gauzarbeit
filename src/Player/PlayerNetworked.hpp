@@ -1,10 +1,12 @@
 #ifndef PLAYER_NETWORKED_HPP
 #define PLAYER_NETWORKED_HPP
 
+#include <fstream>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <experimental/filesystem>
 
 #include "../Thing.hpp"
 #include "../Server.hpp"
@@ -76,9 +78,13 @@ public:
 
             case Event::Type::Leave:
             {
-                 addResponse("Goodbye!\n");
+                addResponse("Goodbye!\n");
 
                 setState(State::LoggedOut);
+
+                doDatabaseStore(owner);
+
+                doDisconnect(owner);
 
                 break;
             }
@@ -95,6 +101,110 @@ public:
 
     void doDatabaseLoad(std::shared_ptr<Thing> owner) override
     {
+        std::string filename{"./db/players/" + owner -> name};
+
+        if (!std::experimental::filesystem::exists(filename)) return;
+
+        db.open(filename);
+
+        if (!db.is_open()) 
+        {
+            std::clog << "Player not found!\n";
+            return;
+        }
+
+        std::string line;
+
+        db >> line >> line >> line;
+
+        // Load INVENTORY
+        {
+            db >> line;
+
+            while(line != "END" && !db.eof())
+            {
+
+                auto t = std::make_shared<ScriptedThing>(line);
+
+                t -> networked() -> doDatabaseLoad( t );
+
+                owner -> physical() -> gainItem( t );
+
+                db >> line;
+            }
+        }
+
+        // Load STATS
+
+        {
+            db >> line;
+
+            int stat;
+
+            db >> stat;
+            
+            owner -> achiever() -> gainXP(stat);
+
+            db >> owner -> attackable() -> current_health;
+            db >> owner -> attackable() -> attack;
+            db >> owner -> attackable() -> defense;
+
+            db >> line;
+
+            std::clog << line << '\n';
+        }
+
+
+        db.close();
+    }
+
+    const std::string doDatabaseSave(std::shared_ptr<Thing> owner) override
+    {
+        std::stringstream info;
+
+        info << "PLAYER: " << owner -> name << '\n';
+
+        info << "INVENTORY\n";
+
+        for (auto& t : owner -> physical() -> inventory)
+        {
+            info << t -> name << ' ' << t -> networked() -> doDatabaseSave(t) << '\n';
+        }
+
+        info << "END\n";
+
+        info << "STATS\n";
+
+        info << owner -> achiever() -> getLevel() << ' ';
+
+        info << owner -> attackable() -> current_health << ' ';
+        info << owner -> attackable() -> attack << ' ';
+        info << owner -> attackable() -> defense << ' ';
+
+        info << '\n';
+
+        info << "END\n";
+
+        return info.str();
+    }
+
+    void doDatabaseStore(std::shared_ptr<Thing> owner) 
+    {
+        std::string filename{"./db/players/" + owner -> name};
+    
+        db.open(filename, std::ios::trunc);
+
+        if (!db.is_open()) 
+        {
+            std::ofstream file{filename};
+            db.open(filename);
+        }
+
+        db << doDatabaseSave(owner);
+        
+        db.close();
+
+        std::clog << "Player " << owner -> name << " saved!\n";
     }
 
 

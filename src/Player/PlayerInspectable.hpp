@@ -20,7 +20,7 @@ public:
 
         if (owner == inspector)
         {
-            inspect << CenteredString("---") << "\n\n";
+            inspect << CenteredString("---") << "\n";
 
             if (!owner -> physical() -> inventory.empty())
             {

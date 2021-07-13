@@ -6,10 +6,10 @@
 #include <memory>
 #include <sstream>
 
+#include <boost/asio.hpp>
+
 #include "Room.hpp"
 #include "Player/Player.hpp"
-
-#include <boost/asio.hpp>
 
 using boost::asio::ip::tcp;
 
@@ -31,6 +31,8 @@ public:
     static void sendMessage( tcp::socket& socket, const std::string &msg );
 
     void acceptConnections();
+
+    void onClientConnect(tcp::socket socket);
 
 private:
     void updateClients(World& world);

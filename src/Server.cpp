@@ -1,4 +1,3 @@
-#include <boost/system/detail/error_code.hpp>
 #include <string>
 #include <algorithm>
 
@@ -18,17 +17,24 @@ void Server::acceptConnections()
             {
                 if (!error)
                 {
-                    auto newPlayer = std::make_shared<Player>();
-
-                    clients.push_back(newPlayer); // add the player to clients
-
-                    newPlayer -> networked() -> socket = std::make_unique<tcp::socket>(std::move(socket));
+                    socket.non_blocking(true);
 
                     std::clog << "Player connected!\n";
+
+                    onClientConnect(std::move(socket));
                 }
 
                 acceptConnections();
             });
+}
+
+void Server::onClientConnect(tcp::socket socket)
+{
+    auto newPlayer = std::make_shared<Player>();
+
+    newPlayer -> networked() -> socket = std::make_unique<tcp::socket>(std::move(socket));
+    
+    clients.push_back(newPlayer); // add the player to clients
 }
 
 void Server::sendMessage(tcp::socket &socket, const std::string &msg)
@@ -42,7 +48,6 @@ void Server::sendMessage(tcp::socket &socket, const std::string &msg)
 
 std::string Server::getMessage(tcp::socket &socket)
 {
-    socket.non_blocking(true);
 
     size_t len;
     

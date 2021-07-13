@@ -3,5 +3,8 @@ main
 notes/
 testing/
 scripts/
+wiki/
+db/
 
 .vimspector.json
+
