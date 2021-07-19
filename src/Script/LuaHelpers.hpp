@@ -6,9 +6,9 @@
 #include <memory>
 #include <algorithm>
 
-class Thing;
-
 #include "lua.hpp"
+
+class Thing;
 
 bool CheckLua(lua_State *L, int r);
 

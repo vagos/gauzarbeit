@@ -26,7 +26,6 @@ public:
     }
 
     static std::shared_ptr<Room> get(std::int32_t x, std::int32_t y);
-    static std::shared_ptr<Room> get(const std::string &r_t, std::int32_t x, std::int32_t y);
 
     int x, y;
 
@@ -63,15 +62,13 @@ public:
 class ScriptedRoom : public Room
 {
 public:
-    ScriptedRoom(const std::string& room_type, int x, int y);
+    ScriptedRoom(int x, int y) : Room(x, y)
+    {
+    }
 
     void doUpdate(World &world) override; 
 
     void doGeneration() override;
-
-    private:
-        std::string room_type;
-
 };
 
 #endif//ROOM_HPP

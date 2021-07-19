@@ -37,6 +37,9 @@ void Player::setPlayerCommands()
 
     playerCommands["move"] = Event::Type::Move;
     playerCommands["go"] = Event::Type::Move;
+
+    playerCommands["pickup"] = Event::Type::Gain;
+    playerCommands["grab"] = Event::Type::Gain;
 }
 
 

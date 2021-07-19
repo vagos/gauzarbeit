@@ -35,12 +35,14 @@ public:
 
             if (!streamRequest.str().size()) return;
 
-            std::clog << *owner << ": " << streamRequest.str() << " Received: " << streamRequest.str().size() << " bytes" << "\n";
+            std::clog << *owner << ": " << streamRequest.str() << '\r' << " Received: " << streamRequest.str().size() << " bytes" << "\n";
     }
     
     void sendResponse(std::shared_ptr<Thing> owner) override
     {
-        if ( ! streamResponse.str().size() ) goto CLEAR;
+        if ( ! (streamResponse.str().size() || streamRequest.str().size()) ) goto CLEAR;
+
+        addResponse(">> ");
 
         Server::sendMessage(*socket, streamResponse.str());
         

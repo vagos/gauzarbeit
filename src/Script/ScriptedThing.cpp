@@ -5,12 +5,13 @@
 #include "ScriptedNotifier.hpp"
 #include "ScriptedTasker.hpp"
 #include "ScriptedPhysical.hpp"
-#include "ScriptInspectable.hpp"
+#include "ScriptedInspectable.hpp"
 #include "ScriptedTalker.hpp"
 #include "ScriptedNetworked.hpp"
 #include "../Room.hpp"
 #include "../Helpers.hpp"
 #include "../Quest.hpp"
+#include "../Server.hpp"
 
 #include <lua.h>
 #include <memory>
@@ -306,14 +307,6 @@ int ScriptedThing::GetLevel(lua_State *L)
     return 0;
 }
 
-int ScriptedThing::IsValid(lua_State *L)
-{
-    assert(lua_isuserdata(L, 1));
-
-    lua_pushboolean(L, (bool)lua_touserdata(L, 1));
-
-    return 1;
-}
 
 int ScriptedThing::GetEventInfo(lua_State *L)
 {
@@ -449,6 +442,17 @@ int ScriptedThing::DoAttack(lua_State *L)
     return 0;
 }
 
+int ScriptedThing::SetAttack(lua_State *L)
+{
+    Thing * ptrThing = (Thing * )lua_touserdata(L, 1);
+
+    int atk = (int)lua_tonumber(L, 2);
+
+    ptrThing -> attackable() -> attack = atk;
+
+    return 0;
+}
+
 /*
 int ScriptedThing::SetHP(lua_State * L)
 {
@@ -469,18 +473,56 @@ int ScriptedThing::SetHP(lua_State * L)
 
 int Gauzarbeit_Spawn(lua_State * L)
 {
-    Room * r = (Room *)lua_touserdata(L, 1);
+    if (lua_isuserdata(L, 1))
+    {
+        Room * r = (Room *)lua_touserdata(L, 1);
 
-    std::string t_n(lua_tostring(L, 2));
+        std::string t_n(lua_tostring(L, 2));
 
-    std::clog << "Spawning: " << t_n << '\n';
+        auto t = std::make_shared<ScriptedThing>(t_n);
 
-    auto t = std::make_shared<ScriptedThing>(t_n);
+        if (t -> _physical) t -> physical() -> doMove(t, r->x, r->y);
+        else r -> addThing( t );
 
-    r -> addThing(t);
+        return 0;
+    }
+    else
+    {
+        int x = (int)lua_tonumber(L, 1);
+        int y = (int)lua_tonumber(L, 2);
+
+        std::string t_n(lua_tostring(L, 3));
+
+        auto r = Room::get(x, y);
+
+        assert(r);
+        
+        auto t = std::make_shared<ScriptedThing>(t_n);
+
+        if (t -> _physical) t -> physical() -> doMove(t, r->x, r->y);
+        else r -> addThing( t );
+
+    }
 
     return 0;
 
+}
+
+int Gauzarbeit_Room(lua_State *L)
+{
+    std::string r_t(lua_tostring(L, 1));
+
+    int x = (int)lua_tonumber(L, 2);
+    int y = (int)lua_tonumber(L, 3);
+
+    auto r = Room::get(x, y);
+
+    r -> name = r_t;
+    r -> doGeneration();
+
+    lua_pushlightuserdata(L, r.get());
+    
+    return 1;
 }
 
 
@@ -511,6 +553,7 @@ void ScriptedThing::InitLua()
     {"__newindex", ScriptedThing::NewIndex},
     {"getName", ScriptedThing::GetName},
     {"setMaxHealth", ScriptedThing::SetMaxHealth},
+    {"setAttack", ScriptedThing::SetAttack},
     {"getHP", ScriptedThing::GetHP},
     {"sendMessage", ScriptedThing::SendMessage},
     {"doSay", ScriptedThing::DoSay},
@@ -528,7 +571,6 @@ void ScriptedThing::InitLua()
     {"getEventInfo", ScriptedThing::GetEventInfo},
     {"getLevel", ScriptedThing::GetLevel},
     {"gainQuest", ScriptedThing::GainQuest},
-    {"isValid", ScriptedThing::IsValid},
     {"doAttack", ScriptedThing::DoAttack},
     {NULL, NULL}
     };
@@ -562,10 +604,17 @@ void ScriptedThing::InitLua()
     lua_pushnumber(L, (int)Event::Type::Inspect);
     lua_setfield(L, -2, "Inspect");
     
+    lua_pushnumber(L, (int)Event::Type::Kill);
+    lua_setfield(L, -2, "Kill");
+    
+    lua_pushnumber(L, (int)Event::Type::Gain);
+    lua_setfield(L, -2, "Gain");
+    
     lua_setfield(L, -2, "Event");
     
     const luaL_Reg gauzarbeitFuncs[] = {
         {"Spawn", Gauzarbeit_Spawn},
+        {"GetRoom", Gauzarbeit_Room},
         {"GetDBLine", Gauzarbeit_LoadDB},
         {NULL, NULL}
     };
@@ -575,11 +624,18 @@ void ScriptedThing::InitLua()
 
     }
 
-    
     lua_setglobal(L, "Gauzarbeit");
-    
+
+    CheckLua(L, luaL_dofile(L, "scripts/Init.lua"));
+
+
+    // Load MOTD
+
+    auto& L = ScriptedThing::L;
+
+    lua_getglobal(L, "MOTD");
+
+    Server::MOTD.assign( lua_tostring(L, -1) );
 }
 
-lua_State * ScriptedThing::L =
-
-luaL_newstate(); 
+lua_State * ScriptedThing::L = luaL_newstate(); 

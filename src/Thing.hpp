@@ -33,7 +33,7 @@ class Inspectable;
 class Thing 
 {
 public:
-    Thing(): name( "INVALID_NAME" )
+    Thing(): name( "None" )
     {
 
     }
@@ -105,6 +105,7 @@ struct Event
         Death,
         Enter,
         Leave,
+        Gain,
     };
 
     std::string verb;
@@ -188,10 +189,13 @@ public:
                 [](const auto& t) {return !t;}) == tasks.end();
     }
 
-    virtual void giveRewards(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer)
+    virtual void doReward(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer)
     {
 
     }
+
+    int getDifficulty() {return tasks.size();}
+
 
 private:
    std::vector<bool> tasks;
@@ -213,17 +217,15 @@ public:
        return FindByName(quests, q_name);
     }
 
-    virtual void doUpdate(const std::shared_ptr<Thing> &owner)
+    void doUpdate(const std::shared_ptr<Thing> &owner)
     {
         for (auto& q : quests)
         {
             if (q -> tasker() -> isCompleted())
             {
-                q -> tasker() -> giveRewards( q, owner );
+                q -> tasker() -> doReward( q, owner );
 
-                owner -> achiever() -> getRewards( 0 );
-
-                completed_quests.push_back(q);
+                onQuestComplete(owner, q);
             }
         }
 
@@ -232,12 +234,19 @@ public:
                 quests.end()); // Remove completed quests
     }
 
+    virtual void onQuestComplete(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &quest)
+    {
+        getRewards(owner, quest -> tasker() -> getDifficulty());
+        
+        completed_quests.push_back(quest);
+    }
+
     void gainXP(int extra_xp)
     {
        xp += extra_xp; 
     }
 
-    virtual void getRewards(int size)
+    virtual void getRewards(const std::shared_ptr<Thing> owner, int size)
     {
         gainXP(size);
     }
@@ -245,7 +254,9 @@ public:
     int getLevel()
     {
         return xp/10;
-    }
+    } 
+
+    int getXP() {return xp;}
 
 private:
     int xp = 0;

@@ -2,21 +2,28 @@
 #include "Server.hpp"
 #include "World.hpp"
 
+#include <cstdlib>
+#include <random>
+
 int main()
 {
-    boost::asio::io_service io_service;
-    tcp::endpoint endpoint(tcp::v4(), 23);
-
-    Server server(23, io_service, endpoint);
-    World world;
-
+    //srand(time(NULL));
+    //int ip = random() % 9999 + 100;
+    
     ScriptedThing::InitLua();
 
-    server.acceptConnections();
+    int ip = 23;
+
+    boost::asio::io_service io_service;
+    tcp::endpoint endpoint(tcp::v4(), ip);
+
+    Server server(ip, io_service, endpoint);
+    World world;
+
 
     for (;;)
     {
-       io_service.poll();
+       server.acceptConnections();
        world.doUpdate();
        server.doUpdate(world);
     }

@@ -66,13 +66,23 @@ public:
             catch (std::exception& e) { HandleException(player, e); }
         }
         for (auto& [name, player] : playersOnline)
-            player -> physical() -> doUpdate(player, *this);
+        {
+            try { player -> physical() -> doUpdate(player, *this); }
+            catch (std::exception& e) { HandleException(player, e); }
+        }
         
         for (auto& [name, player] : playersOnline)
         {
             try { player -> attackable() -> doUpdate(player); } 
             catch (std::exception& e) { HandleException(player, e); }
         }
+        
+        for (auto& [name, player] : playersOnline)
+        {
+            try { player -> achiever() -> doUpdate(player); } 
+            catch (std::exception& e) { HandleException(player, e); }
+        }
+
 
         for (auto& [name, player] : playersOnline) // make this last
             player -> notifier() -> clearEvent();    

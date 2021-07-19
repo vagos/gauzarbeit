@@ -40,12 +40,6 @@ class PlayerNotifier : public Notifier
         for (auto& quest : owner -> achiever() -> quests)
         {
            quest -> notifier() -> onNotify(quest, owner, notification_type, target); 
-
-           if (quest -> tasker() -> isCompleted())
-           {
-               owner -> networked() -> addResponse(ColorString("You completed " + quest -> name + "\n", Color::Green));
-               quest -> tasker() -> giveRewards( quest, owner );
-           }
         }
     }
 
@@ -84,11 +78,9 @@ class PlayerNotifier : public Notifier
 
                 std::stringstream msg;
                 msg << "You killed " << target -> name << '\n';
-                
                 owner -> networked() -> addResponse(ColorString( msg.str(), Color::Red) );
 
                 doNotify(owner, Event::Type::Kill, target);
-
                 owner -> achiever() -> gainXP(target -> achiever() -> getLevel());
 
                 break;

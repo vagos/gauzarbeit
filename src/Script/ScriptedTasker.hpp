@@ -10,7 +10,7 @@ public:
     {
     }
 
-    void giveRewards(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer) override
+    void doReward(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer) override
     {
         //Tasker::giveRewards(owner, completer);
 
@@ -18,7 +18,7 @@ public:
 
         lua_getglobal(  L, owner -> name.c_str() );
 
-        lua_getfield( L, -1, "giveRewards" );
+        lua_getfield( L, -1, "doReward" );
 
         if (lua_isfunction(L, -1))
         {

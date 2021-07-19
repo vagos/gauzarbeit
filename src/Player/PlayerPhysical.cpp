@@ -83,6 +83,19 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
             owner -> notifier() -> doNotify(owner, event.type);
             break;
         }
+
+        case Event::Type::Gain:
+        {
+           auto t = current_room -> getThing( event.target );
+            
+           if (!t) throw TargetNotFound();
+
+           pickupItem(t); 
+
+           owner -> notifier() -> doNotify(owner, event.type, t);
+
+           owner -> networked() -> addResponse("You picked up " + t -> name  + '\n');
+        }
     }
 
     if( event.verb == "get" )
@@ -95,26 +108,6 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
         auto t = std::make_shared<ScriptedThing>(event.target);
 
         t -> physical() -> doMove(t, current_room -> x, current_room -> y);
-    }
-
-    if ( event.verb == "generate" )
-    {
-        int x, y;
-        std::string r_t;
-
-        std::stringstream ss{owner -> networked() -> getRequestStream().str()};
-
-        ss >> r_t >> r_t >> x >> y;
-
-        auto t = Room::get(event.target, x, y);
-    
-        doMove(owner, x ,y);
-
-        std::stringstream res;
-
-        res << "You are in Room " << x << ' ' << y << '\n';
-
-        owner -> networked() -> addResponse(res.str());
     }
 
     if ( event.verb == "look" )

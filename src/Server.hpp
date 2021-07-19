@@ -3,6 +3,7 @@
 
 #include <boost/asio/io_service.hpp>
 #include <iostream>
+#include <lua.h>
 #include <memory>
 #include <sstream>
 
@@ -10,6 +11,7 @@
 
 #include "Room.hpp"
 #include "Player/Player.hpp"
+
 
 using boost::asio::ip::tcp;
 
@@ -19,11 +21,7 @@ class Server
 
 public:
 
-    Server(int port, boost::asio::io_service &io_service, const tcp::endpoint &endpoint): 
-        acceptor(io_service, endpoint), s_socket(io_service) 
-    {
-        std::clog << "Server started on port " << port << "\n";
-    }
+    Server(int port, boost::asio::io_service &io_service, const tcp::endpoint &endpoint);
     
     void doUpdate(World& world); // Change this
 
@@ -33,16 +31,17 @@ public:
     void acceptConnections();
 
     void onClientConnect(tcp::socket socket);
+    
+    static std::string MOTD;
 
 private:
     void updateClients(World& world);
-
     
-private:
     std::vector<std::shared_ptr<Thing>> clients;
 
     tcp::acceptor acceptor;
     tcp::socket s_socket;
+
 };
 
 #endif//SERVER_HPP
