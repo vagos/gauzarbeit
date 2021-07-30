@@ -95,6 +95,14 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
            owner -> notifier() -> doNotify(owner, event.type, t);
 
            owner -> networked() -> addResponse("You picked up " + t -> name  + '\n');
+
+           break;
+        }
+
+        case Event::Type::Look:
+        {
+            owner -> networked() -> addResponse( current_room -> onInspect(current_room, owner) );
+            break;
         }
     }
 
@@ -108,11 +116,6 @@ void PlayerPhysical::doUpdate( const std::shared_ptr<Thing> &owner, World & worl
         auto t = std::make_shared<ScriptedThing>(event.target);
 
         t -> physical() -> doMove(t, current_room -> x, current_room -> y);
-    }
-
-    if ( event.verb == "look" )
-    {
-        owner -> networked() -> addResponse( current_room -> onInspect(current_room, owner) );
     }
 
 //    else if (event.verb == "give") // fix this

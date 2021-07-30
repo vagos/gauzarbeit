@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <exception>
+#include <memory>
 
 std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
 {
@@ -55,9 +56,7 @@ const std::shared_ptr<Thing> Room::getAnything(const std::string &name)
 {
     auto t = getThing(name);
 
-    if (!t) return getPlayer(name);
-
-    return t;
+    return t ? t : getPlayer(name);
 }
 
 void Room::doUpdate(World &world)
@@ -89,13 +88,15 @@ const std::string Room::onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<
 
     inspect << HeaderString( "", "Room: " + name ) << '\n';
 
-    inspect << HeaderString( VerticalListString( players, '*'), "Players here:");
+    inspect << HeaderString( BlockListString( players, '*', 
+                [](const std::shared_ptr<Thing>& t) {return t -> inspectable() -> getName(t); } ), "Players here:");
     
     inspect << '\n' << CenteredString("---") << "\n\n";
 
     if (things.size())
     {
-        inspect << HeaderString( VerticalListString( things, '*'), "Other things here:");
+        inspect << HeaderString( BlockListString( things, '*',
+                    [](const std::shared_ptr<Thing> &t) {return t -> inspectable() -> getName(t);}), "Other things here:");
     }
 
 

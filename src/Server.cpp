@@ -10,6 +10,8 @@
 #include "Script/LuaHelpers.hpp"
 #include "Script/ScriptedThing.hpp"
 
+#include "Exceptions.hpp"
+
 Server::Server(int port, boost::asio::io_service &io_service, const tcp::endpoint &endpoint): 
     acceptor(io_service, endpoint), s_socket(io_service) 
 {
@@ -22,7 +24,6 @@ Server::Server(int port, boost::asio::io_service &io_service, const tcp::endpoin
 
 void Server::acceptConnections()
 {
-
     // new asio stuff
 
     boost::system::error_code error;
@@ -32,7 +33,6 @@ void Server::acceptConnections()
     if (error) return;
 
     onClientConnect(std::move(socket));
-    
 }
 
 void Server::onClientConnect(tcp::socket socket)
@@ -46,6 +46,8 @@ void Server::onClientConnect(tcp::socket socket)
     newPlayer -> networked() -> socket = std::make_unique<tcp::socket>(std::move(socket));
 
     newPlayer -> networked() -> addResponse( MOTD );
+
+    newPlayer -> networked() -> setOnline(true); 
     
     clients.push_back(newPlayer); // add the player to clients
 }
@@ -67,10 +69,15 @@ std::string Server::getMessage(tcp::socket &socket)
     char data[100];
     
     boost::system::error_code error;
-    
+
     len = socket.receive(boost::asio::buffer(data, 100), 0, error);
 
     if (!error) return std::string(data, len); 
+
+    if (error == boost::asio::error::eof)
+    {
+        throw PlayerDisconnect();
+    }
 
     return "";
 }

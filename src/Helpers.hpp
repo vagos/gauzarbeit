@@ -4,12 +4,15 @@
 constexpr int SIZE = 65;
 
 #include <string>
+#include <unordered_map>
 #include <algorithm>
 #include <memory>
 #include <vector>
 #include <list>
 #include <sstream>
 #include <exception>
+
+#include <boost/algorithm/string.hpp>
 
 class Thing;
 
@@ -30,6 +33,46 @@ enum class Color
     Magenta,
 };
 
+struct Event
+{
+    enum class Type 
+    {
+        Invalid,
+        Say,
+        Move,
+        Use,
+        Do,
+        Whisper,
+        Chat,
+        Message,
+        Buy,
+        Info,
+        Ask,
+        Help,
+        Inspect,
+        Greet,
+        Attack,
+        Kill,
+        Death,
+        Enter,
+        Leave,
+        Gain,
+        Look,
+        Gain_Quest,
+    };
+
+    std::string verb;
+    std::string target;
+    std::string object;
+    
+    std::string extra;
+
+    Type type;
+
+    std::string payload;
+};
+
+
 const std::string GetColor(Color color_code);
 
 const std::string HeaderString(const std::string &s, const std::string &title, const char h = ' ', int size = SIZE);
@@ -44,17 +87,53 @@ const std::shared_ptr<Thing> GetSmartPtr(const T& container, Thing * t_ptr);
 
 const std::shared_ptr<Thing> FindByName(std::vector<std::shared_ptr<Thing>> &container, const std::string &s);
 
-
-template<typename T>
-const std::string BlockListString(const T& c, const char b, int step = 3, int size = SIZE)
+template<typename T, typename F>
+const std::string BlockListStringSimple(const T& c, const char b, F f, int step = 3, int size = SIZE)
 {
     int i = 0;
+    
+    std::stringstream ss;
+
+    for (auto& t : c)
+    {
+        ss << b << ( b ? ' ' : '\0' ) << f(t);
+
+        ss << '\t';
+
+        i++;
+
+        if (i % step == 0) ss << '\n';
+    }
+
+    return ss.str();
+}
+
+
+template<typename T, typename F>
+const std::string BlockListString(const T& c, const char b, F f, int step = 3, int size = SIZE)
+{
+    // Group identical Things
+    
+    std::unordered_map<std::string, int> m;
+
+    for (auto& t : c)
+    {
+         m[ f(t) ] += 1;
+    }
+
 
     std::stringstream ss;
 
-    for (auto t : c)
+    int i = 0;
+
+    for (auto [name, n] : m)
     {
-        ss << b << ' ' << *t << '\t';
+
+        ss << b << ' ' << name; 
+        
+        if (n > 1) ss << " (" << n << ')';
+
+        ss << '\t';
         
         i++;
 
@@ -68,15 +147,15 @@ const std::string BlockListString(const T& c, const char b, int step = 3, int si
 const std::string BarString(float filled, int max_size = SIZE, const char f = ':', const char lb = '[', const char rb =']');
 
 template<typename T, typename F>
-const std::string VerticalListString(const T& c, const char b, F f, const char sep = ' ', int size = SIZE)
+const std::string VerticalListString(const T& c, const char b, F f, const char sep = 0, int size = SIZE)
 {
     std::stringstream ss;
 
     for (auto it = c.begin(); it != c.end(); ++it)
     {
-        ss << b << ' ' << f(**it) << '\n'; 
+        ss << b << ' ' << f(*it) << '\n'; 
 
-        if (size && it != c.end() - 1) ss << std::string(size, sep) << '\n';
+        if (size && sep && it != c.end() - 1) ss << std::string(size, sep) << '\n';
     }
 
     return ss.str();

@@ -8,6 +8,7 @@
 #include "ScriptedInspectable.hpp"
 #include "ScriptedTalker.hpp"
 #include "ScriptedNetworked.hpp"
+#include "ScriptedAchiever.hpp"
 #include "../Room.hpp"
 #include "../Helpers.hpp"
 #include "../Quest.hpp"
@@ -16,7 +17,6 @@
 #include <lua.h>
 #include <memory>
 #include <string>
-
 
 ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_dir): 
     Thing(name) 
@@ -91,7 +91,7 @@ int ScriptedThing::NewIndex(lua_State *L)
     lua_rawgeti(L, LUA_REGISTRYINDEX, ptrThing -> luaRef);
 
     const char * index = lua_tostring(L, 2);
-    
+
     lua_pushvalue(L, 2);
     lua_pushvalue(L, 3);
     lua_settable(L, 4);	
@@ -104,7 +104,11 @@ int ScriptedThing::GetName(lua_State *L)
 {
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
-    lua_pushstring(L, ptrThing -> name.c_str());
+    auto t = ptrThing -> physical() -> current_room -> getAnything( ptrThing -> name );
+
+    assert(t);
+
+    lua_pushstring(L, ptrThing -> inspectable() -> getName( t ).c_str() );
 
     return 1;
 }
@@ -117,7 +121,10 @@ int ScriptedThing::SendMessage(lua_State * L)
 
     std::clog << ptrThing -> name << '\n';
 
-    std::string message{ lua_tostring(L, 2) };
+    std::size_t s_l;
+    const char * s = lua_tolstring(L, 2, &s_l);
+
+    std::string message{ s, s_l };
     
     ptrThing -> networked() -> addResponse(message);
 
@@ -249,12 +256,15 @@ int ScriptedThing::BroadcastMessage(lua_State *L)
 int ScriptedThing::AddTask(lua_State *L)
 {
     assert(lua_isuserdata(L, 1));
+    assert(lua_isstring(L, 2));
 
     Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
 
+    std::string task_description( lua_tostring(L, 2) );
+
     if (ptrThing -> _tasker)
     {
-        lua_pushnumber(L, ptrThing -> tasker() -> addTask());
+        lua_pushnumber(L, ptrThing -> tasker() -> addTask(task_description));
         return 1;
     }
 
@@ -453,6 +463,34 @@ int ScriptedThing::SetAttack(lua_State *L)
     return 0;
 }
 
+int GetStat(lua_State *L)
+{
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    std::string s_n ( lua_tostring(L, 2) );
+
+    float val = ptrThing -> achiever() -> getStat(s_n);
+
+    lua_pushnumber(L, val);
+
+    return 1;
+    
+}
+
+int SetStat(lua_State *L)
+{
+    assert(lua_isnumber(L, 3));
+
+    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
+
+    std::string s_n( lua_tostring(L, 2) );
+    float val = (float)lua_tonumber(L, 3);
+
+    ptrThing -> achiever() -> setStat(s_n, val);
+
+    return 0;
+}
+
 /*
 int ScriptedThing::SetHP(lua_State * L)
 {
@@ -525,6 +563,20 @@ int Gauzarbeit_Room(lua_State *L)
     return 1;
 }
 
+int Gauzarbeit_ColorString(lua_State *L)
+{
+    assert(lua_isstring(L, 1));
+    assert(lua_isnumber(L, 2));
+
+    std::string s(lua_tostring(L, 1));
+
+    auto c = (Color)lua_tonumber(L, 2);
+
+    lua_pushstring(L, ColorString(s, c).c_str());
+
+    return 1;
+}
+
 
 int Gauzarbeit_LoadDB(lua_State * L)
 {
@@ -552,6 +604,9 @@ void ScriptedThing::InitLua()
     {"__index", ScriptedThing::Index},
     {"__newindex", ScriptedThing::NewIndex},
     {"getName", ScriptedThing::GetName},
+    {"getType", ScriptedThing::GetName},
+    {"setStat", SetStat},
+    {"getStat", GetStat},
     {"setMaxHealth", ScriptedThing::SetMaxHealth},
     {"setAttack", ScriptedThing::SetAttack},
     {"getHP", ScriptedThing::GetHP},
@@ -611,18 +666,34 @@ void ScriptedThing::InitLua()
     lua_setfield(L, -2, "Gain");
     
     lua_setfield(L, -2, "Event");
+
+    }
+    
+    // Create Gauzarbeit.Color table
+    {
+        lua_newtable(L);
+
+        lua_pushnumber(L, (int)Color::Red);
+        lua_setfield(L, -2, "Red");
+
+        lua_pushnumber(L, (int)Color::Green);
+        lua_setfield(L, -2, "Green");
+
+        lua_pushnumber(L, (int)Color::Blue);
+        lua_setfield(L, -2, "Blue");
+
+        lua_setfield(L, -2, "Color");
+    }
     
     const luaL_Reg gauzarbeitFuncs[] = {
         {"Spawn", Gauzarbeit_Spawn},
         {"GetRoom", Gauzarbeit_Room},
+        {"ColorString", Gauzarbeit_ColorString},
         {"GetDBLine", Gauzarbeit_LoadDB},
         {NULL, NULL}
     };
 
     luaL_setfuncs(L, gauzarbeitFuncs, 0);
-
-
-    }
 
     lua_setglobal(L, "Gauzarbeit");
 

@@ -19,7 +19,7 @@ public:
 
         lua_getfield( L, -1, "onUse" );
 
-        assert(lua_isfunction(L, -1));
+        if(!lua_isfunction(L, -1)) return;
 
         lua_pushlightuserdata(L, owner.get());
         lua_pushlightuserdata(L, user.get());

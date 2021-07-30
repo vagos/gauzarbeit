@@ -50,6 +50,8 @@ public:
 
     bool isOnline() {return online;}
 
+    void setOnline(bool o) {online = o;}
+
     static std::fstream& getDB() {return db;}
 
 protected:

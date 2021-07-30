@@ -5,18 +5,15 @@
 #include <string>
 
 #include "Physical.hpp"
-#include "Script/ScriptedThing.hpp"
 #include "Thing.hpp"
+#include "Script/ScriptedThing.hpp"
+
 
 
 class ScriptedQuest : public ScriptedThing
 {
 public:
-    ScriptedQuest(const std::string& name):
-        ScriptedThing(name, "./scripts/quests/")
-    {
-
-    }
+    ScriptedQuest(const std::string& name);
 
 };
 

@@ -3,6 +3,8 @@
 #include <sstream>
 #include <regex>
 
+#include "boost/algorithm/string.hpp"
+
 #include "Exceptions.hpp"
 #include "Helpers.hpp"
 #include "Thing.hpp"
@@ -118,7 +120,7 @@ const std::shared_ptr<Thing> GetSmartPtr(const T& c, Thing * t_ptr)
 const std::shared_ptr<Thing> FindByName(std::vector<std::shared_ptr<Thing>> &c, const std::string &s)
 {
    auto r = std::find_if(c.begin(), c.end(), 
-           [&s](const auto& i){return i -> name == s;});
+           [&s](const auto& i){return boost::iequals(s, i -> name);});
 
    return r != c.end() ? *r : nullptr;
 }

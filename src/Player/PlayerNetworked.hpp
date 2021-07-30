@@ -31,11 +31,21 @@ public:
 
     void getRequest( std::shared_ptr<Thing> owner, World& world )
     {
+        try 
+        {
             streamRequest.str(Server::getMessage( *socket ));
+        }
 
-            if (!streamRequest.str().size()) return;
+        catch (PlayerDisconnect& error)
+        {
+            doDatabaseStore(owner);
+            doDisconnect(owner);
+        }
+        
 
-            std::clog << *owner << ": " << streamRequest.str() << '\r' << " Received: " << streamRequest.str().size() << " bytes" << "\n";
+        if (!streamRequest.str().size()) return;
+
+        std::clog << *owner << ": " << streamRequest.str() << '\r' << " Received: " << streamRequest.str().size() << " bytes" << "\n";
     }
     
     void sendResponse(std::shared_ptr<Thing> owner) override
@@ -59,7 +69,7 @@ public:
         {
             case Event::Type::Enter:
             {
-                if ( isOnline() )
+                if ( loggedIn )
                 {
                     addResponse( ColorString("You are already logged in!\n", Color::Red) );
                     return;
@@ -67,13 +77,11 @@ public:
 
                 owner -> name = owner -> notifier() -> event.target;
 
-                setState( State::LoggedIn ); 
-
-                online = true;
-
                 addResponse( ColorString("You are logged in as " + owner -> name + ".\n", Color::Green) );
 
                 doDatabaseLoad(owner);
+
+                loggedIn = true;
                 
                 break;
             }
@@ -82,10 +90,7 @@ public:
             {
                 addResponse("Goodbye!\n");
 
-                setState(State::LoggedOut);
-
                 doDatabaseStore(owner);
-
                 doDisconnect(owner);
 
                 break;
@@ -152,8 +157,6 @@ public:
             db >> owner -> attackable() -> defense;
 
             db >> line;
-
-            std::clog << line << '\n';
         }
 
 
@@ -177,7 +180,7 @@ public:
 
         info << "STATS\n";
 
-        info << owner -> achiever() -> getLevel() << ' ';
+        info << owner -> achiever() -> getXP() << ' ';
 
         info << owner -> attackable() -> current_health << ' ';
         info << owner -> attackable() -> attack << ' ';
@@ -209,23 +212,9 @@ public:
         std::clog << "Player " << owner -> name << " saved!\n";
     }
 
-
-
 private: 
-    enum class State
-    {
-        Entering,
-        LoggedIn,
-        LoggedOut,
-    };
-
-
-    void setState(State s) {state = s;}
-
-public:
-    State state;
-    // last online
-    // ip
+    
+    bool loggedIn = false;
 };
 
 #endif

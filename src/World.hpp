@@ -83,14 +83,13 @@ public:
             catch (std::exception& e) { HandleException(player, e); }
         }
 
-
         for (auto& [name, player] : playersOnline) // make this last
             player -> notifier() -> clearEvent();    
     
         for (auto& [name, player] : playersOnline) // Send response
             player -> networked() -> sendResponse(player);    
 
-        //removeOfflinePlayers();
+        removeOfflinePlayers();
 
     }
 

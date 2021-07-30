@@ -39,7 +39,6 @@ public:
 
     virtual void doAttack(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &target) override
     {
-
         std::stringstream res;
 
         res << "You attacked " << target -> name << " for " << attack << "\n";

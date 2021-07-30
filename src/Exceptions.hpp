@@ -4,8 +4,16 @@
 #include <exception>
 #include <string>
 
+#include <cassert>
+
 struct TargetNotFound : public std::exception
 {
+
+    TargetNotFound()
+    {
+    //    assert(false);
+    }
+
     virtual const char* what() const throw()
     {
         return "Nothing with that name was found!\n";
@@ -28,6 +36,15 @@ struct MissingComponent : public std::exception
     const char * what() const throw()
     {
         return "You can't do that!\n";
+    }
+
+};
+
+struct PlayerDisconnect : public std::exception
+{
+    const char * what() const throw()
+    {
+        return "Player disconnected!\n";
     }
 
 };

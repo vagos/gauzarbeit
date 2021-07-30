@@ -1,35 +1,22 @@
-import socket 
-import threading
+import telnetlib
 
 IP = "127.0.0.1"
 PORT = 23
 
-def GetServerData(socket):
-
-    try:
-        requestData = socket.recv( 1024 ).decode()
-    except: 
-        requestData = ""
-
-    if requestData: print(requestData, end="")
-
-
 
 def main():
 
-    serverSocket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+    try:
 
-    serverSocket.connect( (IP, PORT) )
+        with telnetlib.Telnet(IP, PORT) as telnetClient:
 
-    while (True):
+            telnetClient.interact()
 
-        threading.Thread(target= lambda: GetServerData(serverSocket), name = "Client Thread").start()
-        
-        clientData = input("")
+        return
 
-        serverSocket.send(clientData.encode("utf-8"))
+    except Exception as e:
 
-    return 0
+        print(e)
 
 
 if __name__ == "__main__":

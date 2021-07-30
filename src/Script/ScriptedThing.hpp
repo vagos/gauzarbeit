@@ -11,11 +11,6 @@ class ScriptedThing : public Thing
 public: 
     ScriptedThing(const std::string& name, const std::string& script_dir = "./scripts/things/");
 
-    const std::string getInfo() const override
-    {
-        return "[Scripted]";
-    }
-
     static int Index(lua_State * L);
     
     static int NewIndex(lua_State * L);

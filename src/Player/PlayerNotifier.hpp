@@ -8,6 +8,7 @@
 
 #include <cassert>
 #include <sstream>
+#include <iomanip>
 
 
 class PlayerNotifier : public Notifier
@@ -41,6 +42,8 @@ class PlayerNotifier : public Notifier
         {
            quest -> notifier() -> onNotify(quest, owner, notification_type, target); 
         }
+
+        if ( owner -> talker() -> guild ) owner -> talker() -> guild -> onNotify(owner, notification_type, target);
     }
 
     void onNotify(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &actor, Event::Type notification_type, const std::shared_ptr<Thing>& target) override
@@ -59,9 +62,7 @@ class PlayerNotifier : public Notifier
             
            case Event::Type::Chat:
            {
-                std::stringstream chat;
-
-                chat << actor->name << ": " << actor -> notifier() -> event.object << actor -> notifier() -> event.extra << '\n';
+                std::stringstream chat; chat << actor->name << ": " << actor -> notifier() -> event.object << actor -> notifier() -> event.extra << '\n';
                 owner -> networked() -> addResponse( chat.str() );
                 break;
             }
@@ -76,14 +77,25 @@ class PlayerNotifier : public Notifier
             {
                 if ( actor != owner ) break;
 
-                std::stringstream msg;
-                msg << "You killed " << target -> name << '\n';
+                std::stringstream msg; msg << "You killed " << target -> name << '\n';
                 owner -> networked() -> addResponse(ColorString( msg.str(), Color::Red) );
 
                 doNotify(owner, Event::Type::Kill, target);
-                owner -> achiever() -> gainXP(target -> achiever() -> getLevel());
+                owner -> achiever() -> getRewards( owner, target -> achiever() -> getLevel() );
 
                 break;
+            }
+
+            case Event::Type::Gain_Quest:
+            {
+                assert(target);
+
+                if ( actor != owner ) break;
+
+                std::stringstream res; res << "Quest " << std::quoted( target -> name ) << " added to your Quest Log!\n";
+
+                owner -> networked() -> addResponse( ColorString( res.str(), Color::Green ) );
+
             }
         }
     }
