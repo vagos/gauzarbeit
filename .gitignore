@@ -5,6 +5,8 @@ testing/
 scripts/
 db/
 other/
+build/
+
+.cache/
 
 .vimspector.json
-

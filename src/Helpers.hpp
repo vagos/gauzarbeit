@@ -59,6 +59,7 @@ struct Event
         Gain,
         Look,
         Gain_Quest,
+        Register,
     };
 
     std::string verb;

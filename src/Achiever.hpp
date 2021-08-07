@@ -60,7 +60,7 @@ public:
         return xp/10;
     } 
 
-    int getXP() {return xp;}
+    int getXP() { return xp; }
 
 private:
     int xp = 0;

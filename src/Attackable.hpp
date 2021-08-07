@@ -37,7 +37,7 @@ public:
 
 public:
 
-    int max_health, attack = 1, defense;
+    int max_health, attack = 1, defense = 0;
     float current_health;
 
 protected:

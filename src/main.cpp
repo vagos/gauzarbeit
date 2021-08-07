@@ -4,12 +4,16 @@
 
 #include <cstdlib>
 #include <random>
+#include <cstdio>
+#include <iostream>
+#include <thread>
+#include <chrono>
+
+
+#include "unistd.h"
 
 int main()
 {
-    //srand(time(NULL));
-    //int ip = random() % 9999 + 100;
-    
     ScriptedThing::InitLua();
 
     int ip = 23;
@@ -20,12 +24,18 @@ int main()
     Server server(ip, io_service, endpoint);
     World world;
 
+/*    if ( std::freopen( "Log.txt", "w+", stderr ) )
+    {
+        std::cout << "Logging!\n";
+    }
+*/
 
     for (;;)
     {
-       server.acceptConnections();
-       world.doUpdate();
+       std::this_thread::sleep_for( std::chrono::seconds(1) ); 
+
        server.doUpdate(world);
+       world.doUpdate();
     }
 
     return 0;

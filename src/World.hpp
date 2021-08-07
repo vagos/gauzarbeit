@@ -10,13 +10,12 @@
 #include <algorithm>
 #include <regex>
 
-#include "Player/PlayerNetworked.hpp"
 #include "Thing.hpp"
+#include "Player/Player.hpp"
+#include "Room.hpp"
 
 class Server;
-class Room;
 
-class Player;
 
 class World
 {
@@ -46,20 +45,12 @@ public:
     {
         updateRooms();
         
-        for (auto& [name, player] : playersOnline) // Get request
-        {
-            player -> networked() -> getRequest(player, *this); 
-        }
-        
         for (auto& [name, player] : playersOnline) 
         {
             try  { player -> notifier() -> setEvent(player); } 
             catch (std::exception& e) { HandleException(player, e); }
         }
             
-        for (auto& [name, player] : playersOnline) // Handle request
-           player -> networked() -> handleRequest(player, *this);
-
         for (auto& [name, player] : playersOnline) 
         {
             try { player -> talker() -> doUpdate(player); }
@@ -86,11 +77,7 @@ public:
         for (auto& [name, player] : playersOnline) // make this last
             player -> notifier() -> clearEvent();    
     
-        for (auto& [name, player] : playersOnline) // Send response
-            player -> networked() -> sendResponse(player);    
-
-        removeOfflinePlayers();
-
+        removeOfflinePlayers(); // TODO move this to server
     }
 
     void addPlayer(std::shared_ptr<Thing> player) 

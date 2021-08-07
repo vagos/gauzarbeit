@@ -237,6 +237,11 @@ public:
 class Thinker 
 {
 
+    virtual void doThink(const std::shared_ptr<Thing> &owner)
+    {
+
+    }
+
 };
 
 

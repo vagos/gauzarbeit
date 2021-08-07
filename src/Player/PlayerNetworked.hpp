@@ -17,8 +17,6 @@
 #include "PlayerTalker.hpp"
 #include "PlayerInspectable.hpp"
 
-class World;
-
 class PlayerNetworked : public Networked 
 {
 
@@ -41,11 +39,10 @@ public:
             doDatabaseStore(owner);
             doDisconnect(owner);
         }
-        
 
         if (!streamRequest.str().size()) return;
 
-        std::clog << *owner << ": " << streamRequest.str() << '\r' << " Received: " << streamRequest.str().size() << " bytes" << "\n";
+        std::clog << *owner << ": " << streamRequest.str() << "\r\r\r" << " Received: " << streamRequest.str().size() << " bytes" << "\n";
     }
     
     void sendResponse(std::shared_ptr<Thing> owner) override
@@ -61,57 +58,13 @@ public:
         clearStreams();
     }
     
-    void handleRequest(std::shared_ptr<Thing> owner, World& world) override
-    {
-        auto& event = owner -> notifier() -> event;
-
-        switch (event.type)
-        {
-            case Event::Type::Enter:
-            {
-                if ( loggedIn )
-                {
-                    addResponse( ColorString("You are already logged in!\n", Color::Red) );
-                    return;
-                }
-
-                owner -> name = owner -> notifier() -> event.target;
-
-                addResponse( ColorString("You are logged in as " + owner -> name + ".\n", Color::Green) );
-
-                doDatabaseLoad(owner);
-
-                loggedIn = true;
-                
-                break;
-            }
-
-            case Event::Type::Leave:
-            {
-                addResponse("Goodbye!\n");
-
-                doDatabaseStore(owner);
-                doDisconnect(owner);
-
-                break;
-            }
-
-            default:
-            {
-                if ( !isOnline() && event.verb.size() )  
-                   addResponse( ColorString("You need to log in!\n", Color::Red) );
-            }
-
-
-        }
-    }
+    void handleRequest(std::shared_ptr<Thing> owner, World& world) override; 
 
     void doDatabaseLoad(std::shared_ptr<Thing> owner) override
     {
+        if (!inDatabase(owner -> name)) return;
+
         std::string filename{"./db/players/" + owner -> name};
-
-        if (!std::experimental::filesystem::exists(filename)) return;
-
         db.open(filename);
 
         if (!db.is_open()) 
@@ -122,7 +75,11 @@ public:
 
         std::string line;
 
-        db >> line >> line >> line;
+        db >> line >> line >> line; 
+
+        db >> password;
+
+        db >> line;
 
         // Load INVENTORY
         {
@@ -169,6 +126,8 @@ public:
 
         info << "PLAYER: " << owner -> name << '\n';
 
+        info << "PASSWORD " << password << '\n';
+
         info << "INVENTORY\n";
 
         for (auto& t : owner -> physical() -> inventory)
@@ -193,7 +152,7 @@ public:
         return info.str();
     }
 
-    void doDatabaseStore(std::shared_ptr<Thing> owner) 
+    void doDatabaseStore(std::shared_ptr<Thing> owner) override 
     {
         std::string filename{"./db/players/" + owner -> name};
     
@@ -212,9 +171,14 @@ public:
         std::clog << "Player " << owner -> name << " saved!\n";
     }
 
+    bool inDatabase(const std::string &name)
+    {
+        std::string filename{"./db/players/" + name};
+        return std::experimental::filesystem::exists(filename);
+    }
+
 private: 
-    
-    bool loggedIn = false;
+    std::string password;
 };
 
 #endif

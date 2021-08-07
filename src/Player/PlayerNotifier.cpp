@@ -9,7 +9,7 @@ void PlayerNotifier::setEvent(const std::shared_ptr<Thing> &owner)
 {
         std::stringstream req{ owner -> networked() -> getRequestStream().str() };
 
-        auto words = TokenizeString(req.str());
+        //auto words = TokenizeString(req.str());
 
         /*if (words.size() >= 4 && req.str().find("from") != std::string::npos) 
         {

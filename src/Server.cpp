@@ -16,16 +16,12 @@ Server::Server(int port, boost::asio::io_service &io_service, const tcp::endpoin
     acceptor(io_service, endpoint), s_socket(io_service) 
 {
     std::clog << "Server started on port " << port << "\n";
-
     acceptor.non_blocking(true);
-
 }
 
 
 void Server::acceptConnections()
 {
-    // new asio stuff
-
     boost::system::error_code error;
     
     tcp::socket socket = acceptor.accept(error);
@@ -47,8 +43,6 @@ void Server::onClientConnect(tcp::socket socket)
 
     newPlayer -> networked() -> addResponse( MOTD );
 
-    newPlayer -> networked() -> setOnline(true); 
-    
     clients.push_back(newPlayer); // add the player to clients
 }
 
@@ -84,42 +78,27 @@ std::string Server::getMessage(tcp::socket &socket)
 
 void Server::doUpdate(World& world)
 {
-    // CHANGE THIS
-
-    for (auto c : clients)
-    {
-        world.addPlayer(c);
-        c -> physical() -> doMove(c, 0, 0);
-    }
-
-    clients.erase(clients.begin(), clients.end());
-    
+    acceptConnections();
+    updateClients(world);
 }
 
 void Server::updateClients(World& world)
 {
     for (const auto& c : clients)
-        c -> networked() -> getRequest(c, world);
-    for (const auto& c : clients)
-        c -> notifier() -> setEvent(c);
-    for (const auto& c : clients)
-        c -> networked() -> handleRequest(c, world);
-    for (const auto& c : clients)
-        c -> notifier() -> clearEvent();
-    for (const auto& c : clients)
+    {
         c -> networked() -> sendResponse(c);
+        c -> networked() -> getRequest(c, world);
+        c -> networked() -> handleRequest(c, world);
+    }
     
     for (const auto& c : clients)
     {
-        if (c -> networked() -> isOnline())
+        if ( c->networked()->isOnline()) 
         {
             world.addPlayer(c);
+            c->physical()->doMove(c, 0, 0);
         }
     }
-
-    clients.erase( std::remove_if(clients.begin(), clients.end(), 
-                [](const std::shared_ptr<Thing>& p) 
-                { return p -> networked() -> isOnline();}), clients.end());
 }
 
 std::string Server::MOTD;

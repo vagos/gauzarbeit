@@ -15,25 +15,9 @@ public:
     
     void doUpdate(const std::shared_ptr<Thing> &owner) override
     {
-        auto event = owner -> notifier() -> event;
-
         if (!alive)
         {
             doRespawn(owner);
-        }
-
-        switch (event.type)
-        {
-            case Event::Type::Attack:
-            {
-                auto enemy = owner -> physical() -> getRoom() -> getAnything( event.target );
-
-                if (!enemy) throw TargetNotFound();
-
-                DoFight( owner, enemy );
-
-                break;
-            }
         }
     }
 

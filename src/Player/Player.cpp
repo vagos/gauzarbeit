@@ -51,6 +51,8 @@ void Player::setPlayerCommands()
 
     playerCommands["tell"] = Event::Type::Say;
     playerCommands["say"] = Event::Type::Say;
+
+    playerCommands["register"] = Event::Type::Register;
 }
 
 

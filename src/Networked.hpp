@@ -35,6 +35,7 @@ public:
 
     virtual void doDatabaseLoad(std::shared_ptr<Thing> owner) {} // Maybe add parent
     virtual const std::string doDatabaseSave(std::shared_ptr<Thing> owner) {return "";}
+    virtual void doDatabaseStore(std::shared_ptr<Thing> owner) {}
     
     
     void addResponse(const std::string& res)
