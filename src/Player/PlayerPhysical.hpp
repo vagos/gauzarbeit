@@ -18,7 +18,6 @@ public:
    void doUpdate( const std::shared_ptr<Thing> &owner, World& world) override;
    void doMove(std::shared_ptr<Thing> owner, int x, int y) override;
 
-private:
    void moveDirection(std::shared_ptr<Thing> owner, const std::string& direction);
 };
 

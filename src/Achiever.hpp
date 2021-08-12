@@ -17,13 +17,9 @@ public:
 
         Stat()
         {
-
         }
 
-        virtual const std::string getName()
-        {
-            return "";
-        }
+        virtual const std::string getName() { return ""; }
 
         float value = 0;
     };
