@@ -1,4 +1,4 @@
-#include "Script/ScriptedThing.hpp"
+#include "script/ScriptedThing.hpp"
 #include "Server.hpp"
 #include "World.hpp"
 
@@ -24,15 +24,11 @@ int main()
     Server server(ip, io_service, endpoint);
     World world;
 
-/*    if ( std::freopen( "Log.txt", "w+", stderr ) )
-    {
-        std::cout << "Logging!\n";
-    }
-*/
+    // std::freopen( "Log.txt", "w+", stderr ); // Start logging
 
     for (;;)
     {
-       std::this_thread::sleep_for( std::chrono::seconds(1) ); 
+    // std::this_thread::sleep_for( std::chrono::seconds(1) ); 
 
        server.doUpdate(world);
        world.doUpdate();

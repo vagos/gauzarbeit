@@ -1,9 +1,4 @@
-# .PHONY: src 
-# 
-# src:
-# 	g++ -ggdb src/*.cpp src/Player/*.cpp src/Script/*.cpp  -o main -lboost_system -lpthread -llua -ldl -lstdc++fs -std=c++17
-
-MY_FLAGS  = -lboost_system -lpthread -llua -ldl -lstdc++fs -std=c++17
+MY_FLAGS  = -ggdb -I./include -lboost_system -lpthread -llua -ldl -lstdc++fs -std=c++17
 
 TARGET_EXEC ?= main
 

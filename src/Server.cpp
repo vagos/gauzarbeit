@@ -1,14 +1,14 @@
 #include <string>
 #include <algorithm>
 
-#include "Networked.hpp"
-#include "Player/PlayerNetworked.hpp"
+#include "thing/Networked.hpp"
+#include "player/PlayerNetworked.hpp"
 #include "Server.hpp"
 #include "World.hpp"
-#include "Player/Player.hpp"
+#include "player/Player.hpp"
 
-#include "Script/LuaHelpers.hpp"
-#include "Script/ScriptedThing.hpp"
+#include "script/LuaHelpers.hpp"
+#include "script/ScriptedThing.hpp"
 
 #include "Exceptions.hpp"
 

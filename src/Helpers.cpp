@@ -7,13 +7,13 @@
 
 #include "Exceptions.hpp"
 #include "Helpers.hpp"
-#include "Thing.hpp"
+#include "thing/Thing.hpp"
 
 bool IsNumber(const std::string& s)
 {
     std::string::const_iterator it = s.begin();
     while (it != s.end() && std::isdigit(*it)) ++it;
-    return !s.empty() && it == s.end();s.end();
+    return !s.empty() && it == s.end();
 }
 
 bool PartlyMatch(const std::string& s1, const std::string& s2, int n)
