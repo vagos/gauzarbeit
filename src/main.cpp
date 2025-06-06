@@ -13,25 +13,27 @@
 
 int main(int argc, char* argv[])
 {
-    ScriptedThing::InitLua();
+	ScriptedThing::InitLua();
 
-    int port = 23;
-    if (argc >= 2) {
-        port = std::atoi(argv[1]);
-    }
+	int port = 23;
+	if (argc >= 2)
+	{
+		port = std::atoi(argv[1]);
+	}
 
-    boost::asio::io_service io_service;
-    tcp::endpoint endpoint(tcp::v4(), port);
+	boost::asio::io_service io_service;
+	tcp::endpoint endpoint(tcp::v4(), port);
 
-    Server server(port, io_service, endpoint);
-    World world;
+	Server server(port, io_service, endpoint);
+	World world;
 
-    // std::freopen("Log.txt", "w+", stderr); // Start logging
+	// std::freopen("Log.txt", "w+", stderr); // Start logging
 
-    for (;;) {
-        server.doUpdate(world);
-        world.doUpdate();
-    }
+	for (;;)
+	{
+		server.doUpdate(world);
+		world.doUpdate();
+	}
 
-    return 0;
+	return 0;
 }
