@@ -40,7 +40,6 @@ void Server::onClientConnect(tcp::socket socket)
 	auto newPlayer = std::make_shared<Player>();
 
 	newPlayer->networked()->socket = std::make_unique<tcp::socket>(std::move(socket));
-
 	newPlayer->networked()->addResponse(MOTD);
 
 	clients.push_back(newPlayer); // add the player to clients
@@ -49,9 +48,7 @@ void Server::onClientConnect(tcp::socket socket)
 void Server::sendMessage(tcp::socket& socket, const std::string& msg)
 {
 	boost::system::error_code error;
-
 	boost::asio::write(socket, boost::asio::buffer(msg.c_str(), msg.size()), error);
-
 	if (error)
 		std::clog << error.message() << '\n';
 }
@@ -60,13 +57,10 @@ std::string Server::getMessage(tcp::socket& socket)
 {
 
 	size_t len;
-
 	char data[100];
 
 	boost::system::error_code error;
-
 	len = socket.receive(boost::asio::buffer(data, 100), 0, error);
-
 	if (!error)
 		return std::string(data, len);
 
