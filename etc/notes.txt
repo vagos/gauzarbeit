@@ -1,0 +1,36 @@
+player can enter room
+room has things in it 
+
+on every tick, we update all items:
+    - we run some standard update functions. related to systems
+    - we run each thing's custom update method
+    - ?
+
+What is a system? 
+    - Its a set of functions which given the current world state
+
+How would crafting work?
+    - command craft
+    - takes a list of items from inventory
+    - match it to recipe, return item
+    - this can be implemented in the scripting side
+
+How will combat work?
+    - things have "moves"
+    - you pick one of them at random and perform it
+
+So what do I write in Rust?
+    - The systems?
+
+ECS
+
+Components:
+    - Physical: can be in places, can have things inside it
+    - Attacker: can participate in combat
+    - Craftable: can be crafted
+    - Usable: can be used
+
+
+TODO: Understand when something is a system and how to implement one. Where does the logic live?
+Systems:
+    - 
