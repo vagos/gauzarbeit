@@ -8,8 +8,6 @@ RUN rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY . .
 
-# Apply C++ formatting and build
-RUN make format
 RUN make
 
 CMD ["/bin/bash"]
