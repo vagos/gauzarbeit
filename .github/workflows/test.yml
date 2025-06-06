@@ -1,0 +1,25 @@
+name: test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build docker image
+        run: |
+          docker build . -t gauzarbeit:ci
+
+      - name: Run tests
+        run: |
+          docker run --rm gauzarbeit:ci make test
