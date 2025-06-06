@@ -52,3 +52,19 @@ Build and run the container:
 docker build -t gauzarbeit-dev .
 docker run --rm -it gauzarbeit-dev
 ```
+
+## Testing
+
+This project uses the [doctest](https://github.com/onqtam/doctest) framework for unit tests.
+
+### Prerequisites
+
+Install the development package for doctest (e.g., `libdoctest-dev` on Debian/Ubuntu), or alternatively add the single-header `doctest.h` into your include path.
+
+### Running tests
+
+After building dependencies, run:
+
+```bash
+make test
+```
