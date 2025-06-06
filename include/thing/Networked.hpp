@@ -1,7 +1,7 @@
 #ifndef NETWORKED_HPP
 #define NETWORKED_HPP
 
-#include <bits/c++config.h>
+#include <cstddef>
 #include <memory>
 #include <iostream>
 #include <string>

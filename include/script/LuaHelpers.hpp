@@ -6,7 +6,7 @@
 #include <memory>
 #include <algorithm>
 
-#include "lua.hpp"
+#include <lua.hpp>
 
 class Thing;
 

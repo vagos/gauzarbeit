@@ -3,7 +3,7 @@
 #include <sstream>
 #include <regex>
 
-#include "boost/algorithm/string.hpp"
+#include <boost/algorithm/string.hpp>
 
 #include "Exceptions.hpp"
 #include "Helpers.hpp"

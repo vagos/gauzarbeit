@@ -1,7 +1,7 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
-#include <bits/c++config.h>
+#include <cstddef>
 #include <list>
 #include <memory>
 #include <unordered_map>

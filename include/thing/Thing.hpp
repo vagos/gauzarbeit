@@ -1,7 +1,7 @@
 #ifndef THING_HPP
 #define THING_HPP
 
-#include <bits/c++config.h>
+#include <cstddef>
 #include <memory>
 #include <iostream>
 #include <string>
