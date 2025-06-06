@@ -1,13 +1,7 @@
-
 main
-notes/
-testing/
-scripts/
-db/
-other/
-build/
-
-.cache/
+db
+build
+.cache
 
 .vimspector.json
 compile_commands.json
