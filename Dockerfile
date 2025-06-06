@@ -8,6 +8,6 @@ RUN rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY . .
 
-RUN make
+RUN make -j$(nproc)
 
 CMD ["/bin/bash"]
