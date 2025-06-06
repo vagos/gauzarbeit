@@ -11,7 +11,7 @@ SRC_DIRS ?= ./src ./include
 # source files
 SRCS := $(shell find $(SRC_DIRS) -name '*.cpp' -o -name '*.c' -o -name '*.s')
 HDRS := $(shell find $(SRC_DIRS) -name '*.hpp' -o -name '*.h')
-TSTS := $(shell find tests -name '*.cpp')
+TSTS := $(shell find tst -name '*.cpp')
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
