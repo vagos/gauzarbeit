@@ -41,3 +41,14 @@ You are logged in as MyName.
 You eat the cheese. Very cheesy.
 >>
 ```
+
+## Development with Docker
+
+This project provides a Dockerfile to set up a development environment with Valve C++ formatting (via clang-format) and compilation.
+
+Build and run the container:
+
+```bash
+docker build -t gauzarbeit-dev .
+docker run --rm -it gauzarbeit-dev
+```
