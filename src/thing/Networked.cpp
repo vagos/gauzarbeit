@@ -1,18 +1,18 @@
 #include "thing/Networked.hpp"
-#include "thing/Thing.hpp"
 #include "Room.hpp"
+#include "thing/Thing.hpp"
 
-void Networked::doDisconnect(const std::shared_ptr<Thing> &owner)
+void Networked::doDisconnect(const std::shared_ptr<Thing>& owner)
 {
-    socket -> close();
+	socket->close();
 
-    assert(owner -> _physical -> current_room);
+	assert(owner->_physical->current_room);
 
-    owner -> physical() -> current_room -> removePlayer(owner);
+	owner->physical()->current_room->removePlayer(owner);
 
-    setOnline(false);
+	setOnline(false);
 
-    std::clog << "Player disconnected!\n"; 
+	std::clog << "Player disconnected!\n";
 }
 
 std::size_t Networked::lastID = 0;

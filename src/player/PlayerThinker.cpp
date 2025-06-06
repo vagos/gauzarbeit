@@ -1,212 +1,226 @@
-#include <iomanip>
 #include <cassert>
+#include <iomanip>
 #include <memory>
 #include <sstream>
 
 #include <boost/algorithm/string.hpp>
 
 #include "Helpers.hpp"
-#include "player/PlayerThinker.hpp"
 #include "player/PlayerPhysical.hpp"
+#include "player/PlayerThinker.hpp"
 
-#include "thing/Thing.hpp"
 #include "Room.hpp"
 #include "script/ScriptedThing.hpp"
+#include "thing/Thing.hpp"
 
-void PlayerThinker::doThink(const std::shared_ptr<Thing> &owner)
+void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
 {
-    owner->notifier()->setEvent(owner);
+	owner->notifier()->setEvent(owner);
 
-    const auto& event = owner->notifier()->event;
+	const auto& event = owner->notifier()->event;
 
-    switch (event.type)
-    {
-        case Event::Type::Attack:
-        {
-            auto enemy = owner -> physical() -> getRoom() -> getAnything( event.target );
+	switch (event.type)
+	{
+	case Event::Type::Attack:
+	{
+		auto enemy = owner->physical()->getRoom()->getAnything(event.target);
 
-            if (!enemy) throw TargetNotFound();
+		if (!enemy)
+			throw TargetNotFound();
 
-            DoFight( owner, enemy );
+		DoFight(owner, enemy);
 
-            break;
-        }
+		break;
+	}
 
-        case Event::Type::Leave:
-        {
-            owner->networked()->addResponse("Goodbye!\n");
-            owner->networked()->doDatabaseStore(owner);
-            owner->networked()->doDisconnect(owner);
-            break;
-        }
+	case Event::Type::Leave:
+	{
+		owner->networked()->addResponse("Goodbye!\n");
+		owner->networked()->doDatabaseStore(owner);
+		owner->networked()->doDisconnect(owner);
+		break;
+	}
 
-        case Event::Type::Do:
-        {
-            owner -> notifier() -> doNotify(owner, Event::Type::Do, nullptr);
-            break;
-        }
+	case Event::Type::Do:
+	{
+		owner->notifier()->doNotify(owner, Event::Type::Do, nullptr);
+		break;
+	}
 
-        case Event::Type::Greet:
-        {
-            auto t = owner -> physical() -> current_room -> getThing( event.target );
-            t -> notifier() -> onNotify(t, owner, Event::Type::Greet);
-            break;
-        }
-        
-        case Event::Type::Help:
-        {
-            if (event.target.size())
-            {
-                auto t = owner -> physical() -> getItem( event.target );
+	case Event::Type::Greet:
+	{
+		auto t = owner->physical()->current_room->getThing(event.target);
+		t->notifier()->onNotify(t, owner, Event::Type::Greet);
+		break;
+	}
 
-                if (!t) throw TargetNotFound();
+	case Event::Type::Help:
+	{
+		if (event.target.size())
+		{
+			auto t = owner->physical()->getItem(event.target);
 
-                owner -> networked() -> addResponse( t -> inspectable() -> getName(t) + ": " + t -> inspectable() -> onHelp(t, owner) );
-            }
+			if (!t)
+				throw TargetNotFound();
 
-            else 
-            {
-                std::stringstream res; res << '\n' << "A HelpLeaflet materializes in your pocket. Type \"USE HelpLeaflet\" to read it.\n\n";
-                owner -> physical() -> gainItem( std::make_shared<ScriptedThing>("HelpLeaflet") );
-                owner -> networked() -> addResponse(res.str()); 
-            }
+			owner->networked()->addResponse(t->inspectable()->getName(t) + ": " +
+											t->inspectable()->onHelp(t, owner));
+		}
 
-            break;
-        }
+		else
+		{
+			std::stringstream res;
+			res << '\n'
+				<< "A HelpLeaflet materializes in your pocket. Type \"USE HelpLeaflet\" to read "
+				   "it.\n\n";
+			owner->physical()->gainItem(std::make_shared<ScriptedThing>("HelpLeaflet"));
+			owner->networked()->addResponse(res.str());
+		}
 
-        case Event::Type::Ask:
-        {
-            auto t = owner -> physical() -> current_room -> getThing(event.target);
+		break;
+	}
 
-            if (!t) throw TargetNotFound();
+	case Event::Type::Ask:
+	{
+		auto t = owner->physical()->current_room->getThing(event.target);
 
-            if (event.object.size())
-            {
-                std::stringstream res; res << '\n' << "You ask " << *t << " about " << event.object << '\n';
-                owner -> networked() -> addResponse( ColorString( res.str(), Color::Yellow) );
-            }
-            
-            t -> talker() -> onTalk(t, owner); 
+		if (!t)
+			throw TargetNotFound();
 
-            break;
-        }
+		if (event.object.size())
+		{
+			std::stringstream res;
+			res << '\n' << "You ask " << *t << " about " << event.object << '\n';
+			owner->networked()->addResponse(ColorString(res.str(), Color::Yellow));
+		}
 
-        case Event::Type::Say:
-        {
+		t->talker()->onTalk(t, owner);
 
-            std::string message = event.target + ' ' + event.object + ' ' + event.extra; 
-            boost::algorithm::trim(message);
+		break;
+	}
 
-            owner->notifier()->setEventPayload( message );
+	case Event::Type::Say:
+	{
 
-            owner -> notifier() -> doNotify(owner, Event::Type::Chat);
+		std::string message = event.target + ' ' + event.object + ' ' + event.extra;
+		boost::algorithm::trim(message);
 
-            std::stringstream res; res << "You said: " << std::quoted( event.payload ) << '\n'; 
-            owner -> networked() -> addResponse(res.str());
+		owner->notifier()->setEventPayload(message);
 
-            break;
+		owner->notifier()->doNotify(owner, Event::Type::Chat);
 
-            /*
-            auto p = owner -> physical() -> current_room -> getPlayer( event.target );
+		std::stringstream res;
+		res << "You said: " << std::quoted(event.payload) << '\n';
+		owner->networked()->addResponse(res.str());
 
-            if (!p) throw TargetNotFound();
-            
-            std::stringstream whisper; whisper << owner -> name << " whispered to you: " << std::quoted(message) << '\n';
-            p -> networked() -> addResponse( ColorString( whisper.str(), Color::Yellow ) );
+		break;
 
-            break;
-            */
-        }
-        case Event::Type::Inspect:
-        {
-            
-            std::shared_ptr<Thing> t;
-                
-            if (event.target.size() == 0)
-            {
-                owner -> networked() -> addResponse(owner -> inspectable() -> onInspect(owner, owner));
-                break;
-            }
+		/*
+		auto p = owner -> physical() -> current_room -> getPlayer( event.target );
 
-            t = owner->physical()->current_room -> getAnything( event.target );
+		if (!p) throw TargetNotFound();
 
-            if (t) 
-            {
-                owner -> networked() -> addResponse(t -> inspectable() -> onInspect(t, owner));
-                goto Notify;
-            }
+		std::stringstream whisper; whisper << owner -> name << " whispered to you: " <<
+		std::quoted(message) << '\n'; p -> networked() -> addResponse( ColorString( whisper.str(),
+		Color::Yellow ) );
 
-            t = owner -> achiever() -> getQuest( event.target );
+		break;
+		*/
+	}
+	case Event::Type::Inspect:
+	{
 
-            if (t)
-            {
-                owner -> networked() -> addResponse(t -> inspectable() -> onInspect(t, owner));
-                goto Notify;
-            }
+		std::shared_ptr<Thing> t;
 
-            t = owner -> physical() -> getItem( event.target );
+		if (event.target.size() == 0)
+		{
+			owner->networked()->addResponse(owner->inspectable()->onInspect(owner, owner));
+			break;
+		}
 
-            if (t)
-            {
-                owner -> networked() -> addResponse(t -> inspectable() -> onInspect(t, owner));
-                goto Notify;
-            }
+		t = owner->physical()->current_room->getAnything(event.target);
 
-            throw TargetNotFound();
+		if (t)
+		{
+			owner->networked()->addResponse(t->inspectable()->onInspect(t, owner));
+			goto Notify;
+		}
 
-            Notify:
+		t = owner->achiever()->getQuest(event.target);
 
-            owner -> notifier() -> doNotify(owner, event.type, t); break;
-        }
+		if (t)
+		{
+			owner->networked()->addResponse(t->inspectable()->onInspect(t, owner));
+			goto Notify;
+		}
 
-        case Event::Type::Use:
-        {
-             std::shared_ptr<Thing> t;
+		t = owner->physical()->getItem(event.target);
 
-            if (IsNumber(event.target))
-                t = owner->physical()->getItem(std::atoi(event.target.c_str()));
-            else
-                t = owner->physical()->getItem(event.target);
+		if (t)
+		{
+			owner->networked()->addResponse(t->inspectable()->onInspect(t, owner));
+			goto Notify;
+		}
 
-            if (!t) 
-            {
-                t = owner->physical()->current_room -> getThing(event.target);
-            }
+		throw TargetNotFound();
 
-            if (!t) throw TargetNotFound();
-        
-            t -> usable() -> onUse(t, owner);
+	Notify:
 
-            break;
-        }
+		owner->notifier()->doNotify(owner, event.type, t);
+		break;
+	}
 
-        case Event::Type::Move:
-        {
-            std::static_pointer_cast<PlayerPhysical>(owner->physical())->moveDirection(owner, event.target);
-            owner -> notifier() -> doNotify(owner, event.type);
-            break;
-        }
+	case Event::Type::Use:
+	{
+		std::shared_ptr<Thing> t;
 
-        case Event::Type::Gain:
-        {
-           auto t = owner->physical()->current_room -> getThing( event.target );
-            
-           if (!t) throw TargetNotFound();
+		if (IsNumber(event.target))
+			t = owner->physical()->getItem(std::atoi(event.target.c_str()));
+		else
+			t = owner->physical()->getItem(event.target);
 
-           owner->physical()->pickupItem(t); 
+		if (!t)
+		{
+			t = owner->physical()->current_room->getThing(event.target);
+		}
 
-           owner -> notifier() -> doNotify(owner, event.type, t);
+		if (!t)
+			throw TargetNotFound();
 
-           owner -> networked() -> addResponse("You picked up " + t -> name  + '\n');
+		t->usable()->onUse(t, owner);
 
-           break;
-        }
+		break;
+	}
 
-        case Event::Type::Look:
-        {
-            owner -> networked() -> addResponse( owner->physical()->current_room -> onInspect( owner->physical()->current_room, owner) );
-            break;
-        }
+	case Event::Type::Move:
+	{
+		std::static_pointer_cast<PlayerPhysical>(owner->physical())
+			->moveDirection(owner, event.target);
+		owner->notifier()->doNotify(owner, event.type);
+		break;
+	}
 
-    }
+	case Event::Type::Gain:
+	{
+		auto t = owner->physical()->current_room->getThing(event.target);
+
+		if (!t)
+			throw TargetNotFound();
+
+		owner->physical()->pickupItem(t);
+
+		owner->notifier()->doNotify(owner, event.type, t);
+
+		owner->networked()->addResponse("You picked up " + t->name + '\n');
+
+		break;
+	}
+
+	case Event::Type::Look:
+	{
+		owner->networked()->addResponse(
+			owner->physical()->current_room->onInspect(owner->physical()->current_room, owner));
+		break;
+	}
+	}
 }

@@ -6,18 +6,14 @@
 #include <sstream>
 #include <unordered_map>
 
-
 class Player : public Thing
 {
-public:
-    Player(); 
+  public:
+	Player();
 
-    static std::unordered_map<std::string, Event::Type> playerCommands;
+	static std::unordered_map<std::string, Event::Type> playerCommands;
 
-    static void setPlayerCommands();
+	static void setPlayerCommands();
 };
 
-
-
-
-#endif//PLAYER_HPP
+#endif // PLAYER_HPP

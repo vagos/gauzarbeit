@@ -2,65 +2,50 @@
 #define ACHIEVER_HPP
 
 #include <memory>
-#include <vector>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 class Thing;
 
-class Achiever 
+class Achiever
 {
-public:
+  public:
+	struct Stat
+	{
 
-    struct Stat
-    {
+		Stat() {}
 
-        Stat()
-        {
-        }
+		virtual const std::string getName() { return ""; }
 
-        virtual const std::string getName() { return ""; }
+		float value = 0;
+	};
 
-        float value = 0;
-    };
+	std::vector<std::shared_ptr<Thing>> quests;
+	std::vector<std::shared_ptr<Thing>> completed_quests;
+	std::unordered_map<std::string, std::shared_ptr<Stat>> extra_stats;
 
-    std::vector< std::shared_ptr<Thing> > quests;
-    std::vector< std::shared_ptr<Thing> > completed_quests;
-    std::unordered_map< std::string, std::shared_ptr<Stat> > extra_stats;
+	void setStat(const std::string& s_n, float val);
+	float getStat(const std::string& s_n);
 
-    void setStat(const std::string &s_n, float val);
-    float getStat(const std::string &s_n);
+	virtual void gainQuest(std::shared_ptr<Thing> quest) { quests.push_back(quest); }
+	const std::shared_ptr<Thing> getQuest(const std::string& q_name);
 
-    virtual void gainQuest(std::shared_ptr<Thing> quest)
-    {
-        quests.push_back(quest);
-    }
-    const std::shared_ptr<Thing> getQuest(const std::string& q_name);
+	void doUpdate(const std::shared_ptr<Thing>& owner);
 
-    void doUpdate(const std::shared_ptr<Thing> &owner);
-    
-    virtual void onQuestComplete(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &quest);
+	virtual void onQuestComplete(const std::shared_ptr<Thing>& owner,
+								 const std::shared_ptr<Thing>& quest);
 
-    void gainXP(int extra_xp)
-    {
-       xp += extra_xp; 
-    }
+	void gainXP(int extra_xp) { xp += extra_xp; }
 
-    virtual void getRewards(const std::shared_ptr<Thing> owner, int size)
-    {
-        gainXP(size);
-    }
+	virtual void getRewards(const std::shared_ptr<Thing> owner, int size) { gainXP(size); }
 
-    int getLevel()
-    {
-        return xp/10;
-    } 
+	int getLevel() { return xp / 10; }
 
-    int getXP() { return xp; }
+	int getXP() { return xp; }
 
-private:
-    int xp = 0;
-
+  private:
+	int xp = 0;
 };
 
 #endif

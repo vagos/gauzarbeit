@@ -1,46 +1,47 @@
 #ifndef SCRIPTED_NETWORKED_HPP
 #define SCRIPTED_NETWORKED_HPP
 
-#include "ScriptedThing.hpp"
 #include "LuaHelpers.hpp"
+#include "ScriptedThing.hpp"
 
 class ScriptedNetworked : public Networked
 {
 
-    void doDatabaseLoad(std::shared_ptr<Thing> owner) override
-    {
-        const auto& L = ScriptedThing::L;
+	void doDatabaseLoad(std::shared_ptr<Thing> owner) override
+	{
+		const auto& L = ScriptedThing::L;
 
-        lua_getglobal(  L, owner -> name.c_str() );
+		lua_getglobal(L, owner->name.c_str());
 
-        lua_getfield( L, -1, "doDatabaseLoad" );
+		lua_getfield(L, -1, "doDatabaseLoad");
 
-        if (!lua_isfunction(L, -1)) return;
+		if (!lua_isfunction(L, -1))
+			return;
 
-        lua_pushlightuserdata(L, owner.get());
-        
-        CheckLua(L, lua_pcall(L, 1, 0, 0));
-    }
+		lua_pushlightuserdata(L, owner.get());
 
-    const std::string doDatabaseSave(std::shared_ptr<Thing> owner) override
-    {
-        const auto& L = ScriptedThing::L;
+		CheckLua(L, lua_pcall(L, 1, 0, 0));
+	}
 
-        lua_getglobal(  L, owner -> name.c_str() );
+	const std::string doDatabaseSave(std::shared_ptr<Thing> owner) override
+	{
+		const auto& L = ScriptedThing::L;
 
-        lua_getfield( L, -1, "doDatabaseSave" );
+		lua_getglobal(L, owner->name.c_str());
 
-        if (!lua_isfunction(L, -1)) return "";
+		lua_getfield(L, -1, "doDatabaseSave");
 
-        lua_pushlightuserdata(L, owner.get());
-        
-        CheckLua(L, lua_pcall(L, 1, 1, 0));
+		if (!lua_isfunction(L, -1))
+			return "";
 
-        assert(lua_isstring(L, -1));
+		lua_pushlightuserdata(L, owner.get());
 
-        return std::string(lua_tostring(L, -1));
-    }
+		CheckLua(L, lua_pcall(L, 1, 1, 0));
 
+		assert(lua_isstring(L, -1));
+
+		return std::string(lua_tostring(L, -1));
+	}
 };
 
 #endif

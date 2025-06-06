@@ -1,74 +1,75 @@
 #ifndef SCRIPTED_INSPECTABLE_HPP
 #define SCRIPTED_INSPECTABLE_HPP
 
-#include "thing/Thing.hpp"
-#include "script/ScriptedThing.hpp"
 #include "script/LuaHelpers.hpp"
+#include "script/ScriptedThing.hpp"
+#include "thing/Thing.hpp"
 
 class ScriptedInspectable : public Inspectable
 {
- 
-    const std::string onInspect(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &inspector) override 
-    {
-        const auto& L = std::static_pointer_cast<ScriptedThing>(owner) -> L;
 
-        lua_getglobal(  L, owner -> name.c_str() );
+	const std::string onInspect(const std::shared_ptr<Thing>& owner,
+								const std::shared_ptr<Thing>& inspector) override
+	{
+		const auto& L = std::static_pointer_cast<ScriptedThing>(owner)->L;
 
-        lua_getfield( L, -1, "onInspect" );
+		lua_getglobal(L, owner->name.c_str());
 
-        if (!lua_isfunction(L, -1)) return Inspectable::onInspect(owner, inspector);
+		lua_getfield(L, -1, "onInspect");
 
-        lua_pushlightuserdata(L, owner.get());
-        lua_pushlightuserdata(L, inspector.get());
-        
-        CheckLua(L, lua_pcall(L, 2, 1, 0));
+		if (!lua_isfunction(L, -1))
+			return Inspectable::onInspect(owner, inspector);
 
-        assert(lua_isstring(L, -1));
+		lua_pushlightuserdata(L, owner.get());
+		lua_pushlightuserdata(L, inspector.get());
 
-        return  Inspectable::onInspect(owner, inspector) + std::string(lua_tostring(L, -1));
-    }
+		CheckLua(L, lua_pcall(L, 2, 1, 0));
 
-    const std::string onHelp(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector) override
-    {
-        const auto& L = ScriptedThing::L;
+		assert(lua_isstring(L, -1));
 
-        lua_getglobal( L, owner -> name.c_str() );
+		return Inspectable::onInspect(owner, inspector) + std::string(lua_tostring(L, -1));
+	}
 
-        lua_getfield( L, -1, "onHelp" );
+	const std::string onHelp(std::shared_ptr<Thing> owner,
+							 std::shared_ptr<Thing> inspector) override
+	{
+		const auto& L = ScriptedThing::L;
 
-        if (!lua_isfunction(L, -1)) return Inspectable::getName(owner);
+		lua_getglobal(L, owner->name.c_str());
 
-        lua_pushlightuserdata(L, owner.get());
+		lua_getfield(L, -1, "onHelp");
 
-        CheckLua(L, lua_pcall(L, 1, 1, 0));
+		if (!lua_isfunction(L, -1))
+			return Inspectable::getName(owner);
 
-        assert(lua_isstring(L, -1));
+		lua_pushlightuserdata(L, owner.get());
 
-        return std::string(lua_tostring(L, -1));
-    }
+		CheckLua(L, lua_pcall(L, 1, 1, 0));
 
-    const std::string getName(const std::shared_ptr<Thing> &owner) override
-    {
-        const auto& L = ScriptedThing::L;
+		assert(lua_isstring(L, -1));
 
-        lua_getglobal( L, owner -> name.c_str() );
+		return std::string(lua_tostring(L, -1));
+	}
 
-        lua_getfield( L, -1, "getName" );
+	const std::string getName(const std::shared_ptr<Thing>& owner) override
+	{
+		const auto& L = ScriptedThing::L;
 
-        if (!lua_isfunction(L, -1)) return Inspectable::getName(owner);
+		lua_getglobal(L, owner->name.c_str());
 
-        lua_pushlightuserdata(L, owner.get());
+		lua_getfield(L, -1, "getName");
 
-        CheckLua(L, lua_pcall(L, 1, 1, 0));
+		if (!lua_isfunction(L, -1))
+			return Inspectable::getName(owner);
 
-        assert(lua_isstring(L, -1));
+		lua_pushlightuserdata(L, owner.get());
 
-        return std::string(lua_tostring(L, -1));
+		CheckLua(L, lua_pcall(L, 1, 1, 0));
 
+		assert(lua_isstring(L, -1));
 
-    }
-
+		return std::string(lua_tostring(L, -1));
+	}
 };
-
 
 #endif

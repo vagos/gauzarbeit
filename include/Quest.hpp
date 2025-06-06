@@ -8,9 +8,8 @@
 
 class ScriptedQuest : public ScriptedThing
 {
-public:
-    ScriptedQuest(const std::string& name);
-
+  public:
+	ScriptedQuest(const std::string& name);
 };
 
-#endif//QUEST_HPP
+#endif // QUEST_HPP

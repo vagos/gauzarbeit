@@ -1,104 +1,106 @@
-#include <string>
 #include <algorithm>
+#include <string>
 
-#include "thing/Networked.hpp"
-#include "player/PlayerNetworked.hpp"
 #include "Server.hpp"
 #include "World.hpp"
 #include "player/Player.hpp"
+#include "player/PlayerNetworked.hpp"
+#include "thing/Networked.hpp"
 
 #include "script/LuaHelpers.hpp"
 #include "script/ScriptedThing.hpp"
 
 #include "Exceptions.hpp"
 
-Server::Server(int port, boost::asio::io_service &io_service, const tcp::endpoint &endpoint): 
-    acceptor(io_service, endpoint), s_socket(io_service) 
+Server::Server(int port, boost::asio::io_service& io_service, const tcp::endpoint& endpoint)
+	: acceptor(io_service, endpoint), s_socket(io_service)
 {
-    std::clog << "Server started on port " << port << "\n";
-    acceptor.non_blocking(true);
+	std::clog << "Server started on port " << port << "\n";
+	acceptor.non_blocking(true);
 }
-
 
 void Server::acceptConnections()
 {
-    boost::system::error_code error;
-    
-    tcp::socket socket = acceptor.accept(error);
-    
-    if (error) return;
+	boost::system::error_code error;
 
-    onClientConnect(std::move(socket));
+	tcp::socket socket = acceptor.accept(error);
+
+	if (error)
+		return;
+
+	onClientConnect(std::move(socket));
 }
 
 void Server::onClientConnect(tcp::socket socket)
 {
-    std::clog << "Player connected!\n";
-    
-    socket.non_blocking(true);
+	std::clog << "Player connected!\n";
 
-    auto newPlayer = std::make_shared<Player>();
+	socket.non_blocking(true);
 
-    newPlayer -> networked() -> socket = std::make_unique<tcp::socket>(std::move(socket));
+	auto newPlayer = std::make_shared<Player>();
 
-    newPlayer -> networked() -> addResponse( MOTD );
+	newPlayer->networked()->socket = std::make_unique<tcp::socket>(std::move(socket));
 
-    clients.push_back(newPlayer); // add the player to clients
+	newPlayer->networked()->addResponse(MOTD);
+
+	clients.push_back(newPlayer); // add the player to clients
 }
 
-void Server::sendMessage(tcp::socket &socket, const std::string &msg)
+void Server::sendMessage(tcp::socket& socket, const std::string& msg)
 {
-    boost::system::error_code error;
+	boost::system::error_code error;
 
-    boost::asio::write(socket, boost::asio::buffer(msg.c_str(), msg.size()), error);
+	boost::asio::write(socket, boost::asio::buffer(msg.c_str(), msg.size()), error);
 
-    if (error) std::clog << error.message() << '\n';
+	if (error)
+		std::clog << error.message() << '\n';
 }
 
-std::string Server::getMessage(tcp::socket &socket)
+std::string Server::getMessage(tcp::socket& socket)
 {
 
-    size_t len;
-    
-    char data[100];
-    
-    boost::system::error_code error;
+	size_t len;
 
-    len = socket.receive(boost::asio::buffer(data, 100), 0, error);
+	char data[100];
 
-    if (!error) return std::string(data, len); 
+	boost::system::error_code error;
 
-    if (error == boost::asio::error::eof)
-    {
-        throw PlayerDisconnect();
-    }
+	len = socket.receive(boost::asio::buffer(data, 100), 0, error);
 
-    return "";
+	if (!error)
+		return std::string(data, len);
+
+	if (error == boost::asio::error::eof)
+	{
+		throw PlayerDisconnect();
+	}
+
+	return "";
 }
 
 void Server::doUpdate(World& world)
 {
-    acceptConnections();
-    updateClients(world);
+	acceptConnections();
+	updateClients(world);
 }
 
 void Server::updateClients(World& world)
 {
-    for (const auto& c : clients)
-    {
-        c -> networked() -> sendResponse(c);
-        c -> networked() -> getRequest(c, world);
-        c -> networked() -> handleRequest(c, world);
-    }
-    
-    for (const auto& c : clients)
-    {
-        if ( c->networked()->isOnline()) 
-        {
-            world.addPlayer(c);
-            c->physical()->doMove(c, 0, 0);
-        }
-    }
+	for (const auto& c : clients)
+	{
+		c->networked()->sendResponse(c);
+		c->networked()->getRequest(c, world);
+		c->networked()->handleRequest(c, world);
+	}
+
+	for (const auto& c : clients)
+	{
+		if (c->networked()->isOnline())
+		{
+			world.addPlayer(c);
+			c->physical()->doMove(c, 0, 0);
+		}
+	}
 }
 
 std::string Server::MOTD;

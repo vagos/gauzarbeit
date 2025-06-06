@@ -1,38 +1,37 @@
-#include "script/ScriptedThing.hpp"
 #include "Server.hpp"
 #include "World.hpp"
+#include "script/ScriptedThing.hpp"
 
-#include <cstdlib>
-#include <random>
-#include <cstdio>
-#include <iostream>
-#include <thread>
 #include <chrono>
-
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <random>
+#include <thread>
 
 #include "unistd.h"
 
 int main()
 {
-    ScriptedThing::InitLua();
+	ScriptedThing::InitLua();
 
-    int ip = 23;
+	int ip = 23;
 
-    boost::asio::io_service io_service;
-    tcp::endpoint endpoint(tcp::v4(), ip);
+	boost::asio::io_service io_service;
+	tcp::endpoint endpoint(tcp::v4(), ip);
 
-    Server server(ip, io_service, endpoint);
-    World world;
+	Server server(ip, io_service, endpoint);
+	World world;
 
-    // std::freopen( "Log.txt", "w+", stderr ); // Start logging
+	// std::freopen( "Log.txt", "w+", stderr ); // Start logging
 
-    for (;;)
-    {
-    // std::this_thread::sleep_for( std::chrono::seconds(1) ); 
+	for (;;)
+	{
+		// std::this_thread::sleep_for( std::chrono::seconds(1) );
 
-       server.doUpdate(world);
-       world.doUpdate();
-    }
+		server.doUpdate(world);
+		world.doUpdate();
+	}
 
-    return 0;
+	return 0;
 }

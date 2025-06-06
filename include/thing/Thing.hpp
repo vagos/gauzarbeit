@@ -1,24 +1,24 @@
 #ifndef THING_HPP
 #define THING_HPP
 
-#include <cstddef>
-#include <memory>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <queue>
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <iostream>
+#include <memory>
+#include <queue>
+#include <sstream>
+#include <string>
 
+#include "Achiever.hpp"
+#include "Attackable.hpp"
+#include "Inspectable.hpp"
 #include "Networked.hpp"
 #include "Physical.hpp"
-#include "Attackable.hpp"
 #include "Talker.hpp"
-#include "Achiever.hpp"
-#include "Inspectable.hpp"
 
-#include "Helpers.hpp"
 #include "Exceptions.hpp"
+#include "Helpers.hpp"
 
 class World;
 class Thing;
@@ -33,180 +33,179 @@ class Tasker;
 class Inspectable;
 class Thinker;
 
-class Thing 
+class Thing
 {
-public:
-    Thing(): name( "None" )
-    {
+  public:
+	Thing() : name("None") {}
 
-    }
+	~Thing() { std::clog << name << " got destroyed!\n"; }
 
-    ~Thing()
-    {
-        std::clog << name << " got destroyed!\n";
-    }
+	Thing(const std::string& name) : name(name) {}
 
-    Thing(const std::string& name): name(name)
-    {
-    }
+  public:
+	std::string name;
 
-public:
-    std::string name; 
+	std::shared_ptr<Networked> _networked = nullptr;
+	std::shared_ptr<Physical> _physical = nullptr;
+	std::shared_ptr<Usable> _usable = nullptr;
+	std::shared_ptr<Attackable> _attackable = nullptr;
+	std::shared_ptr<Talker> _talker = nullptr;
+	std::shared_ptr<Notifier> _notifier = nullptr;
+	std::shared_ptr<Achiever> _achiever = nullptr;
+	std::shared_ptr<Tasker> _tasker = nullptr;
+	std::shared_ptr<Inspectable> _inspectable = nullptr;
+	std::shared_ptr<Thinker> _thinker = nullptr;
 
-    std::shared_ptr<Networked>   _networked    = nullptr;
-    std::shared_ptr<Physical>    _physical     = nullptr;
-    std::shared_ptr<Usable>      _usable       = nullptr;
-    std::shared_ptr<Attackable>  _attackable   = nullptr;
-    std::shared_ptr<Talker>      _talker       = nullptr;
-    std::shared_ptr<Notifier>    _notifier     = nullptr;
-    std::shared_ptr<Achiever>    _achiever     = nullptr;
-    std::shared_ptr<Tasker>      _tasker       = nullptr;
-    std::shared_ptr<Inspectable> _inspectable  = nullptr;
-    std::shared_ptr<Thinker>     _thinker      = nullptr;
+	friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
+	{
+		os << thing.name;
 
-    friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
-    {
-        os << thing.name; 
+		return os;
+	}
 
-        return os;
-    }
-
-    std::shared_ptr<Networked>  & networked()   {if (_networked)   return _networked;   throw MissingComponent(); }  
-    std::shared_ptr<Physical>   & physical()    {if (_physical)    return _physical;    throw MissingComponent(); }
-    std::shared_ptr<Usable>     & usable()      {if (_usable)      return _usable;      throw MissingComponent(); }
-    std::shared_ptr<Attackable> & attackable()  {if (_attackable)  return _attackable;  throw MissingComponent(); }
-    std::shared_ptr<Talker>     & talker()      {if (_talker)      return _talker;      throw MissingComponent(); }
-    std::shared_ptr<Notifier>   & notifier()    {if (_notifier)    return _notifier;    throw MissingComponent(); }
-    std::shared_ptr<Achiever>   & achiever()    {if (_achiever)    return _achiever;    throw MissingComponent(); }
-    std::shared_ptr<Tasker>     & tasker()      {if (_tasker)      return _tasker;      throw MissingComponent(); }
-    std::shared_ptr<Inspectable>& inspectable() {if (_inspectable) return _inspectable; throw MissingComponent(); }
-    std::shared_ptr<Thinker>    & thinker()     {if (_thinker)     return _thinker;     throw MissingComponent(); }
-
-
+	std::shared_ptr<Networked>& networked()
+	{
+		if (_networked)
+			return _networked;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Physical>& physical()
+	{
+		if (_physical)
+			return _physical;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Usable>& usable()
+	{
+		if (_usable)
+			return _usable;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Attackable>& attackable()
+	{
+		if (_attackable)
+			return _attackable;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Talker>& talker()
+	{
+		if (_talker)
+			return _talker;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Notifier>& notifier()
+	{
+		if (_notifier)
+			return _notifier;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Achiever>& achiever()
+	{
+		if (_achiever)
+			return _achiever;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Tasker>& tasker()
+	{
+		if (_tasker)
+			return _tasker;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Inspectable>& inspectable()
+	{
+		if (_inspectable)
+			return _inspectable;
+		throw MissingComponent();
+	}
+	std::shared_ptr<Thinker>& thinker()
+	{
+		if (_thinker)
+			return _thinker;
+		throw MissingComponent();
+	}
 };
-
-
-
 
 class Notifier
 {
-public:
-    
-    Notifier() 
-    {
+  public:
+	Notifier() {}
 
-    }
+	virtual void doNotify(const std::shared_ptr<Thing>& owner, Event::Type notification_type,
+						  const std::shared_ptr<Thing>& target = nullptr)
+	{
+	}
 
-    virtual void doNotify(const std::shared_ptr<Thing>& owner, Event::Type notification_type, const std::shared_ptr<Thing>& target = nullptr)
-    {
+	virtual void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
+						  Event::Type notification_type,
+						  const std::shared_ptr<Thing>& target = nullptr)
+	{
+	}
 
+	virtual void setEvent(const std::shared_ptr<Thing>& owner) {}
 
-    }
+	void setEventPayload(std::string p) { event.payload = p; }
 
-    virtual void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor, Event::Type notification_type, const std::shared_ptr<Thing>& target = nullptr)
-    {
+	void clearEvent()
+	{
+		event.verb = "";
+		event.object = "";
+		event.target = "";
+		event.extra = "";
+	}
 
-    }
+	virtual void doUpdate(const std::shared_ptr<Thing>& owner) {}
 
-    virtual void setEvent(const std::shared_ptr<Thing>& owner)
-    {
-
-    }
-
-    void setEventPayload(std::string p)
-    {
-        event.payload = p;
-    }
-
-    void clearEvent()
-    {
-        event.verb   = "";
-        event.object = "";
-        event.target = "";
-        event.extra = "";
-    }
-
-    virtual void doUpdate(const std::shared_ptr<Thing> &owner)
-    {
-
-    }
-
-    Event event;
+	Event event;
 };
 
 class Tasker
 {
 
+  public:
+	struct Task
+	{
+		Task(std::string desc) : description(desc), tick(false) {}
 
-public:
+		bool tick;
+		std::string description;
+	};
 
-    struct Task 
-    {
-        Task(std::string desc): description(desc), tick(false)
-        {
-        }
+	int addTask(std::string description)
+	{
+		tasks.push_back(Task(description));
 
-        bool tick;
-        std::string description;
-    };
+		return tasks.size() - 1;
+	}
 
-    int addTask(std::string description)
-    {
-        tasks.push_back(Task( description ));
+	void tickTask(int i_task) { tasks[i_task].tick = true; }
 
-        return tasks.size() - 1;
-    }
+	bool isCompleted()
+	{
+		return std::find_if(tasks.begin(), tasks.end(), [](const Task& t) { return !t.tick; }) ==
+			   tasks.end();
+	}
 
-    void tickTask(int i_task)
-    {
-        tasks[i_task].tick =  true;
-    }
+	virtual void doReward(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer) {}
 
-    bool isCompleted()
-    {
-        return std::find_if(tasks.begin(), tasks.end(), 
-                [](const Task& t) {return !t.tick;}) == tasks.end();
-    }
+	int getDifficulty() { return tasks.size(); }
 
-    virtual void doReward(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer)
-    {
-
-    }
-
-    int getDifficulty() {return tasks.size();}
-
-    std::vector<Task> tasks;
+	std::vector<Task> tasks;
 };
 
-
-class Thinker 
+class Thinker
 {
-public:
-    Thinker()
-    {
-    }
+  public:
+	Thinker() {}
 
-    virtual void doThink(const std::shared_ptr<Thing> &owner)
-    {
-
-    }
-
+	virtual void doThink(const std::shared_ptr<Thing>& owner) {}
 };
 
-
-class Usable 
+class Usable
 {
-public:
-    
-    virtual void onUse(const std::shared_ptr<Thing> &owner, const std::shared_ptr<Thing> &user)
-    {
+  public:
+	virtual void onUse(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& user) {}
 
-    }
-
-    virtual void doUpdate(const std::shared_ptr<Thing> &owner)
-    {
-
-    }
+	virtual void doUpdate(const std::shared_ptr<Thing>& owner) {}
 };
 
-#endif//THING_HPP
+#endif // THING_HPP

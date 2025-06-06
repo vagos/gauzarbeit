@@ -1,8 +1,8 @@
 #ifndef PHYSICAL_HPP
 #define PHYSICAL_HPP
 
-#include <memory>
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -13,62 +13,50 @@ class Thing;
 class Physical
 {
 
-public:
+  public:
+	Physical() {}
 
-    Physical()
-    {
-    }
+	virtual void doUpdate(const std::shared_ptr<Thing>& owner, World& world){};
 
-    virtual void doUpdate( const std::shared_ptr<Thing> &owner, World& world ) {};
+	virtual void doMove(std::shared_ptr<Thing> owner, int x,
+						int y); // Move to room on coords x and y.
 
-    virtual void doMove(std::shared_ptr<Thing> owner, int x, int y); // Move to room on coords x and y.
+	std::shared_ptr<Room> getRoom() { return current_room; }
 
-    std::shared_ptr<Room> getRoom()
-    {
-        return current_room;
-    }
-    
-    void gainItem(std::shared_ptr<Thing> item)
-    {
-        inventory.push_back(item);
-    }
+	void gainItem(std::shared_ptr<Thing> item) { inventory.push_back(item); }
 
-    void giveItem(std::shared_ptr<Thing> target, std::shared_ptr<Thing> item);
+	void giveItem(std::shared_ptr<Thing> target, std::shared_ptr<Thing> item);
 
-    std::shared_ptr<Thing> getItem(std::string item_name);
-        
-    std::shared_ptr<Thing> getItem(int item_index)
-    {
-        return inventory[item_index];
-    }
+	std::shared_ptr<Thing> getItem(std::string item_name);
 
-    void loseItem(std::shared_ptr<Thing> item)
-    {
-        inventory.erase( std::remove(inventory.begin(), inventory.end(), item), inventory.end() );
-    }
+	std::shared_ptr<Thing> getItem(int item_index) { return inventory[item_index]; }
 
-    void dropItem(std::shared_ptr<Thing> item);
-    void pickupItem(std::shared_ptr<Thing> item);
+	void loseItem(std::shared_ptr<Thing> item)
+	{
+		inventory.erase(std::remove(inventory.begin(), inventory.end(), item), inventory.end());
+	}
 
-    bool hasItem(std::shared_ptr<Thing> item)
-    {
-        return std::find( inventory.begin(), inventory.end(), item ) != inventory.end();
-    }
+	void dropItem(std::shared_ptr<Thing> item);
+	void pickupItem(std::shared_ptr<Thing> item);
 
-    void equipItem( std::shared_ptr<Thing> item )
-    {
-        equipment.push_back(item);
-        loseItem(item);
-    }
+	bool hasItem(std::shared_ptr<Thing> item)
+	{
+		return std::find(inventory.begin(), inventory.end(), item) != inventory.end();
+	}
 
-    bool is_movable() {return movable;}
+	void equipItem(std::shared_ptr<Thing> item)
+	{
+		equipment.push_back(item);
+		loseItem(item);
+	}
 
-    std::shared_ptr<Room> current_room = nullptr;
-    std::vector< std::shared_ptr<Thing> > inventory;
-    std::vector< std::shared_ptr<Thing> > equipment;
+	bool is_movable() { return movable; }
 
-    bool movable = true;
-    
+	std::shared_ptr<Room> current_room = nullptr;
+	std::vector<std::shared_ptr<Thing>> inventory;
+	std::vector<std::shared_ptr<Thing>> equipment;
+
+	bool movable = true;
 };
 
-#endif//PHYSICAL_HPP
+#endif // PHYSICAL_HPP
