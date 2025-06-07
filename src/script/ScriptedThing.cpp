@@ -52,7 +52,6 @@ ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_
 	CheckLua(L, luaL_dofile(L, filename.c_str()));
 
 	// doInit
-
 	lua_getglobal(L, name.c_str());
 	lua_getfield(L, -1, "doInit");
 
@@ -452,16 +451,6 @@ int ScriptedThing::DoAttack(lua_State* L)
 	return 0;
 }
 
-int ScriptedThing::SetAttack(lua_State* L)
-{
-	Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
-	int atk = (int)lua_tonumber(L, 2);
-
-	// ptrThing -> attackable() -> attack = atk;
-
-	return 0;
-}
-
 int GetStat(lua_State* L)
 {
 	Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
@@ -604,9 +593,6 @@ void ScriptedThing::InitLua()
 									 {"getType", ScriptedThing::GetName},
 									 {"setStat", SetStat},
 									 {"getStat", GetStat},
-									 // {"setMaxHealth", ScriptedThing::SetMaxHealth},
-									 // {"setAttack", ScriptedThing::SetAttack},
-									 // {"getHP", ScriptedThing::GetHP},
 									 {"sendMessage", ScriptedThing::SendMessage},
 									 {"doSay", ScriptedThing::DoSay},
 									 {"loseItem", ScriptedThing::LoseItem},
