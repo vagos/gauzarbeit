@@ -31,8 +31,8 @@ const std::string Guild::onInspect()
 
 	inspect << "Members: \n"
 			<< VerticalListString(online_members, '-',
-								  [](const std::weak_ptr<Thing>& t)
-								  { return t.lock()->inspectable()->getName(t.lock()); });
+								  [](const std::shared_ptr<Thing>& t)
+								  { return t->inspectable()->getName(t); });
 
 	return HeaderString(inspect.str(), "Guild: " + name);
 }
