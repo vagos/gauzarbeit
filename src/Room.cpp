@@ -64,7 +64,7 @@ void Room::doUpdate(World& world)
 	{
 		try
 		{
-			t->attackable()->doUpdate(t);
+			t->doUpdate(world);
 		}
 
 		catch (std::exception& e)

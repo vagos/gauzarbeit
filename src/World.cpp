@@ -50,10 +50,10 @@ void World::doUpdate()
 		}
 	}
 
-	for (auto& [name, player] : playersOnline) // make this last
+	for (auto& [name, player] : playersOnline) // TODO: make this last
 		player->notifier()->clearEvent();
 
-	removeOfflinePlayers(); // TODO move this to server
+	removeOfflinePlayers(); // TODO: move this to server
 }
 
 void World::addPlayer(std::shared_ptr<Thing> player)

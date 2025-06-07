@@ -33,14 +33,12 @@ class Tasker;
 class Inspectable;
 class Thinker;
 
-class Thing
+class Thing : public std::enable_shared_from_this<Thing>
 {
   public:
-	Thing() : name("None") {}
-
 	~Thing() { std::clog << name << " got destroyed!\n"; }
-
-	Thing(const std::string& name) : name(name) {}
+	Thing();
+	Thing(const std::string& name);
 
   public:
 	std::string name;
@@ -56,12 +54,16 @@ class Thing
 	std::shared_ptr<Inspectable> _inspectable = nullptr;
 	std::shared_ptr<Thinker> _thinker = nullptr;
 
+	static std::vector<std::shared_ptr<Thing>> things;
+
 	friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
 	{
 		os << thing.name;
 
 		return os;
 	}
+
+	void doUpdate(World& world);
 
 	std::shared_ptr<Networked>& networked()
 	{
