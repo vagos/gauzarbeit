@@ -45,7 +45,6 @@ class ScriptedThing : public Thing
 	static int SetAttack(lua_State* L);
 	static int SetDefense(lua_State* L);
 	static int GetHP(lua_State* L);
-
 	static int DoAttack(lua_State* L);
 
 	static void InitLua();

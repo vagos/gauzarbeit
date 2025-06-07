@@ -1,1 +1,1 @@
-MOTD = "Hello world!"
+MOTD = "\n\nHello world!\n\n"

@@ -93,8 +93,8 @@ void Server::updateClients(World& world)
 	{
 		if (c->networked()->isOnline())
 		{
-			world.addPlayer(c);
-			c->physical()->doMove(c, 0, 0);
+			world.addPlayer(c); 
+			c->physical()->doMove(c, 0, 0); // TODO: Move this
 		}
 	}
 }
