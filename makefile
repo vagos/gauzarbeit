@@ -2,8 +2,8 @@
 
 TARGET_EXEC ?= main
 
-CXX := g++
-CXXFLAGS := -std=c++17 -ggdb
+CXXFLAGS := -std=c++17 -ggdb -MMD -MP
+CFLAGS   := -MMD -MP
 
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src ./include
