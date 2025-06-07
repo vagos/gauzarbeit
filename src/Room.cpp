@@ -74,7 +74,6 @@ void Room::doUpdate(World& world)
 	}
 
 	// Remove dead things
-
 	things.erase(std::remove_if(things.begin(), things.end(),
 								[](auto& t)
 								{ return t->_attackable && !t->attackable()->is_alive(); }),

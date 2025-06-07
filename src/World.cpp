@@ -20,27 +20,11 @@ const std::shared_ptr<Thing> World::getPlayer(const std::string& name) const
 
 void World::doUpdate()
 {
-	updateRooms();
 
-	/*for (auto& [name, player] : playersOnline)
+	for (auto& sys : systems)
 	{
-		try { player -> talker() -> doUpdate(player); }
-		catch (std::exception& e) { HandleException(player, e); }
+		sys->doUpdate(*this);
 	}
-
-	for (auto& [name, player] : playersOnline)
-	{
-		try { player -> physical() -> doUpdate(player, *this); }
-		catch (std::exception& e) { HandleException(player, e); }
-	}
-
-	for (auto& [name, player] : playersOnline)
-	{
-		try { player -> achiever() -> doUpdate(player); }
-		catch (std::exception& e) { HandleException(player, e); }
-	}
-
-	*/
 
 	for (auto& [name, player] : playersOnline)
 	{
@@ -80,14 +64,6 @@ void World::addPlayer(std::shared_ptr<Thing> player)
 void World::removePlayer(const std::shared_ptr<Thing>& player)
 {
 	playersOnline.erase(player->networked()->getID());
-}
-
-void World::updateRooms()
-{
-	for (auto& [room_id, room] : Room::mapRooms)
-	{
-		room->doUpdate(*this);
-	}
 }
 
 void World::removeOfflinePlayers()

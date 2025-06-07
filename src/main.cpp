@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "World.hpp"
 #include "script/ScriptedThing.hpp"
+#include "system/RoomSystem.hpp"
 
 #include <chrono>
 #include <cstdio>
@@ -27,7 +28,8 @@ int main(int argc, char* argv[])
 	Server server(port, io_service, endpoint);
 	World world;
 
-	// std::freopen("Log.txt", "w+", stderr); // Start logging
+	// Register systems
+	world.systems.push_back(std::make_unique<RoomSystem>());
 
 	for (;;)
 	{

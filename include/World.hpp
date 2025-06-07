@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 #include "Room.hpp"
+#include "System.hpp"
 #include "player/Player.hpp"
 #include "thing/Thing.hpp"
 
@@ -22,6 +23,7 @@ class World
   public:
 	std::map<std::size_t, std::shared_ptr<Thing>>
 		playersOnline; // A list of all the online players.
+	std::vector<std::unique_ptr<System>> systems;
 
 	World();
 
