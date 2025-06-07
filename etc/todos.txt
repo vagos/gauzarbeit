@@ -1,0 +1,3 @@
+- [ ] Finish systems logic
+- [ ] Make persistence and serialization work
+- [ ] Add plugin support as a way to plug-in LLM-generated code
