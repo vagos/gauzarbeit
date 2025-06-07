@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <string>
+#include <thread>
 
 #include "Server.hpp"
 #include "World.hpp"
@@ -76,6 +77,7 @@ void Server::doUpdate(World& world)
 {
 	acceptConnections();
 	updateClients(world);
+	std::this_thread::sleep_for(std::chrono::milliseconds(16)); // TODO: Avoid this
 }
 
 void Server::updateClients(World& world)
