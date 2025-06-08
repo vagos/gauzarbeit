@@ -3,9 +3,9 @@
 
 std::vector<std::shared_ptr<Thing>> Thing::things; // TODO: Use this
 
-Thing::Thing() : name("Thing") { }
+Thing::Thing() : name("Thing") {}
 
-Thing::Thing(const std::string& name) : name(name) { }
+Thing::Thing(const std::string& name) : name(name) {}
 
 void Thing::doUpdate(World& world)
 {
