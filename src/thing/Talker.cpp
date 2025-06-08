@@ -10,7 +10,7 @@ void Talker::onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<T
 
     auto q = owner->achiever()->getQuest(event.object);
 
-    std::clog << event.object << '\n';
+    Log(event.object);
 
     if (!q)
         return;

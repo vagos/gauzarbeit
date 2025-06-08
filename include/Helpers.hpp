@@ -13,6 +13,8 @@ constexpr int SIZE = 65;
 #include <unordered_map>
 #include <vector>
 
+#define Log(msg) std::cerr << __FILE__ << ":" << __LINE__ << " " << msg << std::endl;
+
 class Thing;
 
 bool IsNumber(const std::string& s);

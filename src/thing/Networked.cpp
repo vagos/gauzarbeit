@@ -9,7 +9,7 @@ void Networked::doDisconnect(const std::shared_ptr<Thing>& owner)
     owner->physical()->current_room->removePlayer(owner);
 
     setOnline(false);
-    std::clog << "Player disconnected!\n";
+    Log("Player disconnected!");
 }
 
 std::fstream Networked::db;

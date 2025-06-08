@@ -81,9 +81,8 @@ void PlayerNetworked::getRequest(std::shared_ptr<Thing> owner, World& world)
     if (!streamRequest.str().size())
         return;
 
-    std::clog << *owner << ": " << streamRequest.str() << "\r\r\r"
-              << " Received: " << streamRequest.str().size() << " bytes"
-              << "\n";
+    Log(*owner << ": " << streamRequest.str() << "\r\r\r"
+              << " Received: " << streamRequest.str().size() << " bytes");
 }
 
 void PlayerNetworked::sendResponse(std::shared_ptr<Thing> owner)
@@ -105,12 +104,14 @@ void PlayerNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
     if (!inDatabase(owner->name))
         return;
 
+    Log("Loading player " << owner->name << " from database...");
+
     std::string filename{"./db/players/" + owner->name};
     db.open(filename);
 
     if (!db.is_open())
     {
-        std::clog << "Player not found!\n";
+        Log("Player " << owner->name << " not found in database!");
         return;
     }
 
@@ -162,8 +163,6 @@ void PlayerNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
         }
 
         db >> line;
-
-        std::clog << "LINE: " << line << '\n';
     }
 
     db.close();
@@ -226,7 +225,7 @@ void PlayerNetworked::doDatabaseStore(std::shared_ptr<Thing> owner)
 
     db.close();
 
-    std::clog << "Player " << owner->name << " saved!\n";
+    Log("Player " << owner->name << " saved!");
 }
 
 bool PlayerNetworked::inDatabase(const std::string& name)

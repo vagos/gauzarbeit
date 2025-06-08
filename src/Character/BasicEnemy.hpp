@@ -13,7 +13,7 @@ class BasicEnemyAttackable : public Attackable
     {
         enemies.insert(attacker);
 
-        std::clog << "added " << attacker->name << " as an enemy\n";
+        Log("Added " << attacker->name << " as an enemy");
 
         Attackable::onAttack(owner, attacker);
     }
@@ -41,7 +41,7 @@ class BasicEnemyNotifier : public Notifier
         {
         case Event::Type::Death:
         {
-            std::clog << "My enemy died " << actor->name << '\n';
+            Log("My enemy died " << actor->name);
         }
         default:
           break;

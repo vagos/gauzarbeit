@@ -115,7 +115,7 @@ int ScriptedThing::SendMessage(lua_State* L)
 
     Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
 
-    std::clog << ptrThing->name << '\n';
+    Log(ptrThing->name);
 
     std::size_t s_l;
     const char* s = lua_tolstring(L, 2, &s_l);
@@ -367,7 +367,7 @@ int ScriptedThing::GetPlayer(lua_State* L)
 
     std::string t_n(lua_tostring(L, 2));
 
-    std::clog << "NAME: " << t_n << '\n';
+    Log("NAME: " << t_n);
 
     auto t = ptrThing->physical()->current_room->getPlayer(t_n);
 

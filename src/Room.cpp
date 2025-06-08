@@ -69,7 +69,7 @@ void Room::doUpdate(World& world)
 
         catch (std::exception& e)
         {
-            std::clog << e.what() << '\n';
+            Log(e.what());
         }
     }
 
@@ -147,7 +147,7 @@ void ScriptedRoom::doGeneration()
     {
         std::string t_n(lua_tostring(L, -1));
 
-        std::clog << t_n << '\n';
+        Log(t_n);
 
         t_ns.push_back(t_n);
 

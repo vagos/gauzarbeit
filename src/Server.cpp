@@ -15,7 +15,7 @@
 Server::Server(int port, boost::asio::io_service& io_service, const tcp::endpoint& endpoint)
     : acceptor(io_service, endpoint), s_socket(io_service)
 {
-    std::clog << "Server started on port " << port << "\n";
+    Log("Server started on port " << port);
     acceptor.non_blocking(true);
 }
 
@@ -33,7 +33,7 @@ void Server::acceptConnections()
 
 void Server::onClientConnect(tcp::socket socket)
 {
-    std::clog << "Player connected!\n";
+    Log("A player connected!");
 
     socket.non_blocking(true);
 
@@ -51,7 +51,7 @@ void Server::sendMessage(tcp::socket& socket, const std::string& msg)
     boost::asio::write(socket, boost::asio::buffer(msg.c_str(), msg.size()), error);
 
     if (error)
-        std::clog << "Cannot send message: " << error.message() << '\n';
+        Log("Cannot send message: " << error.message());
 }
 
 std::string Server::getMessage(tcp::socket& socket)

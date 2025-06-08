@@ -35,7 +35,7 @@ class Thinker;
 class Thing : public std::enable_shared_from_this<Thing>
 {
   public:
-    ~Thing() { std::clog << name << " got destroyed!\n"; }
+    ~Thing() { Log(name << " got destroyed!"); }
     Thing();
     Thing(const std::string& name);
 
