@@ -7,15 +7,15 @@
 class PlayerAttackable : public Attackable
 {
   public:
-	PlayerAttackable();
+    PlayerAttackable();
 
-	void doUpdate(const std::shared_ptr<Thing>& owner) override;
-	void doAttack(const std::shared_ptr<Thing>& owner,
-				  const std::shared_ptr<Thing>& target) override;
-	void onAttack(const std::shared_ptr<Thing>& owner,
-				  const std::shared_ptr<Thing>& attacker) override;
-	void onDeath(const std::shared_ptr<Thing>& owner) override;
-	void doRespawn(const std::shared_ptr<Thing> owner);
+    void doUpdate(const std::shared_ptr<Thing>& owner) override;
+    void doAttack(const std::shared_ptr<Thing>& owner,
+                  const std::shared_ptr<Thing>& target) override;
+    void onAttack(const std::shared_ptr<Thing>& owner,
+                  const std::shared_ptr<Thing>& attacker) override;
+    void onDeath(const std::shared_ptr<Thing>& owner) override;
+    void doRespawn(const std::shared_ptr<Thing> owner);
 };
 
 #endif

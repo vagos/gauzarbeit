@@ -8,7 +8,7 @@ struct Thing;
  */
 struct System
 {
-	virtual ~System() = default;
+    virtual ~System() = default;
 
-	virtual void doUpdate(World& world) = 0;
+    virtual void doUpdate(World& world) = 0;
 };

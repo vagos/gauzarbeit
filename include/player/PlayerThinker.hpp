@@ -6,9 +6,9 @@
 class PlayerThinker : public Thinker
 {
   public:
-	PlayerThinker() {}
+    PlayerThinker() {}
 
-	void doThink(const std::shared_ptr<Thing>& owner) override;
+    void doThink(const std::shared_ptr<Thing>& owner) override;
 };
 
 #endif

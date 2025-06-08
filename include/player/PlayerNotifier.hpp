@@ -12,12 +12,12 @@
 class PlayerNotifier : public Notifier
 {
 
-	void doNotify(const std::shared_ptr<Thing>& owner, Event::Type notification_type,
-				  const std::shared_ptr<Thing>& target = nullptr) override;
-	void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
-				  Event::Type notification_type, const std::shared_ptr<Thing>& target) override;
+    void doNotify(const std::shared_ptr<Thing>& owner, Event::Type notification_type,
+                  const std::shared_ptr<Thing>& target = nullptr) override;
+    void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
+                  Event::Type notification_type, const std::shared_ptr<Thing>& target) override;
 
-	void setEvent(const std::shared_ptr<Thing>& owner) override;
+    void setEvent(const std::shared_ptr<Thing>& owner) override;
 };
 
 #endif

@@ -8,11 +8,11 @@
 class PlayerAchiever : public Achiever
 {
   public:
-	PlayerAchiever();
+    PlayerAchiever();
 
-	void onQuestComplete(const std::shared_ptr<Thing>& owner,
-						 const std::shared_ptr<Thing>& quest) override;
-	void getRewards(const std::shared_ptr<Thing> owner, int size) override;
+    void onQuestComplete(const std::shared_ptr<Thing>& owner,
+                         const std::shared_ptr<Thing>& quest) override;
+    void getRewards(const std::shared_ptr<Thing> owner, int size) override;
 };
 
 #endif

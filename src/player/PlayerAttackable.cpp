@@ -2,58 +2,58 @@
 
 PlayerAttackable::PlayerAttackable()
 {
-	current_health = 15;
-	max_health = 20;
+    current_health = 15;
+    max_health = 20;
 }
 
 void PlayerAttackable::doUpdate(const std::shared_ptr<Thing>& owner)
 {
-	if (!alive)
-	{
-		doRespawn(owner);
-	}
+    if (!alive)
+    {
+        doRespawn(owner);
+    }
 }
 
 void PlayerAttackable::doAttack(const std::shared_ptr<Thing>& owner,
-								const std::shared_ptr<Thing>& target)
+                                const std::shared_ptr<Thing>& target)
 {
-	std::stringstream res;
+    std::stringstream res;
 
-	res << "You attacked " << target->name << '\n'; // TODO Put this into notifier.
+    res << "You attacked " << target->name << '\n'; // TODO Put this into notifier.
 
-	owner->networked()->addResponse(res.str());
+    owner->networked()->addResponse(res.str());
 
-	Attackable::doAttack(owner, target);
+    Attackable::doAttack(owner, target);
 }
 
 void PlayerAttackable::onAttack(const std::shared_ptr<Thing>& owner,
-								const std::shared_ptr<Thing>& attacker)
+                                const std::shared_ptr<Thing>& attacker)
 {
-	std::stringstream res;
+    std::stringstream res;
 
-	res << attacker->name << " attacked you!\n";
+    res << attacker->name << " attacked you!\n";
 
-	owner->networked()->addResponse(res.str());
+    owner->networked()->addResponse(res.str());
 
-	Attackable::onAttack(owner, attacker);
+    Attackable::onAttack(owner, attacker);
 }
 
 void PlayerAttackable::onDeath(const std::shared_ptr<Thing>& owner)
 {
-	alive = false;
+    alive = false;
 
-	owner->networked()->addResponse(ColorString("You died!\n", Color::Red));
+    owner->networked()->addResponse(ColorString("You died!\n", Color::Red));
 
-	owner->notifier()->doNotify(owner, Event::Type::Death); // notify everyone about the death
+    owner->notifier()->doNotify(owner, Event::Type::Death); // notify everyone about the death
 }
 
 void PlayerAttackable::doRespawn(const std::shared_ptr<Thing> owner)
 {
-	alive = true;
+    alive = true;
 
-	owner->physical()->doMove(owner, 0, 0);
+    owner->physical()->doMove(owner, 0, 0);
 
-	current_health = max_health;
+    current_health = max_health;
 
-	owner->networked()->addResponse("You respawned!\n");
+    owner->networked()->addResponse("You respawned!\n");
 }
