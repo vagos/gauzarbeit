@@ -22,7 +22,7 @@ class PlayerNetworked : public Networked
   public:
     PlayerNetworked();
 
-    void getRequest(std::shared_ptr<Thing> owner, World& world);
+    void getRequest(std::shared_ptr<Thing> owner, World& world) override;
     void sendResponse(std::shared_ptr<Thing> owner) override;
     void handleRequest(std::shared_ptr<Thing> owner, World& world) override;
 
