@@ -50,8 +50,9 @@ void Server::sendMessage(tcp::socket& socket, const std::string& msg)
 {
 	boost::system::error_code error;
 	boost::asio::write(socket, boost::asio::buffer(msg.c_str(), msg.size()), error);
+
 	if (error)
-		std::clog << error.message() << '\n';
+		std::clog << "Cannot send message: " << error.message() << '\n';
 }
 
 std::string Server::getMessage(tcp::socket& socket)
