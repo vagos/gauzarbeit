@@ -8,7 +8,7 @@ CFLAGS   := -MMD -MP
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src ./include
 
-# source files
+# Source files
 SRCS := $(shell find $(SRC_DIRS) -name '*.cpp' -o -name '*.c' -o -name '*.s')
 HDRS := $(shell find $(SRC_DIRS) -name '*.hpp' -o -name '*.h')
 TSTS := $(shell find tests -name '*.cpp')
@@ -29,17 +29,17 @@ LDFLAGS ?= -lboost_system -lpthread $(LUA_LIBS) -ldl -lstdc++fs
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS) $(CPPFLAGS)
 
-# assembly
+# Assembly
 $(BUILD_DIR)/%.s.o: %.s
 	mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -c $< -o $@
 
-# c source
+# C source
 $(BUILD_DIR)/%.c.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-# c++ source
+# C++ source
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	mkdir -p $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
