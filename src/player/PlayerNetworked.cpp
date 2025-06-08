@@ -205,6 +205,12 @@ const std::string PlayerNetworked::doDatabaseSave(std::shared_ptr<Thing> owner)
 
 void PlayerNetworked::doDatabaseStore(std::shared_ptr<Thing> owner)
 {
+
+	if (!std::experimental::filesystem::exists("./db/players"))
+	{
+		std::experimental::filesystem::create_directories("./db/players");
+	}
+
 	std::string filename{"./db/players/" + owner->name};
 
 	db.open(filename, std::ios::trunc);
