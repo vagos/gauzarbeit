@@ -187,6 +187,7 @@ const std::string PlayerNetworked::doDatabaseSave(std::shared_ptr<Thing> owner)
 
     info << "STATS\n";
 
+    // XP is not loaded as a string
     info << owner->achiever()->getXP() << ' ';
 
     for (auto [stat_name, stat] : owner->achiever()->extra_stats)
