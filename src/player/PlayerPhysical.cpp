@@ -108,6 +108,9 @@ void PlayerPhysical::doUpdate(const std::shared_ptr<Thing>& owner, World& world)
         owner->networked()->addResponse(current_room->onInspect(current_room, owner));
         break;
     }
+
+    default:
+        break;
     }
 
     if (event.verb == "get")

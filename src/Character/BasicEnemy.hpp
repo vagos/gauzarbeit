@@ -43,6 +43,8 @@ class BasicEnemyNotifier : public Notifier
         {
             std::clog << "My enemy died " << actor->name << '\n';
         }
+        default:
+          break;
         }
     }
 };

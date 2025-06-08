@@ -113,5 +113,8 @@ void PlayerNotifier::onNotify(const std::shared_ptr<Thing>& owner,
 
         owner->networked()->addResponse(ColorString(res.str(), Color::Green));
     }
+
+    default:
+        break;
     }
 }
