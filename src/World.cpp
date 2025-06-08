@@ -72,7 +72,6 @@ void World::removeOfflinePlayers()
 	{
 		if (!it->second->networked()->isOnline())
 		{
-			it->second->networked()->doDisconnect(it->second);
 			it = playersOnline.erase(it);
 		}
 		else
