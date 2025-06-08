@@ -42,8 +42,10 @@ class Networked
 	std::size_t getID() { return ID; }
 
 	bool isOnline() { return online; }
+	bool isLoggedIn() { return loggedIn; }
 
 	void setOnline(bool o) { online = o; }
+	void setLoggedIn(bool l) { loggedIn = l; }
 
 	static std::fstream& getDB() { return db; }
 
@@ -62,7 +64,9 @@ class Networked
 
 	static std::fstream db;
 
-	bool online = false;
+	private:
+	bool online = true;
+	bool loggedIn = false;
 };
 
 #endif // NETWORKED_HPP

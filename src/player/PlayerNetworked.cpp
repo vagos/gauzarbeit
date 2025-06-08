@@ -10,7 +10,7 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 
 	if (verb == "login")
 	{
-		if (isOnline())
+		if (isLoggedIn())
 		{
 			addResponse(ColorString("You are already logged in!\n", Color::Red));
 			return;
@@ -53,11 +53,11 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 
 		doDatabaseStore(owner);
 
-		setOnline(true);
+		setLoggedIn(true);
 	}
 	else
 	{
-		if (!isOnline() && verb.size())
+		if (!isLoggedIn() && verb.size())
 			addResponse(ColorString("You need to log in!\n", Color::Red));
 	}
 }
