@@ -18,7 +18,7 @@ class World;
 class Networked
 {
   public:
-    Networked() { ID = lastID++; }
+    Networked() {}
 
     std::unique_ptr<tcp::socket> socket;
 
@@ -38,8 +38,6 @@ class Networked
 
     std::stringstream& getRequestStream() { return streamRequest; }
 
-    std::size_t getID() { return ID; }
-
     bool isOnline() { return online; }
     bool isLoggedIn() { return loggedIn; }
 
@@ -54,9 +52,6 @@ class Networked
         streamRequest.str(std::string());
         streamResponse.str(std::string());
     }
-
-    std::size_t ID;
-    static std::size_t lastID;
 
     std::stringstream streamRequest;
     std::stringstream streamResponse;

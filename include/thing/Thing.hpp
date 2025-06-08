@@ -55,6 +55,9 @@ class Thing : public std::enable_shared_from_this<Thing>
 
     static std::vector<std::shared_ptr<Thing>> things;
 
+    std::size_t id;
+    static std::size_t lastID;
+
     friend std::ostream& operator<<(std::ostream& os, const Thing& thing)
     {
         os << thing.name;
@@ -63,6 +66,7 @@ class Thing : public std::enable_shared_from_this<Thing>
     }
 
     void doUpdate(World& world);
+    std::size_t getID() const { return id; }
 
     std::shared_ptr<Networked>& networked()
     {

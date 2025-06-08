@@ -58,12 +58,12 @@ void World::doUpdate()
 
 void World::addPlayer(std::shared_ptr<Thing> player)
 {
-    playersOnline[player->networked()->getID()] = player;
+    playersOnline[player->getID()] = player;
 }
 
 void World::removePlayer(const std::shared_ptr<Thing>& player)
 {
-    playersOnline.erase(player->networked()->getID());
+    playersOnline.erase(player->getID());
 }
 
 void World::removeOfflinePlayers()
