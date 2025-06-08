@@ -98,6 +98,14 @@ void Server::updateClients(World& world)
 			c->physical()->doMove(c, 0, 0); // TODO: Move this
 		}
 	}
+
+	// close the sockets of all !isOnline client
+	for (const auto& c : clients) 
+	{
+		if (!c->networked()->isOnline())
+			c->networked()->socket->close();
+
+	}
 }
 
 std::string Server::MOTD;
