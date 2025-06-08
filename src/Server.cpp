@@ -102,7 +102,9 @@ void Server::updateClients(World& world)
     for (const auto& c : clients)
     {
         if (!c->networked()->isOnline())
+        {
             c->networked()->socket->close();
+        }
     }
 }
 
