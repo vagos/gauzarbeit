@@ -24,17 +24,17 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
         }
 
         owner->name = target;
-
         doDatabaseLoad(owner);
 
         if (password != object)
         {
+            Log("Wrong password for player " << owner->name);
             addResponse("Wrong password! Please try again.\n");
             doDisconnect(owner);
             return;
         }
 
-        setOnline(true);
+        setLoggedIn(true);
 
         addResponse(ColorString("You are logged in as " + owner->name + ".\n", Color::Green));
     }
@@ -48,6 +48,12 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 
         owner->name = target;
         password = object;
+
+        if (password.empty())
+        {
+            addResponse(ColorString("You need to set a password!\n", Color::Red));
+            return;
+        }
 
         addResponse("You are registered!\n");
         addResponse(ColorString("You are logged in as " + owner->name + ".\n", Color::Green));

@@ -15,8 +15,15 @@
 void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
 {
     owner->notifier()->setEvent(owner);
-
     const auto& event = owner->notifier()->event;
+
+    if (event.verb.empty())
+    {
+        return;
+    }
+
+    Log(owner->name << " is thinking: " << event.verb << ' ' << event.target << ' '
+        << event.object << ' ' << event.extra);
 
     switch (event.type)
     {
