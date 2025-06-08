@@ -105,7 +105,6 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
         boost::algorithm::trim(message);
 
         owner->notifier()->setEventPayload(message);
-
         owner->notifier()->doNotify(owner, Event::Type::Chat);
 
         std::stringstream res;
@@ -202,16 +201,12 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
     case Event::Type::Gain:
     {
         auto t = owner->physical()->current_room->getThing(event.target);
-
         if (!t)
             throw TargetNotFound();
 
         owner->physical()->pickupItem(t);
-
         owner->notifier()->doNotify(owner, event.type, t);
-
         owner->networked()->addResponse("You picked up " + t->name + '\n');
-
         break;
     }
 
@@ -221,5 +216,8 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
             owner->physical()->current_room->onInspect(owner->physical()->current_room, owner));
         break;
     }
+
+    default:
+        break;
     }
 }
