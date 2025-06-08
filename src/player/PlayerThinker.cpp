@@ -22,8 +22,8 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
         return;
     }
 
-    Log(owner->name << " is thinking: " << event.verb << ' ' << event.target << ' '
-        << event.object << ' ' << event.extra);
+    Log(owner->name << " is thinking: " << event.verb << ' ' << event.target << ' ' << event.object
+                    << ' ' << event.extra);
 
     switch (event.type)
     {

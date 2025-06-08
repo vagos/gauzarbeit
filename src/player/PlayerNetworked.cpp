@@ -88,7 +88,7 @@ void PlayerNetworked::getRequest(std::shared_ptr<Thing> owner, World& world)
         return;
 
     Log(*owner << ": " << streamRequest.str() << "\r\r\r"
-              << " Received: " << streamRequest.str().size() << " bytes");
+               << " Received: " << streamRequest.str().size() << " bytes");
 }
 
 void PlayerNetworked::sendResponse(std::shared_ptr<Thing> owner)

@@ -44,7 +44,7 @@ class BasicEnemyNotifier : public Notifier
             Log("My enemy died " << actor->name);
         }
         default:
-          break;
+            break;
         }
     }
 };
