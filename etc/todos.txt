@@ -1,3 +1,4 @@
 - [x] Finish systems logic (Sketch in place, will reiterate whether needed)
 - [ ] Make persistence and serialization work
 - [ ] Add plugin support as a way to plug-in LLM-generated code
+- [ ] Allow multiple events per tick
