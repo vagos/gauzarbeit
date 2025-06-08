@@ -1,4 +1,4 @@
-#include "../Thing.hpp"
+#include "Thing.hpp"
 
 #include <cassert>
 #include <memory>
