@@ -34,3 +34,6 @@ Components:
 TODO: Understand when something is a system and how to implement one. Where does the logic live?
 Systems:
     - 
+
+Collection of tiny models. These can be used at various points to bring in new content to the game:
+ - https://ollama.com/sroecker/nuextract-tiny-v1.5
