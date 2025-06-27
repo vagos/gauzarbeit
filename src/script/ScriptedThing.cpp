@@ -500,9 +500,7 @@ int Gauzarbeit_Spawn(lua_State* L)
     if (lua_isuserdata(L, 1))
     {
         Room* r = (Room*)lua_touserdata(L, 1);
-
         std::string t_n(lua_tostring(L, 2));
-
         auto t = std::make_shared<ScriptedThing>(t_n);
 
         if (t->_physical)
