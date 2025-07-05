@@ -1,14 +1,6 @@
 player can enter room
 room has things in it 
 
-on every tick, we update all items:
-    - we run some standard update functions. related to systems
-    - we run each thing's custom update method
-    - ?
-
-What is a system? 
-    - Its a set of functions which given the current world state
-
 How would crafting work?
     - command craft
     - takes a list of items from inventory
@@ -19,9 +11,6 @@ How will combat work?
     - things have "moves"
     - you pick one of them at random and perform it
 
-So what do I write in Rust?
-    - The systems?
-
 ECS
 
 Components:
@@ -30,10 +19,22 @@ Components:
     - Craftable: can be crafted
     - Usable: can be used
 
-
-TODO: Understand when something is a system and how to implement one. Where does the logic live?
-Systems:
-    - 
-
 Collection of tiny models. These can be used at various points to bring in new content to the game:
  - https://ollama.com/sroecker/nuextract-tiny-v1.5
+
+An event can either signify: 
+    - Something that happened in the world
+    - An action that some "Thing" initiated
+
+How do we: 
+1. Pass this information alongside the other systems
+2. Notify them?
+3. 
+
+Currently, each Thing can only have one event per tick. 
+This simplifies some things because when a user or entity interact with another thing, there is only the notifier that needs to be interoggated 
+in order to find more information about the interaction.
+That probably means that the Event object needs to be extensible.
+Eg. I might use X "lightly" --- the channel for this could be the other properties from the thing. For example, some stat or equipmnt it holds (soft gloves, light-touching)
+
+TODO: Event types should not be an enum OR should at least be extensible from the scripting engine
