@@ -38,3 +38,8 @@ That probably means that the Event object needs to be extensible.
 Eg. I might use X "lightly" --- the channel for this could be the other properties from the thing. For example, some stat or equipmnt it holds (soft gloves, light-touching)
 
 TODO: Event types should not be an enum OR should at least be extensible from the scripting engine
+
+Find IP:
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <container_name>
+Find container name:
+docker ps -a | grep gzrbt
