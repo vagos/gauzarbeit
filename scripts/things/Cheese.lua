@@ -7,10 +7,6 @@ function Cheese:doInit()
 end
 
 function Cheese:onInspect(inspector)
-    while true do
-        inspector:sendMessage("F u") 
-    end
-
     return "A tasty piece of cheese\n"
 end
 
