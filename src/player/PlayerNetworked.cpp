@@ -19,7 +19,13 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 
         if (!inDatabase(target))
         {
-            addResponse("You need to register first!\n");
+            addResponse("You need to register first! Please use the command 'register <name> <password>'.\n");
+            return;
+        }
+
+        if (!object.size())
+        {
+            addResponse(ColorString("You need to provide a password! Please use the command 'login <name> <password>'.\n", Color::Red));
             return;
         }
 
