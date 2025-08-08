@@ -1,4 +1,4 @@
-.PHONY: clean lint test
+.PHONY: clean env lint test
 
 TARGET_EXEC ?= main
 
@@ -46,6 +46,10 @@ $(BUILD_DIR)/%.cpp.o: %.cpp
 
 clean:
 	$(RM) -r $(BUILD_DIR)
+
+env:
+	docker build -t gzrbt .
+	docker run --rm -it -v $(shell pwd):/app gzrbt /bin/bash
 
 -include $(DEPS)
 
