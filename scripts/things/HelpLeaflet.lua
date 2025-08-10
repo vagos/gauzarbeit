@@ -1,14 +1,16 @@
 function HelpLeaflet:onInspect(inspector)
+    local help = [[
+COMMANDS:
 
-    local helpFile = io.open("./scripts/things/HELP.txt", "r")
-
-    local fileContent = helpFile:read("a")
-
-    helpFile:close()
-
-    return fileContent
+-- USE <THING_NAME> : Use a thing.
+-- CHECK/INSPECT <THING_NAME> : Get extra info about a thing.
+-- ATTACK <THING_NAME> : Attack a thing.
+-- MOVE <DIRECTION> : Move at a specific direction.
+]]
+    return help
 end
 
 function HelpLeaflet:onUse(user)
-    self:onInspect(user)
+    local text = HelpLeaflet.onInspect(self, user)
+    user:sendMessage(text)
 end
