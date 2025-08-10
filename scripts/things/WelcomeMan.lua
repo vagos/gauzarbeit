@@ -1,9 +1,7 @@
 -- Wick McWelcome
 
 function  WelcomeMan:doInit()
-
     self:gainQuest("SimpleQuest")
-    
 end
 
 function WelcomeMan:onNotify(actor, notification_type, target)
@@ -14,9 +12,7 @@ end
 
 function WelcomeMan:onTalk(talker)
     if (talker:getEventInfo().object == "help") then
-        
         talker:sendMessage("Oh? Here is a Leaflet with some help for starting out.\n")
-
         talker:gainItem("HelpLeaflet")
     end
 end

@@ -1,9 +1,7 @@
 function Cheese:doInit()
-
     Gauzarbeit.CreateStat("Cheesiness", function(val)
         return tostring(val)
     end)
-
 end
 
 function Cheese:onInspect(inspector)
@@ -17,10 +15,7 @@ function Cheese:onUse(user)
     --     return
     -- end
 
-    print(self:getName())
-
-    user:sendMessage("You eat the cheese. Very cheesy.\n")
-
+    user:sendMessage(string.format("You eat the %s. Very cheesy.\n", self:getName()))
     user:loseItem(self) -- Remove the cheese from the inventory.
 
     local s = user:getStat("Cheesiness")
