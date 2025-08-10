@@ -13,6 +13,7 @@ void PlayerPhysical::doUpdate(const std::shared_ptr<Thing>& owner, World& world)
 
     auto event = owner->notifier()->event;
 
+    // TODO: Move all this into PlayerThinker
     switch (event.type)
     {
     case Event::Type::Inspect:

@@ -16,9 +16,7 @@ class ScriptedNotifier : public Notifier
         const auto& L = ScriptedThing::L;
 
         lua_getglobal(L, owner->name.c_str());
-
         lua_getfield(L, -1, "onNotify");
-
         if (!lua_isfunction(L, -1))
             return;
 
