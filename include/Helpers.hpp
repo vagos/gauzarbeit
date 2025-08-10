@@ -38,28 +38,27 @@ struct Event
     enum class Type
     {
         Invalid,
+        Message,
         Say,
+        Chat,
         Move,
+        Enter,
         Use,
         Do,
-        Whisper,
-        Chat,
-        Message,
         Buy,
         Info,
-        Ask,
+        Ask, // TODO: This one can be removed
         Help,
         Inspect,
-        Greet,
         Attack,
         Kill,
         Death,
-        Enter,
         Leave,
         Gain,
         Look,
         Gain_Quest,
         Register,
+        Custom,
     };
 
     std::string verb;
