@@ -128,19 +128,6 @@ int ScriptedThing::SendMessage(lua_State* L)
     return 0;
 }
 
-int ScriptedThing::SetMaxHealth(lua_State* L)
-{
-    assert(lua_isuserdata(L, 1));
-
-    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
-
-    int max_health = (int)lua_tonumber(L, 2);
-
-    ptrThing->attackable()->setMaxHealth(max_health);
-
-    return 0;
-}
-
 int ScriptedThing::LoseItem(lua_State* L)
 {
     assert(lua_isuserdata(L, 1));
@@ -477,24 +464,6 @@ int SetStat(lua_State* L)
 
     return 0;
 }
-
-/*
-int ScriptedThing::SetHP(lua_State * L)
-{
-    assert(lua_isuserdata(L, 1));
-
-    if (!lua_isnumber(L, 2)) return 0;
-
-    Thing * ptrThing = (Thing *)lua_touserdata(L, 1);
-
-    if (!ptrThing -> _attackable) return 0;
-
-    int hp = (int)lua_tonumber(L, 2);
-
-    ptrThing -> attackable() -> current_health = hp;
-
-}
-*/
 
 int Gauzarbeit_Spawn(lua_State* L)
 {
