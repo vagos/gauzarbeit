@@ -21,7 +21,7 @@
 ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_dir) : Thing(name)
 {
     // Create components
-    _usable = std::make_unique<ScriptedUsable>(); 
+    _usable = std::make_unique<ScriptedUsable>();
     _attackable = std::make_unique<ScriptedAttackable>();
     _notifier = std::make_unique<ScriptedNotifier>();
     _tasker = std::make_unique<ScriptedTasker>();

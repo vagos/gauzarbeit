@@ -19,7 +19,8 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 
         if (!inDatabase(target))
         {
-            addResponse("You need to register first! Please use the command 'register <name> <password>'.\n");
+            addResponse("You need to register first! Please use the command 'register <name> "
+                        "<password>'.\n");
             return;
         }
 
@@ -94,7 +95,8 @@ void PlayerNetworked::getRequest(std::shared_ptr<Thing> owner, World& world)
         return;
 
     Log(*owner << ": " << streamRequest.str() << "\r\r\r"
-               << "(" << streamRequest.str().size() << " bytes" << ")");
+               << "(" << streamRequest.str().size() << " bytes"
+               << ")");
 }
 
 void PlayerNetworked::sendResponse(std::shared_ptr<Thing> owner)
