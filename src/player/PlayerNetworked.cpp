@@ -25,7 +25,7 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 
         if (!object.size())
         {
-            addResponse(ColorString("You need to provide a password! Please use the command 'login <name> <password>'.\n", Color::Red));
+            addResponse(ColorString("Please do 'login {name} {password}'.\n", Color::Red));
             return;
         }
 
@@ -94,7 +94,7 @@ void PlayerNetworked::getRequest(std::shared_ptr<Thing> owner, World& world)
         return;
 
     Log(*owner << ": " << streamRequest.str() << "\r\r\r"
-               << " Received: " << streamRequest.str().size() << " bytes");
+               << "(" << streamRequest.str().size() << " bytes" << ")");
 }
 
 void PlayerNetworked::sendResponse(std::shared_ptr<Thing> owner)
