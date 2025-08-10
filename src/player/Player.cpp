@@ -37,7 +37,6 @@ void Player::setPlayerCommands()
     playerCommands["quit"] = Event::Type::Leave;
 
     playerCommands["do"] = Event::Type::Do;
-    playerCommands["greet"] = Event::Type::Greet;
 
     playerCommands["ask"] = Event::Type::Ask;
 

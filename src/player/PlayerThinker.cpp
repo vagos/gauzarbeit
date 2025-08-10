@@ -14,7 +14,7 @@
 
 void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
 {
-    owner->notifier()->setEvent(owner);
+    owner->notifier()->setEvent(owner); // TODO: Why is this here?
     const auto& event = owner->notifier()->event;
 
     if (event.verb.empty())
@@ -50,13 +50,6 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
     case Event::Type::Do:
     {
         owner->notifier()->doNotify(owner, Event::Type::Do, nullptr);
-        break;
-    }
-
-    case Event::Type::Greet:
-    {
-        auto t = owner->physical()->current_room->getThing(event.target);
-        t->notifier()->onNotify(t, owner, Event::Type::Greet);
         break;
     }
 

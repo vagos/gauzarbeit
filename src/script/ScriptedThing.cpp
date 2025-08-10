@@ -630,9 +630,6 @@ void ScriptedThing::InitLua()
         lua_pushnumber(L, (int)Event::Type::Do);
         lua_setfield(L, -2, "Do");
 
-        lua_pushnumber(L, (int)Event::Type::Greet);
-        lua_setfield(L, -2, "Greet");
-
         lua_pushnumber(L, (int)Event::Type::Move);
         lua_setfield(L, -2, "Move");
 
