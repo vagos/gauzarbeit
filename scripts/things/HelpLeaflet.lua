@@ -11,6 +11,5 @@ COMMANDS:
 end
 
 function HelpLeaflet:onUse(user)
-    local text = HelpLeaflet.onInspect(self, user)
-    user:sendMessage(text)
+    user:sendMessage(self:onInspect(user))
 end
