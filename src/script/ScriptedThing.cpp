@@ -70,13 +70,21 @@ int ScriptedThing::Index(lua_State* L)
     const char* index = lua_tostring(L, 2);
 
     luaL_getmetatable(L, "Gauzarbeit.Thing");
-
     lua_getfield(L, -1, index);
 
     if (lua_isnil(L, -1))
     {
         lua_rawgeti(L, LUA_REGISTRYINDEX, ptrThing->luaRef);
         lua_getfield(L, -1, index);
+
+        if (lua_isnil(L, -1))
+        {
+            lua_getglobal(L, ptrThing->name.c_str());
+            lua_getfield(L, -1, index);
+
+            if (lua_isnil(L, -1))
+                return 0;
+        }
     }
 
     return 1;
