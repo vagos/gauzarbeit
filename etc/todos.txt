@@ -1,7 +1,11 @@
 - [x] Finish systems logic (Sketch in place, will reiterate whether needed)
 - [x] Make persistence and serialization work
-  - [ ] Make this work for scripted items
+  - [ ] serialize rooms
+  - [ ] use ready-made KV store implementation
 - [ ] Abstract the scripting engine to make it language-agnostic
   - [ ] Find minimal interface scripted entities need to implement
 - [ ] Add plugin support as a way to plug-in LLM-generated code
 - [ ] Allow multiple events per tick
+
+Refactor
+- [ ] Call doDatabaseLoad and doDatabaseSave doSerialize and doDeserialize
