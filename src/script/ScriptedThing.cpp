@@ -466,6 +466,24 @@ int SetStat(lua_State* L)
     std::string s_n(lua_tostring(L, 2));
     float val = (float)lua_tonumber(L, 3);
 
+    Log("SetStat " << ptrThing->name << " " << s_n << ' ' << val);
+
+    {
+        // TODO: These stats probably should be moved to Achiever
+        if (s_n == "MaxHealth")
+        {
+            ptrThing->attackable()->setMaxHealth(val);
+        }
+        else if (s_n == "Health")
+        {
+            ptrThing->attackable()->current_health = val;
+        }
+        else if (s_n == "dmg")
+        {
+            ptrThing->attackable()->dmg = val;
+        }
+    }
+
     ptrThing->achiever()->setStat(s_n, val);
 
     return 0;
