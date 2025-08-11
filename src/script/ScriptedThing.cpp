@@ -412,20 +412,6 @@ int ScriptedThing::DoSay(lua_State* L)
     return 0;
 }
 
-int ScriptedThing::GetHP(lua_State* L)
-{
-    assert(lua_isuserdata(L, 1));
-
-    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
-
-    if (!ptrThing->_attackable)
-        return 0;
-
-    lua_pushnumber(L, (float)ptrThing->attackable()->current_health);
-
-    return 1;
-}
-
 int ScriptedThing::DoAttack(lua_State* L)
 {
     Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
@@ -465,8 +451,6 @@ int SetStat(lua_State* L)
 
     std::string s_n(lua_tostring(L, 2));
     float val = (float)lua_tonumber(L, 3);
-
-    Log("SetStat " << ptrThing->name << " " << s_n << ' ' << val);
 
     {
         // TODO: These stats probably should be moved to Achiever
