@@ -164,12 +164,12 @@ void PlayerPhysical::moveDirection(std::shared_ptr<Thing> owner, const std::stri
         doMove(owner, current_room->x + 1, current_room->y);
     }
 
-    else if (direction == "down")
+    else if (direction == "up")
     {
         doMove(owner, current_room->x, current_room->y + 1);
     }
 
-    else if (direction == "up")
+    else if (direction == "down")
     {
         doMove(owner, current_room->x, current_room->y - 1);
     }
@@ -188,8 +188,8 @@ void PlayerPhysical::doMove(std::shared_ptr<Thing> owner, int x, int y)
 {
     if (current_room)
         current_room->removePlayer(owner);
-
+    
+    Log("Moving player " << owner->name << " to room " << x << " " << y);
     current_room = Room::get(x, y);
-
     current_room->addPlayer(owner);
 }
