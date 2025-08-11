@@ -31,8 +31,9 @@ class Attackable
     bool is_alive() { return alive; }
 
   public:
-    int max_health;
-    float current_health;
+    int max_health = 1;
+    int dmg = 1;
+    float current_health = 1;
 
   protected:
     bool alive;
