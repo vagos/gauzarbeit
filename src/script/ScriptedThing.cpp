@@ -15,6 +15,7 @@
 #include "script/ScriptedUsable.hpp"
 #include <memory>
 #include <string>
+#include <quickjs.h>
 
 ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_dir) : Thing(name)
 {

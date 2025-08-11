@@ -15,7 +15,7 @@ TSTS := $(shell find tests -name '*.cpp')
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-INC_DIRS := $(shell find $(SRC_DIRS) -type d)
+INC_DIRS := $(shell find $(SRC_DIRS) -type d) /usr/local/include
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 PKG_CONFIG := pkg-config
@@ -24,7 +24,7 @@ LUA_CFLAGS := $(shell $(PKG_CONFIG) --cflags $(LUA_VERSION))
 LUA_LIBS := $(shell $(PKG_CONFIG) --libs $(LUA_VERSION))
 
 CPPFLAGS ?= $(INC_FLAGS) $(LUA_CFLAGS)
-LDFLAGS ?= -lboost_system -lpthread $(LUA_LIBS) -ldl -lstdc++fs
+LDFLAGS ?= -lboost_system -lpthread $(LUA_LIBS) -L/usr/local/lib -lqjs -ldl -lstdc++fs
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS) $(CPPFLAGS)
