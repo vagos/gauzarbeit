@@ -2,6 +2,7 @@
 #define ROOM_HPP
 
 #include "thing/Thing.hpp"
+#include "thing/Networked.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
@@ -15,12 +16,22 @@
 class Player;
 class RoomInspectable;
 
+// TODO: Implement this so rooms are saved to DB
+class RoomNetworked : Networked 
+{
+  public:
+    void doDatabaseLoad(std::shared_ptr<Thing> owner) override;
+    const std::string doDatabaseSave(std::shared_ptr<Thing> owner) override;
+
+};
+
 class Room : public Thing
 {
   public:
     Room(int x, int y) : x(x), y(y)
     {
         // inspectable = std::make_unique<RoomInspectable>();
+        // networked = std::make_unique<RoomNetworked>();
     }
 
     static std::shared_ptr<Room> get(std::int32_t x, std::int32_t y);
