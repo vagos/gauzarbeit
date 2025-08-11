@@ -99,7 +99,8 @@ const std::string Room::onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<
                                 "Other things here:");
     }
 
-    inspect << "\n\n" << "(" << x << ", " << y << ")\n\n";
+    inspect << "\n\n"
+            << "(" << x << ", " << y << ")\n\n";
 
     return inspect.str();
 }

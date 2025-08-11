@@ -1,8 +1,8 @@
 #ifndef ROOM_HPP
 #define ROOM_HPP
 
-#include "thing/Thing.hpp"
 #include "thing/Networked.hpp"
+#include "thing/Thing.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
@@ -17,12 +17,11 @@ class Player;
 class RoomInspectable;
 
 // TODO: Implement this so rooms are saved to DB
-class RoomNetworked : Networked 
+class RoomNetworked : Networked
 {
   public:
     void doDatabaseLoad(std::shared_ptr<Thing> owner) override;
     const std::string doDatabaseSave(std::shared_ptr<Thing> owner) override;
-
 };
 
 class Room : public Thing

@@ -41,7 +41,7 @@ void Attackable::onDeath(const std::shared_ptr<Thing>& owner)
     // Drop items on death.
     for (auto& item : owner->physical()->inventory)
     {
-        owner->physical()->current_room->addThing(item); 
+        owner->physical()->current_room->addThing(item);
     }
 
     //    owner -> physical -> current_room -> removeThing( owner );

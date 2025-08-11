@@ -188,7 +188,7 @@ void PlayerPhysical::doMove(std::shared_ptr<Thing> owner, int x, int y)
 {
     if (current_room)
         current_room->removePlayer(owner);
-    
+
     Log("Moving player " << owner->name << " to room " << x << " " << y);
     current_room = Room::get(x, y);
     current_room->addPlayer(owner);
