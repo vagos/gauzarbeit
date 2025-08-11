@@ -55,7 +55,7 @@ env:
 
 lint:
 	clang-format -i --style=file $(SRCS) $(HDRS) $(TSTS)
-	# clang-tidy $(SRCS) $(HDRS) $(TSTS)
+	# clang-tidy $(SRCS) $(HDRS) $(TSTS) --fix
 
 TOBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.cpp.o,$(TSTS))
 TARGET_TEST  := $(BUILD_DIR)/test
