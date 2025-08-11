@@ -51,6 +51,7 @@ struct Event
         Help,
         Inspect,
         Attack,
+        Attacked,
         Kill,
         Death,
         Leave,
