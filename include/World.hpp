@@ -5,7 +5,6 @@
 #include "System.hpp"
 #include "player/Player.hpp"
 #include "thing/Thing.hpp"
-
 #include <algorithm>
 #include <cstddef>
 #include <list>

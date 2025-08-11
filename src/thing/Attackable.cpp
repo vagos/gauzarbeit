@@ -1,8 +1,6 @@
 #include "thing/Attackable.hpp"
-
 #include "Room.hpp"
 #include "thing/Thing.hpp"
-
 #include <cassert>
 
 void Attackable::doAttack(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& target)

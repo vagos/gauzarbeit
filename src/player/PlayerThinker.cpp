@@ -1,11 +1,9 @@
 #include "player/PlayerThinker.hpp"
-
 #include "Helpers.hpp"
 #include "Room.hpp"
 #include "player/PlayerPhysical.hpp"
 #include "script/ScriptedThing.hpp"
 #include "thing/Thing.hpp"
-
 #include <boost/algorithm/string.hpp>
 #include <cassert>
 #include <iomanip>

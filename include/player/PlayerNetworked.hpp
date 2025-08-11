@@ -8,7 +8,6 @@
 #include "player/PlayerPhysical.hpp"
 #include "player/PlayerTalker.hpp"
 #include "thing/Thing.hpp"
-
 #include <experimental/filesystem>
 #include <fstream>
 #include <iomanip>

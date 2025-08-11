@@ -2,7 +2,6 @@
 #define QUEST_HPP
 
 #include "script/ScriptedThing.hpp"
-
 #include <memory>
 #include <string>
 

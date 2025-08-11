@@ -4,7 +4,6 @@
 #include "LuaHelpers.hpp"
 #include "script/ScriptedThing.hpp"
 #include "thing/Thing.hpp"
-
 #include <string>
 
 class ScriptedAchiever : public Achiever

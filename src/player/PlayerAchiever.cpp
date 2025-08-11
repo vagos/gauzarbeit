@@ -1,5 +1,4 @@
 #include "player/PlayerAchiever.hpp"
-
 #include "Quest.hpp"
 
 PlayerAchiever::PlayerAchiever() : Achiever()

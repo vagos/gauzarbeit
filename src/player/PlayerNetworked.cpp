@@ -1,5 +1,4 @@
 #include "player/PlayerNetworked.hpp"
-
 #include "player/PlayerPhysical.hpp"
 
 void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)

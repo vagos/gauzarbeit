@@ -2,7 +2,6 @@
 #define PLAYER_ACHIEVER_HPP
 
 #include "thing/Achiever.hpp"
-
 #include <iomanip>
 
 class PlayerAchiever : public Achiever

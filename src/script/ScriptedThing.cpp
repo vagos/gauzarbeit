@@ -1,5 +1,4 @@
 #include "script/ScriptedThing.hpp"
-
 #include "Helpers.hpp"
 #include "Quest.hpp"
 #include "Room.hpp"
@@ -14,7 +13,6 @@
 #include "script/ScriptedTalker.hpp"
 #include "script/ScriptedTasker.hpp"
 #include "script/ScriptedUsable.hpp"
-
 #include <memory>
 #include <string>
 

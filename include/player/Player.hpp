@@ -2,7 +2,6 @@
 #define PLAYER_HPP
 
 #include "thing/Thing.hpp"
-
 #include <memory>
 #include <sstream>
 #include <unordered_map>

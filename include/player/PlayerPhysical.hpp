@@ -3,7 +3,6 @@
 
 #include "Room.hpp"
 #include "thing/Physical.hpp"
-
 #include <memory>
 
 class PlayerNetworked;

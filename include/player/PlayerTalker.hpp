@@ -4,7 +4,6 @@
 #include "Quest.hpp"
 #include "Room.hpp"
 #include "thing/Talker.hpp"
-
 #include <cassert>
 #include <iomanip>
 #include <memory>

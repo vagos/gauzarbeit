@@ -1,5 +1,4 @@
 #include "thing/Thing.hpp"
-
 #include "Room.hpp"
 
 std::vector<std::shared_ptr<Thing>> Thing::things; // TODO: Use this

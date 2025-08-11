@@ -4,7 +4,6 @@
 #include "script/LuaHelpers.hpp"
 #include "script/ScriptedThing.hpp"
 #include "thing/Thing.hpp"
-
 #include <cassert>
 
 class ScriptedNotifier : public Notifier

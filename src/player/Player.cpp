@@ -1,5 +1,4 @@
 #include "player/Player.hpp"
-
 #include "player/PlayerAchiever.hpp"
 #include "player/PlayerAttackable.hpp"
 #include "player/PlayerInspectable.hpp"
@@ -8,7 +7,6 @@
 #include "player/PlayerPhysical.hpp"
 #include "player/PlayerTalker.hpp"
 #include "player/PlayerThinker.hpp"
-
 #include <memory>
 
 Player::Player()

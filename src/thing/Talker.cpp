@@ -1,7 +1,6 @@
 #include "Helpers.hpp"
 #include "Quest.hpp"
 #include "thing/Thing.hpp"
-
 #include <iomanip>
 
 void Talker::onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker)

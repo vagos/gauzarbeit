@@ -1,5 +1,4 @@
 #include "thing/Networked.hpp"
-
 #include "Room.hpp"
 #include "thing/Thing.hpp"
 

@@ -9,4 +9,4 @@ AllowShortFunctionsOnASingleLine: Inline
 ColumnLimit:     100
 PointerAlignment: Left
 SortIncludes:     true
-IncludeBlocks:    Regroup
+IncludeBlocks:    Merge

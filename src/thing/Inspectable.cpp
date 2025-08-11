@@ -1,8 +1,6 @@
 #include "thing/Inspectable.hpp"
-
 #include "Helpers.hpp"
 #include "thing/Thing.hpp"
-
 #include <sstream>
 
 Inspectable::Inspectable() {}

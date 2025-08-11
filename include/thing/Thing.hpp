@@ -9,7 +9,6 @@
 #include "Networked.hpp"
 #include "Physical.hpp"
 #include "Talker.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

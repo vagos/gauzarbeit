@@ -2,7 +2,6 @@
 #define ROOM_HPP
 
 #include "thing/Thing.hpp"
-
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>

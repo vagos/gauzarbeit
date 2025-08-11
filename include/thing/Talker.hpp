@@ -2,7 +2,6 @@
 #define TALKER_HPP
 
 #include "Helpers.hpp"
-
 #include <memory>
 #include <set>
 #include <sstream>

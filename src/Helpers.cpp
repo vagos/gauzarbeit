@@ -1,8 +1,6 @@
 #include "Helpers.hpp"
-
 #include "Exceptions.hpp"
 #include "thing/Thing.hpp"
-
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <memory>

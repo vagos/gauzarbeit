@@ -1,7 +1,6 @@
 #include "LuaHelpers.hpp"
 #include "script/ScriptedThing.hpp"
 #include "thing/Thing.hpp"
-
 #include <cassert>
 
 class ScriptedUsable : public Usable

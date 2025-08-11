@@ -1,5 +1,4 @@
 #include "Thing.hpp"
-
 #include <cassert>
 #include <memory>
 #include <unordered_set>

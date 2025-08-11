@@ -3,7 +3,6 @@
 #include "script/ScriptedThing.hpp"
 #include "system/RoomSystem.hpp"
 #include "unistd.h"
-
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>

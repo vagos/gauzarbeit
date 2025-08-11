@@ -1,7 +1,5 @@
 #include "player/PlayerNotifier.hpp"
-
 #include "player/Player.hpp"
-
 #include <boost/algorithm/string/case_conv.hpp>
 #include <memory>
 

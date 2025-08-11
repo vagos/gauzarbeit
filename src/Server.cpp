@@ -1,5 +1,4 @@
 #include "Server.hpp"
-
 #include "Exceptions.hpp"
 #include "World.hpp"
 #include "player/Player.hpp"
@@ -7,7 +6,6 @@
 #include "script/LuaHelpers.hpp"
 #include "script/ScriptedThing.hpp"
 #include "thing/Networked.hpp"
-
 #include <algorithm>
 #include <string>
 #include <thread>

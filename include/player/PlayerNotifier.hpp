@@ -4,7 +4,6 @@
 #include "Quest.hpp"
 #include "Room.hpp"
 #include "thing/Thing.hpp"
-
 #include <cassert>
 #include <iomanip>
 #include <sstream>
