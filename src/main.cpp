@@ -2,16 +2,18 @@
 #include "World.hpp"
 #include "script/ScriptedThing.hpp"
 #include "system/RoomSystem.hpp"
-#include "unistd.h"
-#include <chrono>
-#include <cstdio>
 #include <cstdlib>
-#include <iostream>
-#include <random>
-#include <thread>
+#include "llama.h"
+#include "ex/LLM.hpp"
+
 
 int main(int argc, char* argv[])
 {
+    /* Sanity check
+    LMInit();
+    LMInference();
+    */
+
     ScriptedThing::InitLua();
 
     int port = 23;
