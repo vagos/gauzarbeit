@@ -2,7 +2,7 @@
 
 TARGET_EXEC ?= main
 
-CXXFLAGS := -std=c++17 -ggdb -MMD -MP
+CXXFLAGS := -std=c++17 -ggdb -MMD -MP -fopenmp
 CFLAGS   := -MMD -MP
 
 BUILD_DIR ?= ./build
@@ -23,8 +23,12 @@ LUA_VERSION := lua5.3
 LUA_CFLAGS := $(shell $(PKG_CONFIG) --cflags $(LUA_VERSION))
 LUA_LIBS := $(shell $(PKG_CONFIG) --libs $(LUA_VERSION))
 
-CPPFLAGS ?= $(INC_FLAGS) $(LUA_CFLAGS)
-LDFLAGS ?= -lboost_system -lpthread $(LUA_LIBS) -L/usr/local/lib -lqjs -ldl -lstdc++fs
+LLAMA_CFLAGS := -I/usr/local/include
+LLAMA_LIBS := -L/usr/local/lib -Wl,--start-group -lllama -lggml -lggml-cpu -lggml-base -Wl,--end-group
+GGML_LIBS    := $(patsubst lib%.a,-l%,$(notdir $(wildcard $(LLAMA_PREFIX)/lib/libggml*.a)))
+
+CPPFLAGS ?= $(INC_FLAGS) $(LUA_CFLAGS) $(LLAMA_CFLAGS)
+LDFLAGS ?= -lboost_system -lpthread $(LUA_LIBS) -L/usr/local/lib -lqjs -ldl -lstdc++fs $(LLAMA_LIBS) -lm -fopenmp
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS) $(CPPFLAGS)
