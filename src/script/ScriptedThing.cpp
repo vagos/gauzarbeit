@@ -647,17 +647,10 @@ void ScriptedThing::InitLua()
                                         {NULL, NULL}};
 
     luaL_setfuncs(L, gauzarbeitFuncs, 0);
-
     lua_setglobal(L, "Gauzarbeit");
-
     CheckLua(L, luaL_dofile(L, "scripts/Init.lua"));
-
     // Load MOTD
-
-    auto& L = ScriptedThing::L;
-
     lua_getglobal(L, "MOTD");
-
     Server::MOTD.assign(lua_tostring(L, -1));
 }
 
