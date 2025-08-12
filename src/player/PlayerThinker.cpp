@@ -190,8 +190,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
 
     case Event::Type::Move:
     {
-        std::static_pointer_cast<PlayerPhysical>(owner->physical())
-            ->moveDirection(owner, event.target);
+        std::static_pointer_cast<PlayerPhysical>(owner->physical())->moveDirection(owner, event.target);
         owner->notifier()->doNotify(owner, event.type);
         break;
     }
@@ -218,4 +217,44 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
     default:
         break;
     }
+
+    // TODO: Turn these into actual events
+    if (event.verb == "get")
+    {
+        owner->physical()->gainItem(std::make_shared<ScriptedThing>(event.target));
+    }
+
+    if (event.verb == "spawn")
+    {
+        auto t = std::make_shared<ScriptedThing>(event.target);
+
+        t->physical()->doMove(t, owner->physical()->current_room->x, owner->physical()->current_room->y);
+    }
+
+    //    else if (event.verb == "give") // fix this
+    //    {
+    //        auto p = world.getPlayer(event.target);
+    //
+    //        if (!p)
+    //        {
+    //            owner -> networked -> addResponse( ColorString("Player not found!\n", Color::Red)
+    //            ); return;
+    //        }
+    //
+    //        auto item = getItem( event.extra );
+    //
+    //        if (!item) return;
+    //
+    //        p -> physical -> gainItem( item );
+    //
+    //        std::stringstream message;
+    //        message << "You were given a " << item -> name << " by " << owner -> name << "\n";
+    //        p -> networked -> addResponse( message .str() );
+    //
+    //        owner -> networked -> addResponse("You gave " + event.target + " your " + item -> name
+    //        + "\n");
+    //
+    //        loseItem(item);
+    //    }
+
 }
