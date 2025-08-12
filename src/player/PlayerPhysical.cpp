@@ -6,10 +6,7 @@
 #include <memory>
 #include <sstream>
 
-void PlayerPhysical::doUpdate(const std::shared_ptr<Thing>& owner, World& world)
-{
-
-}
+void PlayerPhysical::doUpdate(const std::shared_ptr<Thing>& owner, World& world) {}
 
 void PlayerPhysical::moveDirection(std::shared_ptr<Thing> owner, const std::string& direction)
 {

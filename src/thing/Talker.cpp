@@ -6,7 +6,6 @@
 void Talker::onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker)
 {
     const auto& event = talker->notifier()->event;
-
     auto q = owner->achiever()->getQuest(event.object);
 
     Log(event.object);
@@ -15,9 +14,7 @@ void Talker::onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<T
         return;
 
     talker->achiever()->gainQuest(std::make_shared<ScriptedQuest>(q->name));
-
     // talker -> achiever() -> gainQuest( q );
-
     talker->notifier()->onNotify(talker, talker, Event::Type::Gain_Quest, q);
 }
 

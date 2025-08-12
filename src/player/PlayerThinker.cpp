@@ -190,7 +190,8 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
 
     case Event::Type::Move:
     {
-        std::static_pointer_cast<PlayerPhysical>(owner->physical())->moveDirection(owner, event.target);
+        std::static_pointer_cast<PlayerPhysical>(owner->physical())
+            ->moveDirection(owner, event.target);
         owner->notifier()->doNotify(owner, event.type);
         break;
     }
@@ -227,8 +228,8 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
     if (event.verb == "spawn")
     {
         auto t = std::make_shared<ScriptedThing>(event.target);
-
-        t->physical()->doMove(t, owner->physical()->current_room->x, owner->physical()->current_room->y);
+        t->physical()->doMove(t, owner->physical()->current_room->x,
+                              owner->physical()->current_room->y);
     }
 
     //    else if (event.verb == "give") // fix this
@@ -256,5 +257,4 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
     //
     //        loseItem(item);
     //    }
-
 }
