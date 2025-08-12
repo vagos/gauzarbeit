@@ -68,7 +68,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
         {
             std::stringstream res;
             res << '\n'
-                << "A HelpLeaflet materializes in your pocket. Type \"USE HelpLeaflet\" to read "
+                << "A HelpLeaflet materializes in your pocket. Type 'use HelpLeaflet' to read "
                    "it.\n\n";
             owner->physical()->gainItem(std::make_shared<ScriptedThing>("HelpLeaflet"));
             owner->networked()->addResponse(res.str());
