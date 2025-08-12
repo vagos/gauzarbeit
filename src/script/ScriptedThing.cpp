@@ -431,7 +431,7 @@ int ScriptedThing::DoAttack(lua_State* L)
     return 0;
 }
 
-int GetStat(lua_State* L)
+int ScriptedThing::GetStat(lua_State* L)
 {
     Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
     std::string s_n(lua_tostring(L, 2));
@@ -443,7 +443,7 @@ int GetStat(lua_State* L)
     return 1;
 }
 
-int SetStat(lua_State* L)
+int ScriptedThing::SetStat(lua_State* L)
 {
     assert(lua_isnumber(L, 3));
 

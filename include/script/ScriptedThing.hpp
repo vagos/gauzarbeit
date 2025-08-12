@@ -28,6 +28,9 @@ class ScriptedThing : public Thing
     static int HasItem(lua_State* L);
     static int EquipItem(lua_State* L);
 
+    static int GetStat(lua_State* L);
+    static int SetStat(lua_State* L);
+
     static int GetPlayer(lua_State* L);
 
     static int GainXP(lua_State* L);
