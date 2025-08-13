@@ -10,10 +10,8 @@
 
 int main(int argc, char* argv[])
 {
-    /* Sanity check
-    LMInit();
-    LMInference();
-    */
+    /* LMInit(); */
+    /* LMInference(); */
 
     ScriptedThing::InitLua();
     ScriptedThing_JS::Init();

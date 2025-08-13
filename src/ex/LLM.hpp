@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 
-static void llama_log_callback_null(ggml_log_level level, const char * text, void* user_data) {
+static void llama_log_callback_null(ggml_log_level level, const char* text, void* user_data)
+{
     // no-op
 }
 
@@ -23,9 +24,9 @@ int LMInference()
     // prompt to generate text from
     std::string prompt = "Hello I am a";
     // number of layers to offload to the GPU
-    int ngl = 99;
+    int ngl = 64;
     // number of tokens to predict
-    int n_predict = 64;
+    int n_predict = 9999;
 
     // load dynamic backends
 
@@ -37,14 +38,15 @@ int LMInference()
 
     model_params.n_gpu_layers = ngl;
 
-    llama_model * model = llama_model_load_from_file(model_path.c_str(), model_params);
+    llama_model* model = llama_model_load_from_file(model_path.c_str(), model_params);
 
-    if (model == NULL) {
-        fprintf(stderr , "%s: error: unable to load model\n" , __func__);
+    if (model == NULL)
+    {
+        fprintf(stderr, "%s: error: unable to load model\n", __func__);
         return 1;
     }
 
-    const llama_vocab * vocab = llama_model_get_vocab(model);
+    const llama_vocab* vocab = llama_model_get_vocab(model);
     // tokenize the prompt
 
     // find the number of tokens in the prompt
@@ -52,7 +54,9 @@ int LMInference()
 
     // allocate space for the tokens and tokenize the prompt
     std::vector<llama_token> prompt_tokens(n_prompt);
-    if (llama_tokenize(vocab, prompt.c_str(), prompt.size(), prompt_tokens.data(), prompt_tokens.size(), true, true) < 0) {
+    if (llama_tokenize(vocab, prompt.c_str(), prompt.size(), prompt_tokens.data(),
+                       prompt_tokens.size(), true, true) < 0)
+    {
         fprintf(stderr, "%s: error: failed to tokenize the prompt\n", __func__);
         return 1;
     }
@@ -62,14 +66,16 @@ int LMInference()
     llama_context_params ctx_params = llama_context_default_params();
     // n_ctx is the context size
     ctx_params.n_ctx = n_prompt + n_predict - 1;
-    // n_batch is the maximum number of tokens that can be processed in a single call to llama_decode
+    // n_batch is the maximum number of tokens that can be processed in a single call to
+    // llama_decode
     ctx_params.n_batch = n_prompt;
     // enable performance counters
     ctx_params.no_perf = true;
-    llama_context * ctx = llama_init_from_model(model, ctx_params);
+    llama_context* ctx = llama_init_from_model(model, ctx_params);
 
-    if (ctx == NULL) {
-        fprintf(stderr , "%s: error: failed to create the llama_context\n" , __func__);
+    if (ctx == NULL)
+    {
+        fprintf(stderr, "%s: error: failed to create the llama_context\n", __func__);
         return 1;
     }
 
@@ -77,16 +83,18 @@ int LMInference()
 
     auto sparams = llama_sampler_chain_default_params();
     sparams.no_perf = false;
-    llama_sampler * smpl = llama_sampler_chain_init(sparams);
+    llama_sampler* smpl = llama_sampler_chain_init(sparams);
 
     llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
 
     // print the prompt token-by-token
 
-    for (auto id : prompt_tokens) {
+    for (auto id : prompt_tokens)
+    {
         char buf[128];
         int n = llama_token_to_piece(vocab, id, buf, sizeof(buf), 0, true);
-        if (n < 0) {
+        if (n < 0)
+        {
             fprintf(stderr, "%s: error: failed to convert token to piece\n", __func__);
             return 1;
         }
@@ -104,9 +112,11 @@ int LMInference()
     int n_decode = 0;
     llama_token new_token_id;
 
-    for (int n_pos = 0; n_pos + batch.n_tokens < n_prompt + n_predict; ) {
+    for (int n_pos = 0; n_pos + batch.n_tokens < n_prompt + n_predict;)
+    {
         // evaluate the current batch with the transformer model
-        if (llama_decode(ctx, batch)) {
+        if (llama_decode(ctx, batch))
+        {
             fprintf(stderr, "%s : failed to eval, return code %d\n", __func__, 1);
             return 1;
         }
@@ -118,13 +128,15 @@ int LMInference()
             new_token_id = llama_sampler_sample(smpl, ctx, -1);
 
             // is it an end of generation?
-            if (llama_vocab_is_eog(vocab, new_token_id)) {
+            if (llama_vocab_is_eog(vocab, new_token_id))
+            {
                 break;
             }
 
             char buf[128];
             int n = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), 0, true);
-            if (n < 0) {
+            if (n < 0)
+            {
                 fprintf(stderr, "%s: error: failed to convert token to piece\n", __func__);
                 return 1;
             }
@@ -139,8 +151,6 @@ int LMInference()
     }
 
     std::clog << "inferred_string " << inferred_string << '\n';
-
-    const auto t_main_end = ggml_time_us();
 
     llama_sampler_free(smpl);
     llama_free(ctx);
