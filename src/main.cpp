@@ -1,3 +1,4 @@
+#include "ScriptedThing_JS.hpp"
 #include "Server.hpp"
 #include "World.hpp"
 #include "script/ScriptedThing.hpp"
@@ -6,6 +7,7 @@
 #include "llama.h"
 #include "ex/LLM.hpp"
 
+#include <quickjs.h>
 
 int main(int argc, char* argv[])
 {
@@ -14,6 +16,8 @@ int main(int argc, char* argv[])
     LMInference();
     */
 
+    ScriptedThing_JS::Init();
+    ScriptedThing_JS::DeInit();
     ScriptedThing::InitLua();
 
     int port = 23;
