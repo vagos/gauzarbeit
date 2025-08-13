@@ -15,9 +15,10 @@ int main(int argc, char* argv[])
     LMInference();
     */
 
-    ScriptedThing_JS::Init();
-    ScriptedThing_JS::DeInit();
     ScriptedThing::InitLua();
+    ScriptedThing_JS::Init();
+    auto grape = std::make_shared<ScriptedThing_JS>("Grape");
+    ScriptedThing_JS::DeInit();
 
     int port = 23;
     if (argc >= 2)
