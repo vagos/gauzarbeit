@@ -2,3 +2,4 @@
 
 JSRuntime* ScriptedThing_JS::rt = JS_NewRuntime();
 JSContext* ScriptedThing_JS::ctx = JS_NewContext(ScriptedThing_JS::rt);
+JSClassID ScriptedThing_JS::classID;

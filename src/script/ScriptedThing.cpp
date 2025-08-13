@@ -14,8 +14,8 @@
 #include "script/ScriptedTasker.hpp"
 #include "script/ScriptedUsable.hpp"
 #include <memory>
-#include <string>
 #include <quickjs.h>
+#include <string>
 
 ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_dir) : Thing(name)
 {
