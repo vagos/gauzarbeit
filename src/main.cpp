@@ -1,12 +1,11 @@
 #include "ScriptedThing_JS.hpp"
 #include "Server.hpp"
 #include "World.hpp"
+#include "ex/LLM.hpp"
+#include "llama.h"
 #include "script/ScriptedThing.hpp"
 #include "system/RoomSystem.hpp"
 #include <cstdlib>
-#include "llama.h"
-#include "ex/LLM.hpp"
-
 #include <quickjs.h>
 
 int main(int argc, char* argv[])
