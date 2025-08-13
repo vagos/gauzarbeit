@@ -13,7 +13,6 @@ class ScriptedUsable : public Usable
         const auto& L = std::static_pointer_cast<ScriptedThing>(owner)->L;
 
         lua_getglobal(L, owner->name.c_str());
-
         lua_getfield(L, -1, "onUse");
 
         if (!lua_isfunction(L, -1))
