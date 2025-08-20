@@ -1,7 +1,7 @@
-#include "ScriptedThing_JS.hpp"
+// #include "ScriptedThing_JS.hpp"
 #include "Server.hpp"
 #include "World.hpp"
-#include "ex/LLM.hpp"
+#include "extension/LLM.hpp"
 #include "llama.h"
 #include "script/ScriptedThing.hpp"
 #include "system/RoomSystem.hpp"
@@ -14,9 +14,9 @@ int main(int argc, char* argv[])
     /* LMInference(); */
 
     ScriptedThing::InitLua();
-    ScriptedThing_JS::Init();
-    auto grape = std::make_shared<ScriptedThing_JS>("Grape");
-    ScriptedThing_JS::DeInit();
+    /* ScriptedThing_JS::Init(); */
+    /* auto grape = std::make_shared<ScriptedThing_JS>("Grape"); */
+    /* ScriptedThing_JS::DeInit(); */
 
     int port = 23;
     if (argc >= 2)

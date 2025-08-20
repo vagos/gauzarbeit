@@ -6,7 +6,7 @@ CXXFLAGS := -std=c++17 -ggdb -MMD -MP -fopenmp
 CFLAGS   := -MMD -MP
 
 BUILD_DIR ?= ./build
-SRC_DIRS ?= ./src ./include
+SRC_DIRS ?= ./src
 
 # Source files
 SRCS := $(shell find $(SRC_DIRS) -name '*.cpp' -o -name '*.c' -o -name '*.s')
