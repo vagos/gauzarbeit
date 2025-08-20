@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Thing.hpp"
+#include "thing/Thing.hpp"
 #include <quickjs.h>
 
 #define CheckJS(ctx, val)                                                                          \
@@ -98,7 +98,7 @@ class ScriptedThing_JS : Thing
         // Register 'print' function
         JS_SetPropertyStr(ctx, global, "print", JS_NewCFunction(ctx, print, "print", 1));
 
-        JS_NewClassID(rt, &classID);
+        JS_NewClassID(&classID);
         JSClassDef def{};
         def.class_name = "Thing";
         def.finalizer = [](JSRuntime*, JSValue val)
