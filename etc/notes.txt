@@ -43,3 +43,56 @@ Find IP:
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <container_name>
 Find container name:
 docker ps -a | grep gzrbt
+
+
+Weather system idea:
+```
+// scripts/plugins/weather.js
+(function () {
+  const NS = "weather";
+  const STATES = {
+    plains: ["clear", "cloudy", "rain"],
+    desert: ["clear", "hot", "sandstorm"],
+    tundra: ["clear", "snow", "blizzard"],
+  };
+
+  // per-room state lives in KV
+  function getState(room) {
+    const key = `state:${room.x},${room.y}`;
+    return kv.get(NS, key) || "clear";
+  }
+  function setState(room, st) {
+    kv.put(NS, `state:${room.x},${room.y}`, st);
+  }
+
+  function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+
+  // every 120s, advance weather in rooms with players
+  setInterval(120, () => {
+    const rooms = list_active_rooms(); // engine helper: rooms that have players
+    rooms.forEach((room) => {
+      const biome = room_get_tag(room, "biome") || "plains";
+      const allowed = STATES[biome] || STATES["plains"];
+      const prev = getState(room);
+      let next = pick(allowed);
+      if (next === prev && Math.random() < 0.5) next = pick(allowed);
+      if (next !== prev) {
+        setState(room, next);
+        room_broadcast(room, `The weather shifts to ${next}.\n`);
+        // optional: apply modifiers
+        room_set_modifier(room, "visibility", next === "blizzard" ? 0.5 : 1.0);
+      }
+    });
+  });
+
+  // when a player enters, tell them the current weather
+  on_event("PlayerMove", (ev) => {
+    const room = get_room(ev.a);
+    const st = getState(room);
+    send_message(ev.a, `Current weather: ${st}\n`);
+  });
+})();
+```
+
+Rooms could blacklist systems that they dont want to affect them or provide hints.
+Key idea is for system APIs to be discoverable.
