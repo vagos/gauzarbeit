@@ -10,10 +10,9 @@ end
 
 function Cheese:onUse(user)
 
-    -- if (not user:hasItem(self)) then
-    --     user:sendMessage("You don't have any cheese on you!\n")
-    --     return
-    -- end
+    if (not user:hasItem(self)) then
+        return
+    end
 
     user:sendMessage(string.format("You eat the %s. Very cheesy.\n", self:getName()))
     user:loseItem(self) -- Remove the cheese from the inventory.
