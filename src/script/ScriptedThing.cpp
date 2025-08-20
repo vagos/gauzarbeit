@@ -107,13 +107,7 @@ int ScriptedThing::NewIndex(lua_State* L)
 int ScriptedThing::GetName(lua_State* L)
 {
     Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
-
-    auto t = ptrThing->physical()->current_room->getAnything(ptrThing->name);
-
-    assert(t);
-
-    lua_pushstring(L, ptrThing->inspectable()->getName(t).c_str());
-
+    lua_pushstring(L, ptrThing->inspectable()->getName(ptrThing->shared_from_this()).c_str());
     return 1;
 }
 
