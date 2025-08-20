@@ -90,17 +90,13 @@ const std::string BlockListStringSimple(const T& c, const char b, F f, int step 
                                         int size = SIZE)
 {
     int i = 0;
-
     std::stringstream ss;
 
     for (auto& t : c)
     {
         ss << b << (b ? ' ' : '\0') << f(t);
-
         ss << '\t';
-
         i++;
-
         if (i % step == 0)
             ss << '\n';
     }
@@ -112,7 +108,6 @@ template <typename T, typename F>
 const std::string BlockListString(const T& c, const char b, F f, int step = 3, int size = SIZE)
 {
     // Group identical Things
-
     std::unordered_map<std::string, int> m;
 
     for (auto& t : c)
@@ -121,21 +116,15 @@ const std::string BlockListString(const T& c, const char b, F f, int step = 3, i
     }
 
     std::stringstream ss;
-
     int i = 0;
 
     for (auto [name, n] : m)
     {
-
         ss << b << ' ' << name;
-
         if (n > 1)
             ss << " (" << n << ')';
-
         ss << '\t';
-
         i++;
-
         if (i % step == 0)
             ss << '\n';
     }
@@ -155,7 +144,6 @@ const std::string VerticalListString(const T& c, const char b, F f, const char s
     for (auto it = c.begin(); it != c.end(); ++it)
     {
         ss << b << ' ' << f(*it) << '\n';
-
         if (size && sep && it != c.end() - 1)
             ss << std::string(size, sep) << '\n';
     }
@@ -172,7 +160,6 @@ const std::string VerticalListString(const T& c, const char b, const char sep = 
     for (auto it = c.begin(); it != c.end(); ++it)
     {
         ss << b << ' ' << **it << '\n';
-
         if (size && it != c.end() - 1)
             ss << std::string(size, sep) << '\n';
     }
