@@ -5,11 +5,9 @@
 
 void Attackable::doAttack(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& target)
 {
-    assert(owner->_physical && target->_physical); // testing
-    Log(owner->name << " is attacking " << target->name << "\n");
-
-    if (owner->physical()->current_room != target->physical()->current_room)
-        throw TargetNotFound();
+    assert(owner->_physical && target->_physical);
+    assert(owner->physical()->current_room == target->physical()->current_room);
+    Log(owner->name << " is attacking " << target->name);
 
     owner->notifier()->doNotify(owner, Event::Type::Attack, target);
 
@@ -32,20 +30,20 @@ void Attackable::onAttack(const std::shared_ptr<Thing>& owner,
 
 void Attackable::onDeath(const std::shared_ptr<Thing>& owner)
 {
-    // assert(owner -> physical() && owner -> physical() -> current_room);
+    assert(owner->physical() && owner->physical()->current_room);
 
     alive = false;
 
-    // owner -> notifier -> doNotify(owner, Event::Type::Death); // notify everyone about the death
+    owner->notifier()->doNotify(owner, Event::Type::Death); // notify everyone about the death
 
-    // Drop items on death.
+    // Drop items on death
     for (auto& item : owner->physical()->inventory)
     {
-        owner->physical()->current_room->addThing(item);
+        owner->physical()->dropItem(item);
     }
 
-    //    owner -> physical -> current_room -> removeThing( owner );
-    //    owner -> physical -> current_room = nullptr;
+    owner->physical()->current_room->removeThing(owner);
+    owner->physical()->current_room = nullptr;
 }
 
 void Attackable::getDamaged(const std::shared_ptr<Thing>& owner,
