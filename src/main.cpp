@@ -6,7 +6,6 @@
 #include "script/ScriptedThing.hpp"
 #include "system/RoomSystem.hpp"
 #include <cstdlib>
-#include <quickjs.h>
 
 int main(int argc, char* argv[])
 {
