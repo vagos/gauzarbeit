@@ -138,7 +138,10 @@ void HandleException(const std::shared_ptr<Thing>& t, std::exception& e)
 void DoFight(const std::shared_ptr<Thing>& t1, const std::shared_ptr<Thing>& t2)
 {
 
-    while (true)
+    const uint max_rounds = 42;
+    uint round = 0;
+
+    while (round < max_rounds)
     {
         if (!t1->attackable()->is_alive())
             break;
@@ -146,5 +149,7 @@ void DoFight(const std::shared_ptr<Thing>& t1, const std::shared_ptr<Thing>& t2)
         if (!t2->attackable()->is_alive())
             break;
         t2->attackable()->doAttack(t2, t1);
+
+        round++;
     }
 }
