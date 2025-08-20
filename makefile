@@ -27,8 +27,8 @@ LLAMA_CFLAGS := -I/usr/local/include
 LLAMA_LIBS := -L/usr/local/lib -Wl,--start-group -lllama -lggml -lggml-cpu -lggml-base -Wl,--end-group
 GGML_LIBS    := $(patsubst lib%.a,-l%,$(notdir $(wildcard $(LLAMA_PREFIX)/lib/libggml*.a)))
 
-CPPFLAGS ?= $(INC_FLAGS) $(LUA_CFLAGS) $(LLAMA_CFLAGS)
-LDFLAGS ?= -lboost_system -lpthread $(LUA_LIBS) -L/usr/local/lib -lqjs -ldl -lstdc++fs $(LLAMA_LIBS) -lm -fopenmp
+CPPFLAGS ?= $(INC_FLAGS) $(LUA_CFLAGS) $(LLAMA_CFLAGS) -I/usr/local/include/janet
+LDFLAGS ?= -lboost_system -lpthread $(LUA_LIBS) -L/usr/local/lib/quickjs -lquickjs -L/usr/local/lib -ljanet -ldl -lstdc++fs -lm -fopenmp
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS) $(CPPFLAGS)

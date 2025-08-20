@@ -1,4 +1,5 @@
 #include "script/ScriptedThing_JS.hpp"
+#include "script/ScriptedThing_Janet.hpp"
 #include "Server.hpp"
 #include "World.hpp"
 /*#include "ex/LLM.hpp"
@@ -14,9 +15,16 @@ int main(int argc, char* argv[])
     /* LMInference(); */
 
     ScriptedThing::InitLua();
-    ScriptedThing_JS::Init();
-    auto grape = std::make_shared<ScriptedThing_JS>("Grape");
-    ScriptedThing_JS::DeInit();
+    
+    // Test Janet without JS to avoid the JS crash issue
+    //ScriptedThing_JS::Init();
+    //auto grape = std::make_shared<ScriptedThing_JS>("Grape");
+    //ScriptedThing_JS::DeInit();
+
+    // Initialize and test Janet scripting
+    ScriptedThing_Janet::Init();
+    auto janet_grape = std::make_shared<ScriptedThing_Janet>("JanetGrape");
+    ScriptedThing_Janet::DeInit();
 
     int port = 23;
     if (argc >= 2)
