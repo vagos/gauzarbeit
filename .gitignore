@@ -1,7 +1,7 @@
-main
 db
 build
 .cache
 
-.vimspector.json
 compile_commands.json
+
+*.gguf
