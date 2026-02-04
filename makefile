@@ -67,5 +67,6 @@ TARGET_TEST  := $(BUILD_DIR)/test
 $(TARGET_TEST): $(filter-out %/main.cpp.o,$(OBJS)) $(TOBJS)
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-test: $(TARGET_TEST)
+test: $(TARGET_TEST) $(BUILD_DIR)/$(TARGET_EXEC)
 	$<
+	tests/integration.sh
