@@ -101,6 +101,8 @@ void Server::updateClients(World& world)
     {
         if (!c->networked()->isOnline())
         {
+            // Flush any pending response before closing the socket.
+            c->networked()->sendResponse(c);
             c->networked()->socket->close();
         }
     }

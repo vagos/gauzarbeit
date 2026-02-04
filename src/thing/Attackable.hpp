@@ -14,6 +14,8 @@ class Attackable
                           const std::shared_ptr<Thing>& target);
     virtual void onAttack(const std::shared_ptr<Thing>& owner,
                           const std::shared_ptr<Thing>& attacker);
+    /* virtual void onAttack(const std::shared_ptr<Thing>& owner, */
+    /*                       const std::shared_ptr<Thing>& attacker, int dmg); */
 
     virtual void getDamaged(const std::shared_ptr<Thing>& owner,
                             const std::shared_ptr<Thing>& attacker, int dmg);
