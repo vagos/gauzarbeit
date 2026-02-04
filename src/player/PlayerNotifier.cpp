@@ -1,22 +1,11 @@
 #include "player/PlayerNotifier.hpp"
+#include "player/CommandParser.hpp"
 #include "player/Player.hpp"
-#include <boost/algorithm/string/case_conv.hpp>
 #include <memory>
 
 void PlayerNotifier::setEvent(const std::shared_ptr<Thing>& owner)
 {
-    std::stringstream req{owner->networked()->getRequestStream().str()};
-
-    req >> event.verb >> event.target >> event.object;
-
-    std::getline(req >> std::ws, event.extra);
-
-    boost::to_lower(event.verb);
-
-    event.type = Player::playerCommands[event.verb];
-
-    if (event.verb.size() && event.type == Event::Type::Invalid)
-        throw InvalidCommand();
+    event = CommandParser::Parse(owner->networked()->getRequestStream().str());
 }
 
 void PlayerNotifier::doNotify(const std::shared_ptr<Thing>& owner, Event::Type notification_type,

@@ -12,7 +12,6 @@
 
 void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
 {
-    owner->notifier()->setEvent(owner); // TODO: Why is this here?
     const auto& event = owner->notifier()->event;
 
     if (event.verb.empty())

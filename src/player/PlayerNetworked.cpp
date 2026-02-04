@@ -1,14 +1,29 @@
 #include "player/PlayerNetworked.hpp"
+#include "Exceptions.hpp"
+#include "player/CommandParser.hpp"
 #include "player/PlayerPhysical.hpp"
 
 void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 {
-    std::string verb, target, object;
-    std::stringstream req{streamRequest.str()};
+    const std::string request = streamRequest.str();
+    if (request.empty())
+        return;
 
-    req >> verb >> target >> object;
+    Event event{};
+    try
+    {
+        event = CommandParser::Parse(request);
+    }
+    catch (InvalidCommand& e)
+    {
+        addResponse(ColorString(e.what(), Color::Red));
+        return;
+    }
 
-    if (verb == "login")
+    if (event.verb.empty())
+        return;
+
+    if (event.verb == "login")
     {
         if (isLoggedIn())
         {
@@ -16,23 +31,23 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
             return;
         }
 
-        if (!inDatabase(target))
+        if (!inDatabase(event.target))
         {
             addResponse("You need to register first! Please use the command 'register <name> "
                         "<password>'.\n");
             return;
         }
 
-        if (!object.size())
+        if (!event.object.size())
         {
             addResponse(ColorString("Please do 'login {name} {password}'.\n", Color::Red));
             return;
         }
 
-        owner->name = target;
+        owner->name = event.target;
         doDatabaseLoad(owner);
 
-        if (password != object)
+        if (password != event.object)
         {
             Log("Wrong password for player " << owner->name);
             addResponse("Wrong password! Please try again.\n");
@@ -45,15 +60,15 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
         addResponse(ColorString("You are logged in as " + owner->name + ".\n", Color::Green));
     }
 
-    else if (verb == "register")
+    else if (event.verb == "register")
     {
-        if (inDatabase(target))
+        if (inDatabase(event.target))
         {
             addResponse(ColorString("A player with that name already exists!\n", Color::Red));
         }
 
-        owner->name = target;
-        password = object;
+        owner->name = event.target;
+        password = event.object;
 
         if (password.empty())
         {
@@ -70,8 +85,13 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
     }
     else
     {
-        if (!isLoggedIn() && verb.size())
+        if (!isLoggedIn())
+        {
             addResponse(ColorString("You need to log in!\n", Color::Red));
+            return;
+        }
+
+        owner->notifier()->event = event;
     }
 }
 
