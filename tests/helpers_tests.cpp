@@ -23,8 +23,8 @@ TEST_CASE("BlockListString groups identical entries")
         MakeBasicThing("Cheese"),
     };
 
-    auto list = BlockListString(things, '*',
-                                [](const std::shared_ptr<Thing>& t) { return t->name; }, 3, 20);
+    auto list = BlockListString(
+        things, '*', [](const std::shared_ptr<Thing>& t) { return t->name; }, 3, 20);
 
     CHECK(list.find("* Rat (2)") != std::string::npos);
     CHECK(list.find("* Cheese") != std::string::npos);
@@ -37,7 +37,8 @@ TEST_CASE("VerticalListString formats with separators")
         MakeBasicThing("Banana"),
     };
 
-    auto list = VerticalListString(things, '-', [](const auto& t) { return t->name; }, '#', 5);
+    auto list = VerticalListString(
+        things, '-', [](const auto& t) { return t->name; }, '#', 5);
 
     CHECK_EQ(list, "- Apple\n#####\n- Banana\n");
 }

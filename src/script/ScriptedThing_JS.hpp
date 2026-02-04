@@ -381,22 +381,19 @@ class ScriptedThing_JS : public Thing
         return JS_NewInt32(ctx, t->achiever()->getLevel());
     }
 
-    static JSValue getEventInfo(JSContext* ctx, JSValueConst this_val, int argc,
-                                JSValueConst* argv)
+    static JSValue getEventInfo(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
     {
         auto t = self(ctx, this_val);
         if (!t || !t->_notifier)
             return JS_UNDEFINED;
 
         JSValue obj = JS_NewObject(ctx);
-        JS_SetPropertyStr(ctx, obj, "verb",
-                          JS_NewString(ctx, t->notifier()->event.verb.c_str()));
+        JS_SetPropertyStr(ctx, obj, "verb", JS_NewString(ctx, t->notifier()->event.verb.c_str()));
         JS_SetPropertyStr(ctx, obj, "target",
                           JS_NewString(ctx, t->notifier()->event.target.c_str()));
         JS_SetPropertyStr(ctx, obj, "object",
                           JS_NewString(ctx, t->notifier()->event.object.c_str()));
-        JS_SetPropertyStr(ctx, obj, "extra",
-                          JS_NewString(ctx, t->notifier()->event.extra.c_str()));
+        JS_SetPropertyStr(ctx, obj, "extra", JS_NewString(ctx, t->notifier()->event.extra.c_str()));
         return obj;
     }
 
@@ -649,9 +646,9 @@ class ScriptedThing_JS : public Thing
                           JS_NewCFunction(ctx, ScriptedThing_JS::gainItem, "gainItem", 1));
         JS_SetPropertyStr(ctx, proto, "hasItem",
                           JS_NewCFunction(ctx, ScriptedThing_JS::hasItem, "hasItem", 1));
-        JS_SetPropertyStr(ctx, proto, "broadcastMessage",
-                          JS_NewCFunction(ctx, ScriptedThing_JS::broadcastMessage,
-                                          "broadcastMessage", 1));
+        JS_SetPropertyStr(
+            ctx, proto, "broadcastMessage",
+            JS_NewCFunction(ctx, ScriptedThing_JS::broadcastMessage, "broadcastMessage", 1));
         JS_SetPropertyStr(ctx, proto, "addTask",
                           JS_NewCFunction(ctx, ScriptedThing_JS::addTask, "addTask", 1));
         JS_SetPropertyStr(ctx, proto, "tickTask",
@@ -680,9 +677,9 @@ class ScriptedThing_JS : public Thing
         JS_SetPropertyStr(
             ctx, gauzarbeit, "ColorString",
             JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitColorString, "ColorString", 2));
-        JS_SetPropertyStr(ctx, gauzarbeit, "GetDBLine",
-                          JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGetDBLine, "GetDBLine",
-                                          0));
+        JS_SetPropertyStr(
+            ctx, gauzarbeit, "GetDBLine",
+            JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGetDBLine, "GetDBLine", 0));
 
         JSValue event_obj = JS_NewObject(ctx);
         for (const ScriptConstant* c = ScriptAPI::kEventConstants; c->name; ++c)

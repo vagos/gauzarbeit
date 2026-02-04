@@ -62,8 +62,7 @@ std::string ScriptPaths::ResolveFromDir(const std::string& dir, const std::strin
 
     if (!normalized.empty())
     {
-        std::filesystem::path rel = std::filesystem::path(normalized) /
-                                    (name + "." + extension);
+        std::filesystem::path rel = std::filesystem::path(normalized) / (name + "." + extension);
         return Resolve(rel.string());
     }
 

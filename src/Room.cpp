@@ -1,8 +1,8 @@
 #include "Room.hpp"
 #include "Helpers.hpp"
 #include "script/LuaHelpers.hpp"
-#include "script/ScriptedThing.hpp"
 #include "script/ScriptPaths.hpp"
+#include "script/ScriptedThing.hpp"
 #include <cstddef>
 #include <exception>
 #include <memory>
