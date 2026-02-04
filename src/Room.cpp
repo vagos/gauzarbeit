@@ -2,6 +2,7 @@
 #include "Helpers.hpp"
 #include "script/LuaHelpers.hpp"
 #include "script/ScriptedThing.hpp"
+#include "script/ScriptPaths.hpp"
 #include <cstddef>
 #include <exception>
 #include <memory>
@@ -117,7 +118,7 @@ void ScriptedRoom::doGeneration()
         lua_setglobal(L, name.c_str()); // Create a Lua table.
     }
 
-    std::string filename("./scripts/rooms/" + name + ".lua");
+    std::string filename = ScriptPaths::Resolve("rooms/" + name + ".lua");
 
     CheckLua(L, luaL_dofile(L, filename.c_str()));
 

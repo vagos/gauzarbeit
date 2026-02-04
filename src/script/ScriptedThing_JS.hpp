@@ -4,6 +4,7 @@
 #include "Quest.hpp"
 #include "Room.hpp"
 #include "script/ScriptAPI.hpp"
+#include "script/ScriptPaths.hpp"
 #include "script/ScriptedThing.hpp"
 #include "thing/Thing.hpp"
 #include <algorithm>
@@ -73,7 +74,7 @@ class ScriptedThing_JS : public Thing
         _achiever = std::make_unique<Achiever>();
         _networked = std::make_unique<Networked>();
 
-        std::string filename(script_dir + name + ".js");
+        std::string filename = ScriptPaths::ResolveFromDir(script_dir, name, "js");
 
         JSValue global = JS_GetGlobalObject(ctx);
 
@@ -601,7 +602,7 @@ class ScriptedThing_JS : public Thing
 
     static void Init()
     {
-        std::string filename("scripts/Init.js");
+        std::string filename = ScriptPaths::Resolve("Init.js");
         std::ifstream file(filename, std::ios::binary);
         std::string code =
             std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());

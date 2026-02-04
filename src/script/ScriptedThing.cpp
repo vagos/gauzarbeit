@@ -5,6 +5,7 @@
 #include "Server.hpp"
 #include "script/ScriptAPI.hpp"
 #include "script/LuaHelpers.hpp"
+#include "script/ScriptPaths.hpp"
 #include "script/ScriptedAchiever.hpp"
 #include "script/ScriptedAttackable.hpp"
 #include "script/ScriptedInspectable.hpp"
@@ -38,7 +39,7 @@ ScriptedThing::ScriptedThing(const std::string& name, const std::string& script_
         lua_setglobal(L, name.c_str()); // Create a Lua table.
     }
 
-    std::string filename(script_dir + name + ".lua");
+    std::string filename = ScriptPaths::ResolveFromDir(script_dir, name, "lua");
 
     lua_newtable(L);
 
@@ -619,7 +620,7 @@ void ScriptedThing::InitLua()
 
     luaL_setfuncs(L, gauzarbeitFuncs, 0);
     lua_setglobal(L, "Gauzarbeit");
-    CheckLua(L, luaL_dofile(L, "scripts/Init.lua"));
+    CheckLua(L, luaL_dofile(L, ScriptPaths::Resolve("Init.lua").c_str()));
     // Load MOTD
     lua_getglobal(L, "MOTD");
     Server::MOTD.assign(lua_tostring(L, -1));
