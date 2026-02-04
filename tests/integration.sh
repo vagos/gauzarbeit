@@ -42,7 +42,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-./build/main "$PORT" >"$SERVER_LOG" 2>&1 &
+GAUZARBEIT_SCRIPT_ROOT="tests/scripts" ./build/main "$PORT" >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 
 for _ in {1..50}; do
