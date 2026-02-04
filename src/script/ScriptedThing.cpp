@@ -3,6 +3,7 @@
 #include "Quest.hpp"
 #include "Room.hpp"
 #include "Server.hpp"
+#include "script/ScriptAPI.hpp"
 #include "script/LuaHelpers.hpp"
 #include "script/ScriptedAchiever.hpp"
 #include "script/ScriptedAttackable.hpp"
@@ -587,49 +588,25 @@ void ScriptedThing::InitLua()
     // Create the global Gauzarbeit table.
     lua_newtable(L);
 
-    // Set the Event constants
-
+    // Create Gauzarbeit.Event table
     {
-        // Create the Gauzarbeit.Event table
         lua_newtable(L);
-
-        lua_pushnumber(L, (int)Event::Type::Enter);
-        lua_setfield(L, -2, "Enter");
-
-        lua_pushnumber(L, (int)Event::Type::Ask);
-        lua_setfield(L, -2, "Ask");
-
-        lua_pushnumber(L, (int)Event::Type::Do);
-        lua_setfield(L, -2, "Do");
-
-        lua_pushnumber(L, (int)Event::Type::Move);
-        lua_setfield(L, -2, "Move");
-
-        lua_pushnumber(L, (int)Event::Type::Inspect);
-        lua_setfield(L, -2, "Inspect");
-
-        lua_pushnumber(L, (int)Event::Type::Kill);
-        lua_setfield(L, -2, "Kill");
-
-        lua_pushnumber(L, (int)Event::Type::Gain);
-        lua_setfield(L, -2, "Gain");
-
+        for (const ScriptConstant* c = ScriptAPI::kEventConstants; c->name; ++c)
+        {
+            lua_pushnumber(L, c->value);
+            lua_setfield(L, -2, c->name);
+        }
         lua_setfield(L, -2, "Event");
     }
 
     // Create Gauzarbeit.Color table
     {
         lua_newtable(L);
-
-        lua_pushnumber(L, (int)Color::Red);
-        lua_setfield(L, -2, "Red");
-
-        lua_pushnumber(L, (int)Color::Green);
-        lua_setfield(L, -2, "Green");
-
-        lua_pushnumber(L, (int)Color::Blue);
-        lua_setfield(L, -2, "Blue");
-
+        for (const ScriptConstant* c = ScriptAPI::kColorConstants; c->name; ++c)
+        {
+            lua_pushnumber(L, c->value);
+            lua_setfield(L, -2, c->name);
+        }
         lua_setfield(L, -2, "Color");
     }
 
@@ -646,6 +623,8 @@ void ScriptedThing::InitLua()
     // Load MOTD
     lua_getglobal(L, "MOTD");
     Server::MOTD.assign(lua_tostring(L, -1));
+
+    VerifyLuaAPI(L);
 }
 
 lua_State* ScriptedThing::L = luaL_newstate();
