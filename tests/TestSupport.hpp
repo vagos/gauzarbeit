@@ -30,3 +30,5 @@ inline std::shared_ptr<Thing> MakeBasicThing(const std::string& name)
     thing->_thinker = std::make_shared<Thinker>();
     return thing;
 }
+
+void InitScriptVMsForTests();

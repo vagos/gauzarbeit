@@ -1,24 +1,6 @@
 #include "Quest.hpp"
 #include "TestSupport.hpp"
-#include "script/js/ScriptedThing.hpp"
-#include "script/lua/ScriptedThing.hpp"
-#include <cstdlib>
 #include <doctest/doctest.h>
-
-namespace
-{
-void InitScriptVMsForTests()
-{
-    static bool initialized = false;
-    if (initialized)
-        return;
-
-    setenv("GAUZARBEIT_SCRIPT_ROOT", "tests/scripts", 1);
-    ScriptedThing_Lua::Init();
-    ScriptedThing_JS::Init();
-    initialized = true;
-}
-} // namespace
 
 TEST_CASE("ScriptedQuest loads Lua quest tasks")
 {

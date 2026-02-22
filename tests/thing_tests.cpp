@@ -1,7 +1,11 @@
 #include "Room.hpp"
 #include "TestSupport.hpp"
 #include "player/Player.hpp"
+#include "script/LuaHelpers.hpp"
+#include "script/ScriptedThing.hpp"
+#include "script/lua/ScriptedThing.hpp"
 #include <doctest/doctest.h>
+#include <lua.hpp>
 
 TEST_CASE("Physical pickup and drop move items between room and inventory")
 {
@@ -141,4 +145,67 @@ TEST_CASE("Room routes players into players list when added as a thing")
 
     CHECK(std::find(room->players.begin(), room->players.end(), player) != room->players.end());
     CHECK(std::find(room->things.begin(), room->things.end(), player) == room->things.end());
+}
+
+TEST_CASE("Lua index/newindex uses Lua registry table for Lua scripted things")
+{
+    InitScriptVMsForTests();
+
+    auto lua_thing = std::make_shared<ScriptedThing_Lua>("TestDummy");
+    lua_State* L = ScriptedThing_Lua::L;
+
+    lua_settop(L, 0);
+    lua_pushlightuserdata(L, lua_thing.get());
+    lua_setglobal(L, "__test_thing");
+
+    CheckLua(L, luaL_dostring(L, "__test_thing.test_flag = 99"));
+    CheckLua(L, luaL_dostring(L, "return __test_thing.test_flag"));
+    REQUIRE(lua_isnumber(L, -1));
+    CHECK(lua_tointeger(L, -1) == 99);
+    lua_settop(L, 0);
+}
+
+TEST_CASE("Lua index skips Lua-only field lookup for JS scripted things")
+{
+    InitScriptVMsForTests();
+
+    auto js_thing = ScriptedThing("TestDummy");
+    REQUIRE(js_thing != nullptr);
+
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+    lua_pushlightuserdata(L, js_thing.get());
+    lua_setglobal(L, "__test_thing");
+
+    CheckLua(L, luaL_dostring(L, "return __test_thing.counter"));
+    CHECK(lua_isnil(L, -1));
+    lua_settop(L, 0);
+}
+
+TEST_CASE("Lua thing can index a JS thing via Lua __index")
+{
+    InitScriptVMsForTests();
+
+    auto room = std::make_shared<Room>(0, 0);
+    auto lua_thing = std::make_shared<ScriptedThing_Lua>("TestDummy");
+    auto js_thing = ScriptedThing("TestTalker");
+
+    REQUIRE(lua_thing != nullptr);
+    REQUIRE(js_thing != nullptr);
+
+    lua_thing->physical()->current_room = room;
+    js_thing->physical()->current_room = room;
+    room->addThing(lua_thing);
+    room->addThing(js_thing);
+
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+    lua_pushlightuserdata(L, lua_thing.get());
+    lua_setglobal(L, "__lua");
+
+    CheckLua(L, luaL_dostring(L, "local other = __lua:getThing('TestTalker')\n"
+                                 "return other ~= nil and other.getName ~= nil and "
+                                 "other:getName() == 'TestTalker' and other.counter == nil"));
+    CHECK(lua_toboolean(L, -1) == 1);
+    lua_settop(L, 0);
 }

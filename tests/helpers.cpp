@@ -1,6 +1,21 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "Helpers.hpp"
+#include "script/js/ScriptedThing.hpp"
+#include "script/lua/ScriptedThing.hpp"
 #include <doctest/doctest.h>
+#include <cstdlib>
+
+void InitScriptVMsForTests()
+{
+    static bool initialized = false;
+    if (initialized)
+        return;
+
+    setenv("GAUZARBEIT_SCRIPT_ROOT", "tests/scripts", 1);
+    ScriptedThing_Lua::Init();
+    ScriptedThing_JS::Init();
+    initialized = true;
+}
 
 // Specialization for std::vector<std::string> to work with doctest
 namespace doctest
