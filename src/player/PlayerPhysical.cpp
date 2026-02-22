@@ -2,7 +2,7 @@
 #include "Helpers.hpp"
 #include "World.hpp"
 #include "player/PlayerNetworked.hpp"
-#include "script/ScriptedThing.hpp"
+#include "script/lua/ScriptedThing.hpp"
 #include <memory>
 #include <sstream>
 

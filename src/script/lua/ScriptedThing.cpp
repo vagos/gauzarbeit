@@ -1,0 +1,878 @@
+#include "script/lua/ScriptedThing.hpp"
+#include "Helpers.hpp"
+#include "Quest.hpp"
+#include "Room.hpp"
+#include "Server.hpp"
+#include "script/LuaHelpers.hpp"
+#include "script/ScriptAPI.hpp"
+#include "script/ScriptPaths.hpp"
+#include <cassert>
+#include <memory>
+#include <string>
+
+namespace
+{
+class ScriptedAchiever : public Achiever
+{
+  public:
+    struct ScriptedStat : public Achiever::Stat
+    {
+        explicit ScriptedStat(const std::string& s_name) : name(s_name) {}
+
+        const std::string getName() override
+        {
+            auto& L = ScriptedThing_Lua::L;
+
+            lua_getglobal(L, "Gauzarbeit");
+            lua_getfield(L, -1, "Stats");
+            lua_getfield(L, -1, name.c_str());
+
+            if (!lua_isfunction(L, -1))
+                return Achiever::Stat::getName();
+
+            lua_pushnumber(L, value);
+            CheckLua(L, lua_pcall(L, 1, 1, 0));
+
+            return std::string(lua_tostring(L, -1));
+        }
+
+        std::string name;
+    };
+
+    void setStat(const std::string& s_n, float val) override
+    {
+        if (!extra_stats[s_n])
+            extra_stats[s_n] = std::make_shared<ScriptedStat>(s_n);
+
+        extra_stats[s_n]->value = val;
+    }
+};
+
+class ScriptedUsable : public Usable
+{
+  public:
+    void onUse(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& user) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "onUse");
+
+        if (!lua_isfunction(L, -1))
+            return;
+
+        lua_pushlightuserdata(L, owner.get());
+        lua_pushlightuserdata(L, user.get());
+
+        CheckLua(L, lua_pcall(L, 2, 0, 0));
+    }
+};
+
+class ScriptedAttackable : public Attackable
+{
+  public:
+    void onAttack(const std::shared_ptr<Thing>& owner,
+                  const std::shared_ptr<Thing>& attacker) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "onAttack");
+
+        if (lua_isfunction(L, -1))
+        {
+            lua_pushlightuserdata(L, owner.get());
+            lua_pushlightuserdata(L, attacker.get());
+            CheckLua(L, lua_pcall(L, 2, 0, 0));
+        }
+
+        Attackable::onAttack(owner, attacker);
+    }
+
+    void doAttack(const std::shared_ptr<Thing>& owner,
+                  const std::shared_ptr<Thing>& target) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "doAttack");
+
+        if (lua_isfunction(L, -1))
+        {
+            lua_pushlightuserdata(L, owner.get());
+            lua_pushlightuserdata(L, target.get());
+            CheckLua(L, lua_pcall(L, 2, 0, 0));
+        }
+
+        Attackable::doAttack(owner, target);
+    }
+};
+
+class ScriptedNotifier : public Notifier
+{
+    void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
+                  Event::Type notification_type, const std::shared_ptr<Thing>& target) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "onNotify");
+        if (!lua_isfunction(L, -1))
+            return;
+
+        lua_pushlightuserdata(L, owner.get());
+        lua_pushlightuserdata(L, actor.get());
+        lua_pushnumber(L, (int)notification_type);
+        lua_pushlightuserdata(L, target.get());
+
+        CheckLua(L, lua_pcall(L, 4, 0, 0));
+    }
+};
+
+class ScriptedTasker : public Tasker
+{
+  public:
+    void doReward(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "doReward");
+
+        if (lua_isfunction(L, -1))
+        {
+            lua_pushlightuserdata(L, owner.get());
+            lua_pushlightuserdata(L, completer.get());
+            CheckLua(L, lua_pcall(L, 2, 0, 0));
+        }
+    }
+};
+
+class ScriptedPhysical : public Physical
+{
+};
+
+class ScriptedInspectable : public Inspectable
+{
+    const std::string onInspect(const std::shared_ptr<Thing>& owner,
+                                const std::shared_ptr<Thing>& inspector) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "onInspect");
+
+        if (!lua_isfunction(L, -1))
+            return Inspectable::onInspect(owner, inspector);
+
+        lua_pushlightuserdata(L, owner.get());
+        lua_pushlightuserdata(L, inspector.get());
+        CheckLua(L, lua_pcall(L, 2, 1, 0));
+
+        assert(lua_isstring(L, -1));
+
+        return Inspectable::onInspect(owner, inspector) + std::string(lua_tostring(L, -1));
+    }
+
+    const std::string onHelp(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "onHelp");
+
+        if (!lua_isfunction(L, -1))
+            return Inspectable::getName(owner);
+
+        lua_pushlightuserdata(L, owner.get());
+        CheckLua(L, lua_pcall(L, 1, 1, 0));
+
+        assert(lua_isstring(L, -1));
+        return std::string(lua_tostring(L, -1));
+    }
+
+    const std::string getName(const std::shared_ptr<Thing>& owner) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "getName");
+
+        if (!lua_isfunction(L, -1))
+            return Inspectable::getName(owner);
+
+        lua_pushlightuserdata(L, owner.get());
+        CheckLua(L, lua_pcall(L, 1, 1, 0));
+
+        assert(lua_isstring(L, -1));
+        return std::string(lua_tostring(L, -1));
+    }
+};
+
+class ScriptedTalker : public Talker
+{
+  public:
+    void onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "onTalk");
+
+        if (lua_isfunction(L, -1))
+        {
+            lua_pushlightuserdata(L, owner.get());
+            lua_pushlightuserdata(L, talker.get());
+            CheckLua(L, lua_pcall(L, 2, 0, 0));
+        }
+
+        Talker::onTalk(owner, talker);
+    }
+};
+
+class ScriptedNetworked : public Networked
+{
+    void doDatabaseLoad(std::shared_ptr<Thing> owner) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "doDatabaseLoad");
+
+        if (!lua_isfunction(L, -1))
+            return;
+
+        lua_pushlightuserdata(L, owner.get());
+        CheckLua(L, lua_pcall(L, 1, 0, 0));
+    }
+
+    const std::string doDatabaseSave(std::shared_ptr<Thing> owner) override
+    {
+        const auto& L = ScriptedThing_Lua::L;
+
+        lua_getglobal(L, owner->name.c_str());
+        lua_getfield(L, -1, "doDatabaseSave");
+        if (!lua_isfunction(L, -1))
+            return "";
+
+        lua_pushlightuserdata(L, owner.get());
+        CheckLua(L, lua_pcall(L, 1, 1, 0));
+        assert(lua_isstring(L, -1));
+
+        return std::string(lua_tostring(L, -1));
+    }
+};
+} // namespace
+
+ScriptedThing_Lua::ScriptedThing_Lua(const std::string& name, const std::string& script_dir)
+    : script::ScriptedThing(name)
+{
+    // Create components
+    _usable = std::make_unique<ScriptedUsable>();
+    _attackable = std::make_unique<ScriptedAttackable>();
+    _notifier = std::make_unique<ScriptedNotifier>();
+    _tasker = std::make_unique<ScriptedTasker>();
+    _physical = std::make_unique<ScriptedPhysical>();
+    _inspectable = std::make_unique<ScriptedInspectable>();
+    _talker = std::make_unique<ScriptedTalker>();
+    _achiever = std::make_unique<ScriptedAchiever>();
+    _networked = std::make_unique<ScriptedNetworked>();
+
+    lua_getglobal(L, name.c_str());
+
+    if (lua_isnil(L, -1))
+    {
+        lua_newtable(L);
+        lua_setglobal(L, name.c_str()); // Create a Lua table.
+    }
+
+    std::string filename = ScriptPaths::ResolveFromDir(script_dir, name, "lua");
+
+    lua_newtable(L);
+
+    luaRef = luaL_ref(L, LUA_REGISTRYINDEX);
+
+    lua_pushlightuserdata(L, this);
+
+    luaL_getmetatable(L, "Gauzarbeit.Thing");
+    lua_setmetatable(L, -2);
+
+    CheckLua(L, luaL_dofile(L, filename.c_str()));
+
+    // doInit
+    lua_getglobal(L, name.c_str());
+    lua_getfield(L, -1, "doInit");
+
+    if (lua_isfunction(L, -1))
+    {
+        lua_pushlightuserdata(L, this);
+
+        CheckLua(L, lua_pcall(L, 1, 0, 0));
+    }
+}
+
+int ScriptedThing_Lua::Index(lua_State* L)
+{
+    ScriptedThing_Lua* ptrThing = (ScriptedThing_Lua*)lua_touserdata(L, 1);
+    const char* index = lua_tostring(L, 2);
+
+    luaL_getmetatable(L, "Gauzarbeit.Thing");
+    lua_getfield(L, -1, index);
+
+    if (lua_isnil(L, -1))
+    {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, ptrThing->luaRef);
+        lua_getfield(L, -1, index);
+
+        if (lua_isnil(L, -1))
+        {
+            lua_getglobal(L, ptrThing->name.c_str());
+            lua_getfield(L, -1, index);
+
+            if (lua_isnil(L, -1))
+                return 0;
+        }
+    }
+
+    return 1;
+}
+
+int ScriptedThing_Lua::NewIndex(lua_State* L)
+{
+    ScriptedThing_Lua* ptrThing = (ScriptedThing_Lua*)lua_touserdata(L, 1);
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, ptrThing->luaRef);
+
+    const char* index = lua_tostring(L, 2);
+
+    lua_pushvalue(L, 2);
+    lua_pushvalue(L, 3);
+    lua_settable(L, 4);
+
+    return 0;
+}
+
+int ScriptedThing_Lua::GetName(lua_State* L)
+{
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    lua_pushstring(L, ptrThing->inspectable()->getName(ptrThing->shared_from_this()).c_str());
+    return 1;
+}
+
+int ScriptedThing_Lua::SendMessage(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    Log(ptrThing->name);
+
+    std::size_t s_l;
+    const char* s = lua_tolstring(L, 2, &s_l);
+
+    std::string message{s, s_l};
+
+    ptrThing->networked()->addResponse(message);
+
+    return 0;
+}
+
+int ScriptedThing_Lua::LoseItem(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    Thing* ptrThingItem = (Thing*)lua_touserdata(L, 2);
+
+    auto item = GetSmartPtr(ptrThing->physical()->inventory, ptrThingItem);
+
+    ptrThing->physical()->loseItem(item);
+
+    return 0;
+}
+
+int ScriptedThing_Lua::DropItem(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    Thing* ptrThingItem = (Thing*)lua_touserdata(L, 2);
+
+    auto item = GetSmartPtr(ptrThing->physical()->inventory, ptrThingItem);
+
+    ptrThing->physical()->dropItem(item);
+
+    return 0;
+}
+
+int ScriptedThing_Lua::GetThing(lua_State* L) // Return a thing from inside the room.
+{
+    assert(lua_isuserdata(L, 1));
+    assert(lua_isstring(L, 2));
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    auto thing = ptrThing->physical()->current_room->getThing(lua_tostring(L, 2));
+
+    if (!thing)
+        return 0;
+
+    lua_pushlightuserdata(L, thing.get());
+
+    return 1;
+}
+
+int ScriptedThing_Lua::GainItem(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    if (lua_isstring(L, 2))
+    {
+        auto t_n = std::string(lua_tostring(L, 2));
+        auto item = std::make_shared<ScriptedThing_Lua>(t_n);
+
+        ptrThing->physical()->gainItem(item);
+    }
+
+    else if (lua_isuserdata(L, 2))
+    {
+        Thing* ptrThingItem = (Thing*)lua_touserdata(L, 2);
+        auto item = GetSmartPtr(ptrThing->physical()->current_room->things, ptrThingItem);
+
+        if (!item)
+            return 0;
+
+        ptrThing->physical()->current_room->removeThing(item);
+        ptrThing->physical()->gainItem(item);
+    }
+
+    return 0;
+}
+
+int ScriptedThing_Lua::HasItem(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    Thing* ptrThingItem = (Thing*)lua_touserdata(L, 2);
+
+    auto item = GetSmartPtr(ptrThing->physical()->inventory, ptrThingItem);
+
+    lua_pushboolean(L, item && ptrThing->physical()->hasItem(item));
+
+    return 1;
+}
+
+int ScriptedThing_Lua::BroadcastMessage(lua_State* L)
+{
+
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    assert(lua_isstring(L, 2));
+    const std::string message{lua_tostring(L, 2)};
+
+    auto p = GetSmartPtr(ptrThing->physical()->getRoom()->players, ptrThing);
+    assert(p != nullptr);
+
+    p->notifier()->setEventPayload(message);
+    p->notifier()->doNotify(p, Event::Type::Message);
+
+    return 0;
+}
+
+int ScriptedThing_Lua::AddTask(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+    assert(lua_isstring(L, 2));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    std::string task_description(lua_tostring(L, 2));
+
+    if (ptrThing->_tasker)
+    {
+        lua_pushnumber(L, ptrThing->tasker()->addTask(task_description));
+        return 1;
+    }
+
+    return 0;
+}
+
+int ScriptedThing_Lua::TickTask(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    if (ptrThing->_tasker)
+    {
+        ptrThing->tasker()->tickTask((int)lua_tonumber(L, 2));
+    }
+
+    return 0;
+}
+
+int ScriptedThing_Lua::GainXP(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    if (ptrThing->_achiever)
+    {
+        ptrThing->achiever()->gainXP(lua_tonumber(L, 2));
+    }
+
+    return 0;
+}
+
+int ScriptedThing_Lua::GetLevel(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    if (ptrThing->_achiever)
+    {
+        lua_pushnumber(L, ptrThing->achiever()->getLevel());
+
+        return 1;
+    }
+
+    return 0;
+}
+
+int ScriptedThing_Lua::GetEventInfo(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    if (ptrThing->_notifier)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, ptrThing->notifier()->event.verb.c_str());
+        lua_setfield(L, -2, "verb");
+
+        lua_pushstring(L, ptrThing->notifier()->event.target.c_str());
+        lua_setfield(L, -2, "target");
+
+        lua_pushstring(L, ptrThing->notifier()->event.object.c_str());
+        lua_setfield(L, -2, "object");
+
+        lua_pushstring(L, ptrThing->notifier()->event.extra.c_str());
+        lua_setfield(L, -2, "extra");
+
+        return 1;
+    }
+
+    return 0;
+}
+
+int ScriptedThing_Lua::EquipItem(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    Thing* ptrThingItem = (Thing*)lua_touserdata(L, 2);
+
+    auto item = GetSmartPtr(ptrThing->physical()->inventory, ptrThingItem);
+
+    if (item)
+        ptrThing->physical()->equipItem(item);
+
+    return 0;
+}
+
+// Returns a Player with the given name in the room the thing is in
+int ScriptedThing_Lua::GetPlayer(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    if (!lua_isstring(L, 2))
+        return 0;
+
+    std::string t_n(lua_tostring(L, 2));
+
+    Log("NAME: " << t_n);
+
+    auto t = ptrThing->physical()->current_room->getPlayer(t_n);
+
+    if (!t)
+        return 0;
+
+    lua_pushlightuserdata(L, t.get());
+
+    return 1;
+}
+
+int ScriptedThing_Lua::GainQuest(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    if (!lua_isstring(L, 2))
+        return 0;
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    std::string q_n(lua_tostring(L, 2));
+
+    ptrThing->achiever()->gainQuest(ScriptedQuest(q_n));
+
+    return 0;
+}
+
+int ScriptedThing_Lua::DoSay(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+    assert(lua_isuserdata(L, 2));
+
+    if (!lua_isstring(L, 3))
+        return 0;
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    Thing* ptrThingTarget = (Thing*)lua_touserdata(L, 2);
+
+    std::string s(lua_tostring(L, 3));
+
+    std::stringstream msg;
+
+    msg << ptrThing->name << ": " << s;
+
+    ptrThingTarget->networked()->addResponse(msg.str());
+
+    return 0;
+}
+
+int ScriptedThing_Lua::DoAttack(lua_State* L)
+{
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    Thing* ptrThingTarget = (Thing*)lua_touserdata(L, 2);
+
+    if (!(ptrThing->_attackable && ptrThingTarget->_attackable))
+        return 0;
+
+    auto t = GetSmartPtr(ptrThing->physical()->current_room->things, ptrThing);
+    auto t_t = ptrThing->physical()->current_room->getAnything(ptrThingTarget->name);
+
+    if (!t)
+        return 0;
+
+    ptrThing->attackable()->doAttack(t, t_t);
+
+    return 0;
+}
+
+int ScriptedThing_Lua::GetStat(lua_State* L)
+{
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    std::string s_n(lua_tostring(L, 2));
+
+    float val = ptrThing->achiever()->getStat(s_n);
+
+    lua_pushnumber(L, val);
+
+    return 1;
+}
+
+int ScriptedThing_Lua::SetStat(lua_State* L)
+{
+    assert(lua_isnumber(L, 3));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    std::string s_n(lua_tostring(L, 2));
+    float val = (float)lua_tonumber(L, 3);
+
+    {
+        // TODO: These stats probably should be moved to Achiever
+        if (s_n == "MaxHealth")
+        {
+            ptrThing->attackable()->setMaxHealth(val);
+        }
+        else if (s_n == "Health")
+        {
+            ptrThing->attackable()->current_health = val;
+        }
+        else if (s_n == "dmg")
+        {
+            ptrThing->attackable()->dmg = val;
+        }
+    }
+
+    ptrThing->achiever()->setStat(s_n, val);
+
+    return 0;
+}
+
+int Gauzarbeit_Spawn(lua_State* L)
+{
+    if (lua_isuserdata(L, 1))
+    {
+        Room* r = (Room*)lua_touserdata(L, 1);
+        std::string t_n(lua_tostring(L, 2));
+        auto t = std::make_shared<ScriptedThing_Lua>(t_n);
+
+        if (t->_physical)
+            t->physical()->doMove(t, r->x, r->y);
+        else
+            r->addThing(t);
+
+        return 0;
+    }
+    else
+    {
+        int x = (int)lua_tonumber(L, 1);
+        int y = (int)lua_tonumber(L, 2);
+
+        std::string t_n(lua_tostring(L, 3));
+
+        auto r = Room::get(x, y);
+
+        assert(r);
+
+        auto t = std::make_shared<ScriptedThing_Lua>(t_n);
+
+        if (t->_physical)
+            t->physical()->doMove(t, r->x, r->y);
+        else
+            r->addThing(t);
+    }
+
+    return 0;
+}
+
+int Gauzarbeit_Room(lua_State* L)
+{
+    std::string r_t(lua_tostring(L, 1));
+
+    int x = (int)lua_tonumber(L, 2);
+    int y = (int)lua_tonumber(L, 3);
+
+    auto r = Room::get(x, y);
+
+    r->name = r_t;
+    r->doGeneration();
+
+    lua_pushlightuserdata(L, r.get());
+
+    return 1;
+}
+
+int Gauzarbeit_ColorString(lua_State* L)
+{
+    assert(lua_isstring(L, 1));
+    assert(lua_isnumber(L, 2));
+
+    std::string s(lua_tostring(L, 1));
+
+    auto c = (Color)lua_tonumber(L, 2);
+
+    lua_pushstring(L, ColorString(s, c).c_str());
+
+    return 1;
+}
+
+int Gauzarbeit_LoadDB(lua_State* L)
+{
+    std::string db_line;
+
+    Networked::getDB() >> db_line;
+
+    lua_pushstring(L, db_line.c_str());
+
+    return 1;
+}
+
+void ScriptedThing_Lua::Init()
+{
+    luaL_openlibs(L);
+
+    // Create the Gauzarbeit.Thing metatable
+    luaL_newmetatable(L, "Gauzarbeit.Thing");
+
+    lua_pushstring(L, "__index");
+    lua_pushvalue(L, -2);
+    lua_settable(L, -3);
+
+    const luaL_Reg thingMethods[] = {{"__index", ScriptedThing_Lua::Index},
+                                     {"__newindex", ScriptedThing_Lua::NewIndex},
+                                     {"getName", ScriptedThing_Lua::GetName},
+                                     {"getType", ScriptedThing_Lua::GetName},
+                                     {"setStat", SetStat},
+                                     {"getStat", GetStat},
+                                     {"sendMessage", ScriptedThing_Lua::SendMessage},
+                                     {"doSay", ScriptedThing_Lua::DoSay},
+                                     {"loseItem", ScriptedThing_Lua::LoseItem},
+                                     {"dropItem", ScriptedThing_Lua::DropItem},
+                                     {"equipItem", ScriptedThing_Lua::EquipItem},
+                                     {"getThing", ScriptedThing_Lua::GetThing},
+                                     {"getPlayer", ScriptedThing_Lua::GetPlayer},
+                                     {"gainItem", ScriptedThing_Lua::GainItem},
+                                     {"hasItem", ScriptedThing_Lua::HasItem},
+                                     {"broadcastMessage", ScriptedThing_Lua::BroadcastMessage},
+                                     {"addTask", ScriptedThing_Lua::AddTask},
+                                     {"tickTask", ScriptedThing_Lua::TickTask},
+                                     {"gainXP", ScriptedThing_Lua::GainXP},
+                                     {"getEventInfo", ScriptedThing_Lua::GetEventInfo},
+                                     {"getLevel", ScriptedThing_Lua::GetLevel},
+                                     {"gainQuest", ScriptedThing_Lua::GainQuest},
+                                     {"doAttack", ScriptedThing_Lua::DoAttack},
+                                     {NULL, NULL}};
+
+    luaL_setfuncs(L, thingMethods, 0);
+
+    // Create the global Gauzarbeit table.
+    lua_newtable(L);
+
+    // Create Gauzarbeit.Event table
+    {
+        lua_newtable(L);
+        for (const ScriptConstant* c = ScriptAPI::kEventConstants; c->name; ++c)
+        {
+            lua_pushnumber(L, c->value);
+            lua_setfield(L, -2, c->name);
+        }
+        lua_setfield(L, -2, "Event");
+    }
+
+    // Create Gauzarbeit.Color table
+    {
+        lua_newtable(L);
+        for (const ScriptConstant* c = ScriptAPI::kColorConstants; c->name; ++c)
+        {
+            lua_pushnumber(L, c->value);
+            lua_setfield(L, -2, c->name);
+        }
+        lua_setfield(L, -2, "Color");
+    }
+
+    const luaL_Reg gauzarbeitFuncs[] = {{"Spawn", Gauzarbeit_Spawn},
+                                        {"GetRoom", Gauzarbeit_Room},
+                                        {"ColorString", Gauzarbeit_ColorString},
+                                        {"GetDBLine", Gauzarbeit_LoadDB},
+                                        // CreateStat
+                                        {NULL, NULL}};
+
+    luaL_setfuncs(L, gauzarbeitFuncs, 0);
+    lua_setglobal(L, "Gauzarbeit");
+    CheckLua(L, luaL_dofile(L, ScriptPaths::Resolve("Init.lua").c_str()));
+    // Load MOTD
+    lua_getglobal(L, "MOTD");
+    Server::MOTD.assign(lua_tostring(L, -1));
+
+    VerifyLuaAPI(L);
+}
+
+lua_State* ScriptedThing_Lua::L = luaL_newstate();

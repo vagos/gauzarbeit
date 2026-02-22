@@ -4,7 +4,7 @@
 #include "player/Player.hpp"
 #include "player/PlayerNetworked.hpp"
 #include "script/LuaHelpers.hpp"
-#include "script/ScriptedThing.hpp"
+#include "script/lua/ScriptedThing.hpp"
 #include "thing/Networked.hpp"
 #include <algorithm>
 #include <string>

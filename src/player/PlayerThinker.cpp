@@ -69,7 +69,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
             res << '\n'
                 << "A HelpLeaflet materializes in your pocket. Type 'use HelpLeaflet' to read "
                    "it.\n\n";
-            owner->physical()->gainItem(std::make_shared<ScriptedThing>("HelpLeaflet"));
+            owner->physical()->gainItem(ScriptedThing("HelpLeaflet"));
             owner->networked()->addResponse(res.str());
         }
 
@@ -221,12 +221,12 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
     // TODO: Turn these into actual events
     if (event.verb == "get")
     {
-        owner->physical()->gainItem(std::make_shared<ScriptedThing>(event.target));
+        owner->physical()->gainItem(ScriptedThing(event.target));
     }
 
     if (event.verb == "spawn")
     {
-        auto t = std::make_shared<ScriptedThing>(event.target);
+        auto t = ScriptedThing(event.target);
         t->physical()->doMove(t, owner->physical()->current_room->x,
                               owner->physical()->current_room->y);
     }

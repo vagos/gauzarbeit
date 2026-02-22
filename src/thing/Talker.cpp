@@ -13,7 +13,7 @@ void Talker::onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<T
     if (!q)
         return;
 
-    talker->achiever()->gainQuest(std::make_shared<ScriptedQuest>(q->name));
+    talker->achiever()->gainQuest(ScriptedQuest(q->name));
     // talker -> achiever() -> gainQuest( q );
     talker->notifier()->onNotify(talker, talker, Event::Type::Gain_Quest, q);
 }

@@ -6,6 +6,7 @@
 #include "script/ScriptAPI.hpp"
 #include "script/ScriptPaths.hpp"
 #include "script/ScriptedThing.hpp"
+#include "script/lua/ScriptedThing.hpp"
 #include "thing/Thing.hpp"
 #include <algorithm>
 #include <cassert>
@@ -58,11 +59,11 @@ inline std::shared_ptr<Thing> FindByPtr(const std::vector<std::shared_ptr<Thing>
     return r != c.end() ? *r : nullptr;
 }
 
-class ScriptedThing_JS : public Thing
+class ScriptedThing_JS : public script::ScriptedThing
 {
   public:
     ScriptedThing_JS(const std::string& name, const std::string& script_dir = "./scripts/things/")
-        : Thing(name)
+        : script::ScriptedThing(name)
     {
         _usable = std::make_unique<Usable>();
         _attackable = std::make_unique<Attackable>();
@@ -278,7 +279,7 @@ class ScriptedThing_JS : public Thing
             std::string t_n;
             if (!toString(ctx, argv[0], t_n))
                 return JS_EXCEPTION;
-            auto item = std::make_shared<ScriptedThing>(t_n);
+            auto item = std::make_shared<::ScriptedThing_Lua>(t_n);
             t->physical()->gainItem(item);
             return JS_UNDEFINED;
         }
@@ -407,7 +408,7 @@ class ScriptedThing_JS : public Thing
         if (!toString(ctx, argv[0], q_name))
             return JS_EXCEPTION;
 
-        t->achiever()->gainQuest(std::make_shared<ScriptedQuest>(q_name));
+        t->achiever()->gainQuest(ScriptedQuest(q_name));
         return JS_UNDEFINED;
     }
 
@@ -517,7 +518,7 @@ class ScriptedThing_JS : public Thing
                 if (!toString(ctx, argv[1], name))
                     return JS_EXCEPTION;
 
-                auto t = std::make_shared<ScriptedThing>(name);
+                auto t = std::make_shared<::ScriptedThing_Lua>(name);
                 if (t->_physical)
                     t->physical()->doMove(t, r->x, r->y);
                 else
@@ -540,7 +541,7 @@ class ScriptedThing_JS : public Thing
             return JS_EXCEPTION;
 
         auto r = Room::get(x, y);
-        auto t = std::make_shared<ScriptedThing>(name);
+        auto t = std::make_shared<::ScriptedThing_Lua>(name);
         if (t->_physical)
             t->physical()->doMove(t, r->x, r->y);
         else

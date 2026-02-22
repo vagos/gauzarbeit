@@ -1,5 +1,4 @@
 #include "Helpers.hpp"
-#include "script/ScriptedAchiever.hpp"
 #include "thing/Thing.hpp"
 
 const std::shared_ptr<Thing> Achiever::getQuest(const std::string& q_name)
@@ -34,7 +33,7 @@ void Achiever::setStat(const std::string& s_n, float val)
 {
     if (!extra_stats[s_n])
     {
-        extra_stats[s_n] = std::make_shared<ScriptedAchiever::ScriptedStat>(s_n);
+        extra_stats[s_n] = std::make_shared<Achiever::Stat>();
     }
 
     extra_stats[s_n]->value = val;

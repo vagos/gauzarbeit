@@ -2,6 +2,7 @@
 #include "Exceptions.hpp"
 #include "player/CommandParser.hpp"
 #include "player/PlayerPhysical.hpp"
+#include "script/ScriptedThing.hpp"
 
 void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 {
@@ -163,7 +164,7 @@ void PlayerNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
         while (line != "END" && !db.eof())
         {
 
-            auto t = std::make_shared<ScriptedThing>(line);
+            auto t = ScriptedThing(line);
 
             t->networked()->doDatabaseLoad(t);
 

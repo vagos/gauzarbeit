@@ -2,7 +2,7 @@
 #include "Helpers.hpp"
 #include "script/LuaHelpers.hpp"
 #include "script/ScriptPaths.hpp"
-#include "script/ScriptedThing.hpp"
+#include "script/lua/ScriptedThing.hpp"
 #include <cstddef>
 #include <exception>
 #include <memory>
@@ -108,7 +108,7 @@ const std::string Room::onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<
 
 void ScriptedRoom::doGeneration()
 {
-    const auto& L = ScriptedThing::L;
+    const auto& L = ScriptedThing_Lua::L;
 
     lua_getglobal(L, name.c_str());
 
@@ -158,7 +158,7 @@ void ScriptedRoom::doGeneration()
 
     for (auto t_n : t_ns)
     {
-        auto t = std::make_shared<ScriptedThing>(t_n);
+        auto t = std::make_shared<ScriptedThing_Lua>(t_n);
 
         if (t->_physical)
             t->physical()->doMove(t, x, y);
@@ -169,7 +169,7 @@ void ScriptedRoom::doGeneration()
 
 void ScriptedRoom::doUpdate(World& world)
 {
-    const auto& L = ScriptedThing::L;
+    const auto& L = ScriptedThing_Lua::L;
 
     Room::doUpdate(world);
 

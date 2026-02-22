@@ -1,14 +1,11 @@
 #ifndef QUEST_HPP
 #define QUEST_HPP
 
-#include "script/ScriptedThing.hpp"
+#include "thing/Thing.hpp"
 #include <memory>
 #include <string>
 
-class ScriptedQuest : public ScriptedThing
-{
-  public:
-    ScriptedQuest(const std::string& name);
-};
+std::shared_ptr<Thing> ScriptedQuest(const std::string& name,
+                                     const std::string& script_dir = "./scripts/quests/");
 
 #endif // QUEST_HPP

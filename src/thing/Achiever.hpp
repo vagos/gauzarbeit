@@ -16,7 +16,7 @@ class Achiever
 
         Stat() {}
 
-        virtual const std::string getName() { return ""; }
+        virtual const std::string getName() { return std::to_string(value); }
 
         float value = 0;
     };
@@ -25,7 +25,7 @@ class Achiever
     std::vector<std::shared_ptr<Thing>> completed_quests;
     std::unordered_map<std::string, std::shared_ptr<Stat>> extra_stats;
 
-    void setStat(const std::string& s_n, float val);
+    virtual void setStat(const std::string& s_n, float val);
     float getStat(const std::string& s_n);
 
     virtual void gainQuest(std::shared_ptr<Thing> quest) { quests.push_back(quest); }
