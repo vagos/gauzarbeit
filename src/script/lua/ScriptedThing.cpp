@@ -3,7 +3,7 @@
 #include "Quest.hpp"
 #include "Room.hpp"
 #include "Server.hpp"
-#include "script/LuaHelpers.hpp"
+#include "script/lua/LuaHelpers.hpp"
 #include "script/ScriptAPI.hpp"
 #include "script/ScriptPaths.hpp"
 #include <cassert>

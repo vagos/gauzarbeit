@@ -3,7 +3,7 @@
 #include "World.hpp"
 #include "player/Player.hpp"
 #include "player/PlayerNetworked.hpp"
-#include "script/LuaHelpers.hpp"
+#include "script/lua/LuaHelpers.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include "thing/Networked.hpp"
 #include <algorithm>

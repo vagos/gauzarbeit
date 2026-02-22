@@ -1,7 +1,7 @@
 #include "Room.hpp"
 #include "TestSupport.hpp"
 #include "player/Player.hpp"
-#include "script/LuaHelpers.hpp"
+#include "script/lua/LuaHelpers.hpp"
 #include "script/ScriptedThing.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include <doctest/doctest.h>

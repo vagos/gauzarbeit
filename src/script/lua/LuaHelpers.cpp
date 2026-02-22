@@ -1,4 +1,4 @@
-#include "script/LuaHelpers.hpp"
+#include "script/lua/LuaHelpers.hpp"
 #include "Helpers.hpp"
 
 bool CheckLua(lua_State* L, int r)
