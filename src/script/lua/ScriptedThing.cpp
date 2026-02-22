@@ -267,6 +267,8 @@ class ScriptedNetworked : public Networked
 ScriptedThing_Lua::ScriptedThing_Lua(const std::string& name, const std::string& script_dir)
     : script::ScriptedThing(name)
 {
+    script_language = ScriptLanguage::Lua;
+
     // Create components
     _usable = std::make_unique<ScriptedUsable>();
     _attackable = std::make_unique<ScriptedAttackable>();
@@ -291,8 +293,10 @@ ScriptedThing_Lua::ScriptedThing_Lua(const std::string& name, const std::string&
     lua_newtable(L);
 
     luaRef = luaL_ref(L, LUA_REGISTRYINDEX);
+    // Keep a lookup from Thing* to Lua registry table ref for lightuserdata dispatch.
+    luaRefs[this] = luaRef;
 
-    lua_pushlightuserdata(L, this);
+    lua_pushlightuserdata(L, static_cast<Thing*>(this));
 
     luaL_getmetatable(L, "Gauzarbeit.Thing");
     lua_setmetatable(L, -2);
@@ -305,49 +309,92 @@ ScriptedThing_Lua::ScriptedThing_Lua(const std::string& name, const std::string&
 
     if (lua_isfunction(L, -1))
     {
-        lua_pushlightuserdata(L, this);
+        lua_pushlightuserdata(L, static_cast<Thing*>(this));
 
         CheckLua(L, lua_pcall(L, 1, 0, 0));
     }
 }
 
+ScriptedThing_Lua::~ScriptedThing_Lua()
+{
+    auto ref_it = luaRefs.find(this);
+    if (ref_it != luaRefs.end())
+    {
+        // Release the Lua registry reference when the C++ owner dies.
+        luaL_unref(L, LUA_REGISTRYINDEX, ref_it->second);
+        luaRefs.erase(ref_it);
+    }
+}
+
+int ScriptedThing_Lua::GetLuaRef(const Thing* thing)
+{
+    auto ref_it = luaRefs.find(thing);
+    if (ref_it == luaRefs.end())
+        return LUA_NOREF;
+
+    return ref_it->second;
+}
+
 int ScriptedThing_Lua::Index(lua_State* L)
 {
-    ScriptedThing_Lua* ptrThing = (ScriptedThing_Lua*)lua_touserdata(L, 1);
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    if (!ptrThing)
+        return 0;
+
+    if (!lua_isstring(L, 2))
+        return 0;
+
     const char* index = lua_tostring(L, 2);
 
     luaL_getmetatable(L, "Gauzarbeit.Thing");
     lua_getfield(L, -1, index);
 
+    if (!lua_isnil(L, -1))
+        return 1;
+
+    lua_pop(L, 1);
+
+    if (ptrThing->script_language != Thing::ScriptLanguage::Lua)
+        return 0;
+
+    const int lua_ref = GetLuaRef(ptrThing);
+    if (lua_ref == LUA_NOREF)
+        return 0;
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, lua_ref);
+    lua_getfield(L, -1, index);
+
+    if (!lua_isnil(L, -1))
+        return 1;
+
+    lua_pop(L, 2);
+
+    lua_getglobal(L, ptrThing->name.c_str());
+    lua_getfield(L, -1, index);
+
     if (lua_isnil(L, -1))
-    {
-        lua_rawgeti(L, LUA_REGISTRYINDEX, ptrThing->luaRef);
-        lua_getfield(L, -1, index);
-
-        if (lua_isnil(L, -1))
-        {
-            lua_getglobal(L, ptrThing->name.c_str());
-            lua_getfield(L, -1, index);
-
-            if (lua_isnil(L, -1))
-                return 0;
-        }
-    }
+        return 0;
 
     return 1;
 }
 
 int ScriptedThing_Lua::NewIndex(lua_State* L)
 {
-    ScriptedThing_Lua* ptrThing = (ScriptedThing_Lua*)lua_touserdata(L, 1);
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    if (!ptrThing || ptrThing->script_language != Thing::ScriptLanguage::Lua)
+    {
+        // TODO: Support cross-language writes (e.g. Lua writing fields on JS-backed things).
+        return 0;
+    }
 
-    lua_rawgeti(L, LUA_REGISTRYINDEX, ptrThing->luaRef);
+    const int lua_ref = GetLuaRef(ptrThing);
+    if (lua_ref == LUA_NOREF)
+        return 0;
 
-    const char* index = lua_tostring(L, 2);
-
+    lua_rawgeti(L, LUA_REGISTRYINDEX, lua_ref);
     lua_pushvalue(L, 2);
     lua_pushvalue(L, 3);
-    lua_settable(L, 4);
+    lua_settable(L, -3);
 
     return 0;
 }
@@ -876,3 +923,4 @@ void ScriptedThing_Lua::Init()
 }
 
 lua_State* ScriptedThing_Lua::L = luaL_newstate();
+std::unordered_map<const Thing*, int> ScriptedThing_Lua::luaRefs;

@@ -65,6 +65,8 @@ class ScriptedThing_JS : public script::ScriptedThing
     ScriptedThing_JS(const std::string& name, const std::string& script_dir = "./scripts/things/")
         : script::ScriptedThing(name)
     {
+        script_language = ScriptLanguage::JS;
+
         _usable = std::make_unique<Usable>();
         _attackable = std::make_unique<Attackable>();
         _notifier = std::make_unique<Notifier>();

@@ -2,6 +2,7 @@
 #define SCRIPTED_THING_LUA_HPP
 
 #include "script/ScriptedThing.hpp"
+#include <unordered_map>
 
 class lua_State;
 
@@ -11,6 +12,7 @@ class ScriptedThing_Lua : public script::ScriptedThing
   public:
     ScriptedThing_Lua(const std::string& name,
                       const std::string& script_dir = "./scripts/things/");
+    ~ScriptedThing_Lua();
 
     static int Index(lua_State* L);
 
@@ -49,8 +51,11 @@ class ScriptedThing_Lua : public script::ScriptedThing
 
     static void Init();
 
+    static int GetLuaRef(const Thing* thing);
+
     static lua_State* L;
 
+    static std::unordered_map<const Thing*, int> luaRefs;
     int luaRef;
 };
 
