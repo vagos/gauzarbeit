@@ -1,6 +1,5 @@
 #include "Room.hpp"
 #include "Helpers.hpp"
-#include "player/PlayerNetworked.hpp"
 #include "script/LuaHelpers.hpp"
 #include "script/ScriptPaths.hpp"
 #include "script/lua/ScriptedThing.hpp"
@@ -39,7 +38,7 @@ void Room::addPlayer(std::shared_ptr<Thing> player)
 
 void Room::addThing(std::shared_ptr<Thing> thing)
 {
-    if (thing->_networked && std::dynamic_pointer_cast<PlayerNetworked>(thing->_networked))
+    if (thing->is_player)
     {
         addPlayer(thing);
         return;

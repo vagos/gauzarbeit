@@ -11,6 +11,8 @@
 
 Player::Player()
 {
+    is_player = true;
+
     _networked = std::make_unique<PlayerNetworked>();
     _physical = std::make_unique<PlayerPhysical>();
     _attackable = std::make_unique<PlayerAttackable>();
