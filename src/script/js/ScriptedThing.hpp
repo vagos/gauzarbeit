@@ -62,7 +62,7 @@ inline std::shared_ptr<Thing> FindByPtr(const std::vector<std::shared_ptr<Thing>
 class ScriptedThing_JS : public script::ScriptedThing
 {
   public:
-    ScriptedThing_JS(const std::string& name, const std::string& script_dir = "./scripts/things/")
+    ScriptedThing_JS(const std::string& name, const std::string& script_dir = "./dat/things/")
         : script::ScriptedThing(name)
     {
         script_language = ScriptLanguage::JS;

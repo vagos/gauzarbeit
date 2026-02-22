@@ -11,7 +11,7 @@ void InitScriptVMsForTests()
     if (initialized)
         return;
 
-    setenv("GAUZARBEIT_SCRIPT_ROOT", "tests/scripts", 1);
+    setenv("GAUZARBEIT_SCRIPT_ROOT", "tests/dat", 1);
     ScriptedThing_Lua::Init();
     ScriptedThing_JS::Init();
     initialized = true;

@@ -19,7 +19,7 @@ std::string ScriptPaths::Resolve(const std::string& relative)
             return candidate.string();
     }
 
-    return (std::filesystem::path("./scripts") / relative).string();
+    return (std::filesystem::path("./dat") / relative).string();
 }
 
 std::string ScriptPaths::ResolveDir(const std::string& dir)
@@ -32,7 +32,7 @@ std::string ScriptPaths::ResolveDir(const std::string& dir)
             return candidate.string();
     }
 
-    return (std::filesystem::path("./scripts") / dir).string();
+    return (std::filesystem::path("./dat") / dir).string();
 }
 
 std::string ScriptPaths::ResolveFromDir(const std::string& dir, const std::string& name,
@@ -55,7 +55,11 @@ std::string ScriptPaths::ResolveFromDir(const std::string& dir, const std::strin
     }
 
     std::string normalized = dir;
-    if (normalized.rfind("./scripts/", 0) == 0)
+    if (normalized.rfind("./dat/", 0) == 0)
+        normalized = normalized.substr(6);
+    else if (normalized.rfind("dat/", 0) == 0)
+        normalized = normalized.substr(4);
+    else if (normalized.rfind("./scripts/", 0) == 0)
         normalized = normalized.substr(10);
     else if (normalized.rfind("scripts/", 0) == 0)
         normalized = normalized.substr(8);
