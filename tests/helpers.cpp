@@ -2,8 +2,8 @@
 #include "Helpers.hpp"
 #include "script/js/ScriptedThing.hpp"
 #include "script/lua/ScriptedThing.hpp"
-#include <doctest/doctest.h>
 #include <cstdlib>
+#include <doctest/doctest.h>
 
 void InitScriptVMsForTests()
 {

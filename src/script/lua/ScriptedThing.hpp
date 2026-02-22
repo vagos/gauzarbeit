@@ -10,8 +10,7 @@ class ScriptedThing_Lua : public script::ScriptedThing
 {
 
   public:
-    ScriptedThing_Lua(const std::string& name,
-                      const std::string& script_dir = "./dat/things/");
+    ScriptedThing_Lua(const std::string& name, const std::string& script_dir = "./dat/things/");
     ~ScriptedThing_Lua();
 
     static int Index(lua_State* L);

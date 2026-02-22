@@ -3,9 +3,9 @@
 #include "Quest.hpp"
 #include "Room.hpp"
 #include "Server.hpp"
-#include "script/lua/LuaHelpers.hpp"
 #include "script/ScriptAPI.hpp"
 #include "script/ScriptPaths.hpp"
+#include "script/lua/LuaHelpers.hpp"
 #include <cassert>
 #include <memory>
 #include <string>
@@ -174,7 +174,8 @@ class ScriptedInspectable : public Inspectable
         return Inspectable::onInspect(owner, inspector) + std::string(lua_tostring(L, -1));
     }
 
-    const std::string onHelp(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector) override
+    const std::string onHelp(std::shared_ptr<Thing> owner,
+                             std::shared_ptr<Thing> inspector) override
     {
         const auto& L = ScriptedThing_Lua::L;
 
