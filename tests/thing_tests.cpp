@@ -1,5 +1,6 @@
 #include "Room.hpp"
 #include "TestSupport.hpp"
+#include "player/Player.hpp"
 #include <doctest/doctest.h>
 
 TEST_CASE("Physical pickup and drop move items between room and inventory")
@@ -129,4 +130,15 @@ TEST_CASE("Tasker completion and difficulty tracking")
 
     tasker.tickTask(task_index);
     CHECK(tasker.isCompleted());
+}
+
+TEST_CASE("Room routes players into players list when added as a thing")
+{
+    auto room = std::make_shared<Room>(0, 0);
+    auto player = std::make_shared<Player>();
+
+    room->addThing(player);
+
+    CHECK(std::find(room->players.begin(), room->players.end(), player) != room->players.end());
+    CHECK(std::find(room->things.begin(), room->things.end(), player) == room->things.end());
 }

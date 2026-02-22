@@ -32,6 +32,5 @@ class World
     void removeOfflinePlayers();
 
     void doUpdate();
-    void updateRooms();
 };
 #endif // WORLD_HPP

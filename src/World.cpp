@@ -20,7 +20,6 @@ const std::shared_ptr<Thing> World::getPlayer(const std::string& name) const
 
 void World::doUpdate()
 {
-
     for (auto& sys : systems)
     {
         sys->doUpdate(*this);
