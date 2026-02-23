@@ -5,7 +5,15 @@
 #include "script/js/ScriptedThing.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include "system/RoomSystem.hpp"
+#include <atomic>
+#include <csignal>
 #include <cstdlib>
+std::atomic<bool> keep_running{true};
+
+void HandleSignal(int)
+{
+    keep_running = false;
+}
 
 int main(int argc, char* argv[])
 {
@@ -30,10 +38,21 @@ int main(int argc, char* argv[])
     // Register systems
     world.systems.push_back(std::make_unique<RoomSystem>());
 
-    for (;;)
+    std::signal(SIGINT, HandleSignal);
+    std::signal(SIGTERM, HandleSignal);
+
+    while (keep_running)
     {
         server.doUpdate(world);
         world.doUpdate();
+    }
+
+    // Persist rooms to database on shutdown
+    for (auto& [key, room] : Room::mapRooms)
+    {
+        (void)key;
+        if (room && room->_networked)
+            room->networked()->doDatabaseStore(room);
     }
 
     return 0;

@@ -1,11 +1,25 @@
 #include "Room.hpp"
 #include "Helpers.hpp"
+#include "script/ScriptedThing.hpp"
 #include "script/ScriptPaths.hpp"
 #include "script/lua/LuaHelpers.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include <cstddef>
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <memory>
+#include <sstream>
+
+namespace
+{
+std::filesystem::path RoomDBPath(const Room& room)
+{
+    std::ostringstream filename;
+    filename << room.x << "_" << room.y;
+    return std::filesystem::path("./db/rooms") / filename.str();
+}
+} // namespace
 
 std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
 {
@@ -14,6 +28,8 @@ std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
     if (!mapRooms[key])
     {
         auto newRoom = std::make_shared<ScriptedRoom>(x, y); // Creating BasicRooms for testing.
+        if (newRoom->_networked)
+            newRoom->networked()->doDatabaseLoad(newRoom);
         Room::mapRooms[key] = newRoom;
     }
 
@@ -197,3 +213,105 @@ void ScriptedRoom::doUpdate(World& world)
 }
 
 std::unordered_map<std::int64_t, std::shared_ptr<Room>> Room::mapRooms{};
+
+void RoomNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
+{
+    auto room = std::static_pointer_cast<Room>(owner);
+    if (!room)
+        return;
+
+    const auto filename = RoomDBPath(*room);
+    if (!std::filesystem::exists(filename))
+        return;
+
+    if (db.is_open())
+        db.close();
+
+    db.open(filename, std::ios::in);
+    if (!db.is_open())
+        return;
+
+    std::string line;
+    db >> line;
+    if (line == "ROOM:")
+    {
+        db >> room->name;
+    }
+
+    db >> line;
+    if (line != "THINGS")
+    {
+        db.close();
+        return;
+    }
+
+    room->things.clear();
+
+    while (db >> line)
+    {
+        if (line == "END")
+            break;
+
+        try
+        {
+            auto thing = ScriptedThing(line);
+            if (thing->_physical)
+                thing->physical()->current_room = room;
+            room->addThing(thing);
+            if (thing->_networked)
+                thing->networked()->doDatabaseLoad(thing);
+        }
+        catch (std::exception& e)
+        {
+            Log("Skipping persisted room thing '" << line << "': " << e.what());
+        }
+    }
+
+    db.close();
+}
+
+const std::string RoomNetworked::doDatabaseSave(std::shared_ptr<Thing> owner)
+{
+    auto room = std::static_pointer_cast<Room>(owner);
+    if (!room)
+        return "";
+
+    std::stringstream data;
+    data << "ROOM: " << room->name << '\n';
+    data << "THINGS\n";
+    for (const auto& thing : room->things)
+    {
+        data << thing->name << '\n';
+    }
+    data << "END\n";
+
+    return data.str();
+}
+
+void RoomNetworked::doDatabaseStore(std::shared_ptr<Thing> owner)
+{
+    auto room = std::static_pointer_cast<Room>(owner);
+    if (!room)
+        return;
+
+    const std::filesystem::path room_dir("./db/rooms");
+    if (!std::filesystem::exists(room_dir))
+        std::filesystem::create_directories(room_dir);
+
+    const auto filename = RoomDBPath(*room);
+
+    if (db.is_open())
+        db.close();
+
+    db.open(filename, std::ios::out | std::ios::trunc);
+    if (!db.is_open())
+    {
+        std::ofstream file(filename);
+        db.open(filename, std::ios::out | std::ios::trunc);
+    }
+    if (!db.is_open())
+        return;
+
+    db << doDatabaseSave(owner);
+    db.close();
+}

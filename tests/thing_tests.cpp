@@ -4,6 +4,7 @@
 #include "script/ScriptedThing.hpp"
 #include "script/lua/LuaHelpers.hpp"
 #include "script/lua/ScriptedThing.hpp"
+#include <filesystem>
 #include <doctest/doctest.h>
 #include <lua.hpp>
 
@@ -208,4 +209,34 @@ TEST_CASE("Lua thing can index a JS thing via Lua __index")
                                  "other:getName() == 'TestTalker' and other.counter == nil"));
     CHECK(lua_toboolean(L, -1) == 1);
     lua_settop(L, 0);
+}
+
+TEST_CASE("Room serialization saves and restores non-player things")
+{
+    InitScriptVMsForTests();
+
+    const int x = 987;
+    const int y = 654;
+    const std::filesystem::path room_db = "./db/rooms/987_654";
+
+    std::filesystem::remove(room_db);
+    Room::mapRooms.clear();
+
+    auto room = Room::get(x, y);
+    room->name = "PersistedRoom";
+
+    auto dummy = ScriptedThing("TestDummy");
+    REQUIRE(dummy != nullptr);
+    dummy->physical()->current_room = room;
+    room->addThing(dummy);
+    room->networked()->doDatabaseStore(room);
+
+    Room::mapRooms.clear();
+
+    auto loaded = Room::get(x, y);
+    REQUIRE(loaded != nullptr);
+    CHECK(loaded->name == "PersistedRoom");
+    CHECK(loaded->getThing("TestDummy") != nullptr);
+
+    std::filesystem::remove(room_db);
 }
