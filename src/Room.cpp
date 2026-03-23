@@ -263,7 +263,9 @@ void RoomNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
         }
         catch (std::exception& e)
         {
-            Log("Skipping persisted room thing '" << line << "': " << e.what());
+            // Some runtime-only things (e.g. C++-spawned NPCs) are intentionally not script-backed.
+            if (std::string(e.what()).find("not found") == std::string::npos)
+                Log("Skipping persisted room thing '" << line << "': " << e.what());
         }
     }
 
@@ -281,6 +283,11 @@ const std::string RoomNetworked::doDatabaseSave(std::shared_ptr<Thing> owner)
     data << "THINGS\n";
     for (const auto& thing : room->things)
     {
+        // Persist only script-backed things
+        // TODO: Support dynamic loading for compiled-language NPCs without a factory registry.
+        if (thing->script_language == Thing::ScriptLanguage::None)
+            continue;
+
         data << thing->name << '\n';
     }
     data << "END\n";

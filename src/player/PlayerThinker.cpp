@@ -90,6 +90,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
             owner->networked()->addResponse(ColorString(res.str(), Color::Yellow));
         }
 
+        owner->notifier()->doNotify(owner, Event::Type::Ask, t);
         t->talker()->onTalk(t, owner);
 
         break;
