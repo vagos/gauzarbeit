@@ -42,6 +42,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Keep integration deterministic by rebuilding the starting room from scripts.
+rm -f "./db/rooms/0_0"
+
 GAUZARBEIT_SCRIPT_ROOT="tests/dat" ./build/main "$PORT" >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 

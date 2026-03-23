@@ -16,6 +16,16 @@ constexpr int SIZE = 65;
 #define Log(msg) std::cerr << __FILE__ << ":" << __LINE__ << " " << msg << std::endl;
 
 class Thing;
+class Networked;
+class Physical;
+class Usable;
+class Attackable;
+class Talker;
+class Notifier;
+class Achiever;
+class Tasker;
+class Inspectable;
+class Thinker;
 
 bool IsNumber(const std::string& s);
 bool PartlyMatch(const std::string& s1, const std::string& s2, int n = 3);

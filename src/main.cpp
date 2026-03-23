@@ -1,13 +1,15 @@
 #include "Server.hpp"
+#include "Helpers.hpp"
 #include "World.hpp"
-#include "extension/LLM.hpp"
-#include "llama.h"
 #include "script/js/ScriptedThing.hpp"
 #include "script/lua/ScriptedThing.hpp"
+#include "system/LLMSystem.hpp"
 #include "system/RoomSystem.hpp"
+#include "thing/LLMNotifier.hpp"
 #include <atomic>
 #include <csignal>
 #include <cstdlib>
+
 std::atomic<bool> keep_running{true};
 
 void HandleSignal(int)
@@ -17,9 +19,6 @@ void HandleSignal(int)
 
 int main(int argc, char* argv[])
 {
-    /* LMInit(); */
-    /* LMInference(); */
-
     ScriptedThing_Lua::Init();
     ScriptedThing_JS::Init();
 
@@ -35,7 +34,25 @@ int main(int argc, char* argv[])
     Server server(port, io_service, endpoint);
     World world;
 
-    // Register systems
+    try
+    {
+        auto llm_system = std::make_unique<LLMSystem>();
+        auto guide_bot = std::make_shared<Thing>("GuideBot");
+        guide_bot->_networked = std::make_shared<Networked>();
+        guide_bot->_physical = std::make_shared<Physical>();
+        guide_bot->_attackable = std::make_shared<Attackable>();
+        guide_bot->_notifier = std::make_shared<LLMNotifier>(10, 8, llm_system.get());
+        guide_bot->_achiever = std::make_shared<Achiever>();
+        guide_bot->_tasker = std::make_shared<Tasker>();
+        guide_bot->_inspectable = std::make_shared<Inspectable>();
+        guide_bot->_talker = std::make_shared<Talker>();
+        guide_bot->physical()->doMove(guide_bot, 0, 0);
+        world.systems.push_back(std::move(llm_system));
+    }
+    catch (const std::exception& e)
+    {
+        Log("LLM disabled: " << e.what());
+    }
     world.systems.push_back(std::make_unique<RoomSystem>());
 
     std::signal(SIGINT, HandleSignal);
