@@ -33,6 +33,9 @@ class Networked
     virtual void doDatabaseStore(std::shared_ptr<Thing> owner) {}
 
     void addResponse(const std::string& res) { streamResponse << res; }
+    void setStatusLine(const std::string& status) { status_line = status; }
+    const std::string& getStatusLine() const { return status_line; }
+    void clearStatusLine() { status_line.clear(); }
 
     void doDisconnect(const std::shared_ptr<Thing>& owner);
 
@@ -55,6 +58,7 @@ class Networked
 
     std::stringstream streamRequest;
     std::stringstream streamResponse;
+    std::string status_line;
 
     static std::fstream db;
 

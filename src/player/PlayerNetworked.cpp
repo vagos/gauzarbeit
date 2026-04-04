@@ -1,5 +1,6 @@
 #include "player/PlayerNetworked.hpp"
 #include "Exceptions.hpp"
+#include "Room.hpp"
 #include "player/CommandParser.hpp"
 #include "player/PlayerPhysical.hpp"
 #include "script/ScriptedThing.hpp"
@@ -122,14 +123,44 @@ void PlayerNetworked::getRequest(std::shared_ptr<Thing> owner, World& world)
 void PlayerNetworked::sendResponse(std::shared_ptr<Thing> owner)
 {
     if (!(streamResponse.str().size() || streamRequest.str().size()))
-        goto CLEAR;
+    {
+        clearStreams();
+        return;
+    }
 
-    addResponse(">> ");
+    if (!isOnline())
+    {
+        Server::sendMessage(*socket, streamResponse.str());
+        clearStatusLine();
+        clearStreams();
+        return;
+    }
 
-    Server::sendMessage(*socket, streamResponse.str());
+    if (owner->_physical && owner->physical()->current_room)
+    {
+        setStatusLine(owner->name + "@" + owner->physical()->current_room->name);
+    }
+    else
+    {
+        clearStatusLine();
+    }
 
-CLEAR:
+    std::string response = streamResponse.str();
+    if (!response.empty() && response.back() != '\n')
+    {
+        response += '\n';
+    }
 
+    if (!getStatusLine().empty())
+    {
+        response += "[" + getStatusLine() + "] >> ";
+    }
+    else
+    {
+        response += ">> ";
+    }
+
+    Server::sendMessage(*socket, response);
     clearStreams();
 }
 
