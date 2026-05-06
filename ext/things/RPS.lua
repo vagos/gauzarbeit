@@ -41,19 +41,17 @@ function RPS:onUse(user)
         self.originalPlayer.ptr = user
         return
     end
-        
     self.enemyPlayer.ptr = user:getPlayer( user:getEventInfo().object )
 
-    if self.enemyPlayer.ptr then 
+    if self.enemyPlayer.ptr then
         local msg = user:getName().." has challenged you to a game of Rock, Paper, Scissors!\n"
-        self.enemyPlayer.ptr:sendMessage(msg) 
+        self.enemyPlayer.ptr:sendMessage(msg)
 
         user:sendMessage("You have challenged "..self.enemyPlayer.ptr:getName().."!\n"..
         "Type 'use RPS {choice}' to make a move!\n")
-    else 
+    else
         user:sendMessage("Player not found!\n")
     end
-    
     if self.enemyPlayer.choice and self.originalPlayer.choice then self:runGame() end
 
 end
@@ -69,12 +67,10 @@ function RPS:onNotify(actor, notification_type, target)
         self.enemyPlayer.choice = actor:getEventInfo().extra 
 
         if self.enemyPlayer.choice and self.originalPlayer.choice then self:runGame() end
-    end  
+    end
 
 end
 
 function RPS:onHelp(user)
-
     return "Do USE RPS {player-name} to challenge another player.\n"
-    
 end
