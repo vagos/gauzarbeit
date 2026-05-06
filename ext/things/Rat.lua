@@ -5,6 +5,11 @@ function Rat:doInit()
 end
 
 function Rat:onAttack(attacker)
-    print("I'm a rat, ouch!")
     print(attacker:getName())
+end
+
+function Rat:onThink()
+  if (Gauzarbeit.WithChance(0.01)) then
+      self:doSay(self:getRoom(), "Squeak\n")
+   end
 end
