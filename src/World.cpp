@@ -1,8 +1,51 @@
 #include "World.hpp"
+#include "script/ScriptPaths.hpp"
+#include <algorithm>
+#include <filesystem>
+
+namespace
+{
+std::vector<std::string> LoadSpawnTable()
+{
+    const std::filesystem::path things_dir = ScriptPaths::ResolveDir("things");
+    if (!std::filesystem::exists(things_dir))
+    {
+        Log("World generation could not find thing scripts in " << things_dir.string());
+        return {};
+    }
+
+    std::vector<std::string> names;
+    for (const auto& entry : std::filesystem::directory_iterator(things_dir))
+    {
+        if (!entry.is_regular_file())
+            continue;
+
+        const auto extension = entry.path().extension();
+        if (extension != ".lua" && extension != ".js")
+            continue;
+
+        names.push_back(entry.path().stem().string());
+    }
+
+    std::sort(names.begin(), names.end());
+    names.erase(std::unique(names.begin(), names.end()), names.end());
+    return names;
+}
+} // namespace
+
+World* World::current_world = nullptr;
+std::vector<std::string> World::spawn_table = LoadSpawnTable();
 
 World::World()
 {
+    current_world = this;
     Player::setPlayerCommands();
+}
+
+World::~World()
+{
+    if (current_world == this)
+        current_world = nullptr;
 }
 
 const std::shared_ptr<Thing> World::getPlayer(const std::string& name) const
@@ -41,7 +84,7 @@ void World::doUpdate()
     {
         try
         {
-            player->thinker()->doThink(player);
+            player->thinker()->doThink(player, *this);
         }
         catch (std::exception& e)
         {

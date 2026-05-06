@@ -3,6 +3,7 @@
 #include "Helpers.hpp"
 #include "Quest.hpp"
 #include "Room.hpp"
+#include "World.hpp"
 #include "script/ScriptAPI.hpp"
 #include "script/ScriptPaths.hpp"
 #include "script/ScriptedThing.hpp"
@@ -62,7 +63,7 @@ inline std::shared_ptr<Thing> FindByPtr(const std::vector<std::shared_ptr<Thing>
 class ScriptedThing_JS : public script::ScriptedThing
 {
   public:
-    ScriptedThing_JS(const std::string& name, const std::string& script_dir = "./dat/things/")
+    ScriptedThing_JS(const std::string& name, const std::string& script_dir = "./ext/things/")
         : script::ScriptedThing(name)
     {
         script_language = ScriptLanguage::JS;
@@ -574,6 +575,25 @@ class ScriptedThing_JS : public script::ScriptedThing
         return newThingObject(ctx, r.get(), true);
     }
 
+    static JSValue gauzarbeitGenerateRoom(JSContext* ctx, JSValueConst this_val, int argc,
+                                          JSValueConst* argv)
+    {
+        if (argc < 2)
+            return JS_EXCEPTION;
+
+        int32_t x = 0;
+        int32_t y = 0;
+        if (JS_ToInt32(ctx, &x, argv[0]) || JS_ToInt32(ctx, &y, argv[1]))
+            return JS_EXCEPTION;
+
+        auto* world = World::getCurrent();
+        if (!world)
+            return JS_ThrowInternalError(ctx, "No active world for GenerateRoom");
+
+        auto r = Room::get(*world, x, y);
+        return newThingObject(ctx, r.get(), true);
+    }
+
     static JSValue gauzarbeitColorString(JSContext* ctx, JSValueConst this_val, int argc,
                                          JSValueConst* argv)
     {
@@ -677,6 +697,9 @@ class ScriptedThing_JS : public script::ScriptedThing
                           JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitSpawn, "Spawn", 3));
         JS_SetPropertyStr(ctx, gauzarbeit, "GetRoom",
                           JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGetRoom, "GetRoom", 3));
+        JS_SetPropertyStr(ctx, gauzarbeit, "GenerateRoom",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGenerateRoom,
+                                          "GenerateRoom", 2));
         JS_SetPropertyStr(
             ctx, gauzarbeit, "ColorString",
             JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitColorString, "ColorString", 2));

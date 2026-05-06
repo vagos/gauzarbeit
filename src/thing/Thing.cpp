@@ -20,7 +20,7 @@ void Thing::doUpdate(World& world)
     if (_attackable)
         _attackable->doUpdate(shared_from_this());
     if (_thinker)
-        _thinker->doThink(shared_from_this());
+        _thinker->doThink(shared_from_this(), world);
     if (_notifier)
         _notifier->doUpdate(shared_from_this());
 }

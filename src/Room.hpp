@@ -33,6 +33,7 @@ class Room : public Thing
     }
 
     static std::shared_ptr<Room> get(std::int32_t x, std::int32_t y);
+    static std::shared_ptr<Room> get(World& world, std::int32_t x, std::int32_t y);
 
     int x, y;
 

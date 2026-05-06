@@ -4,6 +4,8 @@
 #include "script/ScriptPaths.hpp"
 #include "script/lua/LuaHelpers.hpp"
 #include "script/lua/ScriptedThing.hpp"
+#include "system/WorldGenSystem.hpp"
+#include "World.hpp"
 #include <cstddef>
 #include <exception>
 #include <filesystem>
@@ -27,7 +29,33 @@ std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
 
     if (!mapRooms[key])
     {
-        auto newRoom = std::make_shared<ScriptedRoom>(x, y); // Creating BasicRooms for testing.
+        auto newRoom = std::make_shared<ScriptedRoom>(x, y);
+        if (newRoom->_networked)
+            newRoom->networked()->doDatabaseLoad(newRoom);
+        Room::mapRooms[key] = newRoom;
+    }
+
+    return mapRooms[key];
+}
+
+std::shared_ptr<Room> Room::get(World& world, std::int32_t x, std::int32_t y)
+{
+    std::int64_t key = (x & 0xFFFF) << 16 | (y & 0xFFFF);
+
+    if (!mapRooms[key])
+    {
+        std::ostringstream filename;
+        filename << x << "_" << y;
+        const auto room_db_path = std::filesystem::path("./db/rooms") / filename.str();
+
+        std::shared_ptr<Room> newRoom;
+        if (std::filesystem::exists(room_db_path))
+            newRoom = std::make_shared<ScriptedRoom>(x, y);
+        else if (auto* worldgen = world.getSystem<WorldGenSystem>())
+            newRoom = worldgen->generateRoom(x, y);
+        else
+            newRoom = std::make_shared<ScriptedRoom>(x, y);
+
         if (newRoom->_networked)
             newRoom->networked()->doDatabaseLoad(newRoom);
         Room::mapRooms[key] = newRoom;
@@ -235,7 +263,8 @@ void RoomNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
     db >> line;
     if (line == "ROOM:")
     {
-        db >> room->name;
+        std::getline(db >> std::ws, room->name);
+        room->name = TrimLine(room->name);
     }
 
     db >> line;
@@ -256,8 +285,9 @@ void RoomNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
         {
             auto thing = ScriptedThing(line);
             if (thing->_physical)
-                thing->physical()->current_room = room;
-            room->addThing(thing);
+                thing->physical()->doMove(thing, room);
+            else
+                room->addThing(thing);
             if (thing->_networked)
                 thing->networked()->doDatabaseLoad(thing);
         }

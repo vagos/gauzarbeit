@@ -14,8 +14,9 @@ class PlayerPhysical : public Physical
 
     void doUpdate(const std::shared_ptr<Thing>& owner, World& world) override;
     void doMove(std::shared_ptr<Thing> owner, int x, int y) override;
+    void doMove(std::shared_ptr<Thing> owner, World& world, int x, int y) override;
 
-    void moveDirection(std::shared_ptr<Thing> owner, const std::string& direction);
+    void moveDirection(std::shared_ptr<Thing> owner, World& world, const std::string& direction);
 };
 
 #endif

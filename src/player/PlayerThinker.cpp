@@ -10,7 +10,7 @@
 #include <memory>
 #include <sstream>
 
-void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
+void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 {
     const auto& event = owner->notifier()->event;
 
@@ -191,7 +191,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner)
     case Event::Type::Move:
     {
         std::static_pointer_cast<PlayerPhysical>(owner->physical())
-            ->moveDirection(owner, event.target);
+            ->moveDirection(owner, world, event.target);
         owner->notifier()->doNotify(owner, event.type);
         break;
     }

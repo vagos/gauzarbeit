@@ -92,7 +92,7 @@ void Server::updateClients(World& world)
         if (c->networked()->isOnline() && !c->physical()->current_room)
         {
             world.addPlayer(c);
-            c->physical()->doMove(c, 0, 0); // TODO: Move this
+            c->physical()->doMove(c, world, 0, 0); // TODO: Move this
         }
     }
 

@@ -6,6 +6,6 @@
 #include <string>
 
 std::shared_ptr<Thing> ScriptedQuest(const std::string& name,
-                                     const std::string& script_dir = "./dat/quests/");
+                                     const std::string& script_dir = "./ext/quests/");
 
 #endif // QUEST_HPP

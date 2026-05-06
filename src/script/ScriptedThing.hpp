@@ -15,4 +15,4 @@ class ScriptedThing : public Thing
 } // namespace script
 
 std::shared_ptr<Thing> ScriptedThing(const std::string& name,
-                                     const std::string& script_dir = "./dat/things/");
+                                     const std::string& script_dir = "./ext/things/");

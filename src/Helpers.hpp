@@ -6,6 +6,7 @@ constexpr int SIZE = 65;
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <exception>
+#include <filesystem>
 #include <list>
 #include <memory>
 #include <sstream>
@@ -30,6 +31,7 @@ class Thinker;
 bool IsNumber(const std::string& s);
 bool PartlyMatch(const std::string& s1, const std::string& s2, int n = 3);
 std::vector<std::string> TokenizeString(const std::string& s);
+std::string CapitalizeWord(std::string word);
 
 enum class Color
 {
@@ -96,47 +98,77 @@ const std::shared_ptr<Thing> FindByName(std::vector<std::shared_ptr<Thing>>& con
                                         const std::string& s);
 
 template <typename T, typename F>
-const std::string BlockListStringSimple(const T& c, const char b, F f, int step = 3,
-                                        int size = SIZE)
+const std::string BlockListString(const T& c, const char b, F f, int step = 3)
 {
-    int i = 0;
-    std::stringstream ss;
+    std::unordered_map<std::string, int> counts;
+    for (const auto& item : c)
+        counts[f(item)] += 1;
 
-    for (auto& t : c)
+    std::vector<std::string> cells;
+    for (const auto& [name, count] : counts)
     {
-        ss << b << (b ? ' ' : '\0') << f(t);
-        ss << '\t';
-        i++;
-        if (i % step == 0)
-            ss << '\n';
+        std::string cell;
+        if (b)
+            cell += std::string(1, b) + ' ';
+        cell += name;
+        if (count > 1)
+            cell += " (" + std::to_string(count) + ')';
+        cells.push_back(std::move(cell));
     }
 
-    return ss.str();
-}
+    if (cells.empty())
+        return "";
 
-template <typename T, typename F>
-const std::string BlockListString(const T& c, const char b, F f, int step = 3, int size = SIZE)
-{
-    // Group identical Things
-    std::unordered_map<std::string, int> m;
-
-    for (auto& t : c)
+    const auto visible_length = [](const std::string& s)
     {
-        m[f(t)] += 1;
-    }
+        std::size_t width = 0;
+        bool in_escape = false;
+        for (unsigned char ch : s)
+        {
+            if (in_escape)
+            {
+                if (ch == 'm')
+                    in_escape = false;
+                continue;
+            }
+
+            if (ch == '\x1b')
+            {
+                in_escape = true;
+                continue;
+            }
+
+            ++width;
+        }
+        return width;
+    };
+
+    std::size_t column_width = 0;
+    for (const auto& cell : cells)
+        column_width = std::max(column_width, visible_length(cell));
+    column_width += 2;
 
     std::stringstream ss;
-    int i = 0;
-
-    for (auto [name, n] : m)
+    for (std::size_t i = 0; i < cells.size(); ++i)
     {
-        ss << b << ' ' << name;
-        if (n > 1)
-            ss << " (" << n << ')';
-        ss << '\t';
-        i++;
-        if (i % step == 0)
+        ss << cells[i];
+
+        const bool end_of_row = (i + 1) % std::max(1, step) == 0;
+        const bool last = i + 1 == cells.size();
+        if (end_of_row)
+        {
             ss << '\n';
+            continue;
+        }
+
+        if (!last)
+        {
+            const std::size_t visible_width = visible_length(cells[i]);
+            if (visible_width < column_width)
+                ss << std::string(column_width - visible_width, ' ');
+            else
+                ss << ' ';
+        }
     }
 
     return ss.str();
@@ -144,6 +176,8 @@ const std::string BlockListString(const T& c, const char b, F f, int step = 3, i
 
 const std::string BarString(float filled, int max_size = SIZE, const char f = ':',
                             const char lb = '[', const char rb = ']');
+std::string TrimLine(std::string line);
+std::vector<std::string> LoadLines(const std::filesystem::path& path);
 
 template <typename T, typename F>
 const std::string VerticalListString(const T& c, const char b, F f, const char sep = 0,

@@ -20,6 +20,8 @@ class Physical
 
     virtual void doMove(std::shared_ptr<Thing> owner, int x,
                         int y); // Move to room on coords x and y.
+    virtual void doMove(std::shared_ptr<Thing> owner, std::shared_ptr<Room> target_room);
+    virtual void doMove(std::shared_ptr<Thing> owner, World& world, int x, int y);
 
     std::shared_ptr<Room> getRoom() { return current_room; }
 

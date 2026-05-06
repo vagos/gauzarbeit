@@ -2,6 +2,7 @@
 #include "Exceptions.hpp"
 #include "thing/Thing.hpp"
 #include <boost/algorithm/string.hpp>
+#include <cctype>
 #include <iostream>
 #include <memory>
 #include <regex>
@@ -41,6 +42,14 @@ std::vector<std::string> TokenizeString(const std::string& s)
 
     return std::vector<std::string>(std::sregex_token_iterator{begin(s), end(s), re, -1},
                                     std::sregex_token_iterator{});
+}
+
+std::string CapitalizeWord(std::string word)
+{
+    if (!word.empty())
+        word[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(word[0])));
+
+    return word;
 }
 
 const std::string GetColor(Color color_code)
@@ -105,6 +114,41 @@ const std::string BarString(float filled, int max_size, const char f, const char
     s += rb;
 
     return s;
+}
+
+std::string TrimLine(std::string line)
+{
+    if (line.rfind("\xEF\xBB\xBF", 0) == 0)
+        line.erase(0, 3);
+
+    const std::string whitespace = " \t\r\n";
+    const std::size_t first = line.find_first_not_of(whitespace);
+    if (first == std::string::npos)
+        return "";
+
+    const std::size_t last = line.find_last_not_of(whitespace);
+    return line.substr(first, last - first + 1);
+}
+
+std::vector<std::string> LoadLines(const std::filesystem::path& path)
+{
+    std::ifstream file(path);
+    if (!file.is_open())
+    {
+        Log("World generation could not open " << path.string());
+        return {};
+    }
+
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(file, line))
+    {
+        line = TrimLine(line);
+        if (!line.empty())
+            lines.push_back(line);
+    }
+
+    return lines;
 }
 
 class Thing;

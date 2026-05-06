@@ -5,6 +5,7 @@
 #include "script/lua/ScriptedThing.hpp"
 #include "system/LLMSystem.hpp"
 #include "system/RoomSystem.hpp"
+#include "system/WorldGenSystem.hpp"
 #include "thing/LLMNotifier.hpp"
 #include <atomic>
 #include <csignal>
@@ -33,6 +34,7 @@ int main(int argc, char* argv[])
 
     Server server(port, io_service, endpoint);
     World world;
+    world.systems.push_back(std::make_unique<WorldGenSystem>());
 
     try
     {

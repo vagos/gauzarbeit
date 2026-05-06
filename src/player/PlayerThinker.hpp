@@ -8,7 +8,7 @@ class PlayerThinker : public Thinker
   public:
     PlayerThinker() {}
 
-    void doThink(const std::shared_ptr<Thing>& owner) override;
+    void doThink(const std::shared_ptr<Thing>& owner, World& world) override;
 };
 
 #endif

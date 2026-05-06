@@ -3,6 +3,7 @@
 #include "Quest.hpp"
 #include "Room.hpp"
 #include "Server.hpp"
+#include "World.hpp"
 #include "script/ScriptAPI.hpp"
 #include "script/ScriptPaths.hpp"
 #include "script/lua/LuaHelpers.hpp"
@@ -818,6 +819,21 @@ int Gauzarbeit_Room(lua_State* L)
     return 1;
 }
 
+int Gauzarbeit_GenerateRoom(lua_State* L)
+{
+    int x = (int)lua_tonumber(L, 1);
+    int y = (int)lua_tonumber(L, 2);
+
+    auto* world = World::getCurrent();
+    if (!world)
+        throw std::runtime_error("No active world for GenerateRoom");
+
+    auto r = Room::get(*world, x, y);
+    lua_pushlightuserdata(L, r.get());
+
+    return 1;
+}
+
 int Gauzarbeit_ColorString(lua_State* L)
 {
     assert(lua_isstring(L, 1));
@@ -908,6 +924,7 @@ void ScriptedThing_Lua::Init()
 
     const luaL_Reg gauzarbeitFuncs[] = {{"Spawn", Gauzarbeit_Spawn},
                                         {"GetRoom", Gauzarbeit_Room},
+                                        {"GenerateRoom", Gauzarbeit_GenerateRoom},
                                         {"ColorString", Gauzarbeit_ColorString},
                                         {"GetDBLine", Gauzarbeit_LoadDB},
                                         // CreateStat

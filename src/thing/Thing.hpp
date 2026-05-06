@@ -210,7 +210,7 @@ class Thinker
   public:
     Thinker() {}
 
-    virtual void doThink(const std::shared_ptr<Thing>& owner) {}
+    virtual void doThink(const std::shared_ptr<Thing>& owner, World& world) {}
 };
 
 class Usable

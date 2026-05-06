@@ -13,11 +13,8 @@ class Achiever
   public:
     struct Stat
     {
-
         Stat() {}
-
         virtual const std::string getName() { return std::to_string(value); }
-
         float value = 0;
     };
 
@@ -32,16 +29,12 @@ class Achiever
     const std::shared_ptr<Thing> getQuest(const std::string& q_name);
 
     void doUpdate(const std::shared_ptr<Thing>& owner);
-
     virtual void onQuestComplete(const std::shared_ptr<Thing>& owner,
                                  const std::shared_ptr<Thing>& quest);
 
     void gainXP(int extra_xp) { xp += extra_xp; }
-
     virtual void getRewards(const std::shared_ptr<Thing> owner, int size) { gainXP(size); }
-
     int getLevel() { return xp / 10; }
-
     int getXP() { return xp; }
 
   private:
