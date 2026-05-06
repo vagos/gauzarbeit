@@ -64,6 +64,7 @@ class Thing : public std::enable_shared_from_this<Thing>
     std::size_t id;
     static std::size_t lastID;
     bool is_player = false;
+    double next_update_time = 0.0;
     ScriptLanguage script_language = ScriptLanguage::None;
 
     friend std::ostream& operator<<(std::ostream& os, const Thing& thing)

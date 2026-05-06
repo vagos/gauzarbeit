@@ -19,7 +19,7 @@ std::string ScriptPaths::Resolve(const std::string& relative)
             return candidate.string();
     }
 
-    return (std::filesystem::path("./dat") / relative).string();
+    return (std::filesystem::path("./ext") / relative).string();
 }
 
 std::string ScriptPaths::ResolveDir(const std::string& dir)

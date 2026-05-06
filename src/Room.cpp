@@ -30,9 +30,9 @@ std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
     if (!mapRooms[key])
     {
         auto newRoom = std::make_shared<ScriptedRoom>(x, y);
+        Room::mapRooms[key] = newRoom;
         if (newRoom->_networked)
             newRoom->networked()->doDatabaseLoad(newRoom);
-        Room::mapRooms[key] = newRoom;
     }
 
     return mapRooms[key];
@@ -56,9 +56,9 @@ std::shared_ptr<Room> Room::get(World& world, std::int32_t x, std::int32_t y)
         else
             newRoom = std::make_shared<ScriptedRoom>(x, y);
 
+        Room::mapRooms[key] = newRoom;
         if (newRoom->_networked)
             newRoom->networked()->doDatabaseLoad(newRoom);
-        Room::mapRooms[key] = newRoom;
     }
 
     return mapRooms[key];
@@ -157,8 +157,30 @@ const std::string Room::onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<
     return inspect.str();
 }
 
+void Room::onSay(const std::shared_ptr<Thing>& speaker, const std::string& message)
+{
+    if (!speaker)
+        return;
+
+    std::stringstream line;
+    line << speaker->name << ": " << message;
+
+    for (const auto& player : players)
+    {
+        if (!player || player == speaker || !player->_networked)
+            continue;
+
+        player->networked()->addResponse(line.str());
+    }
+}
+
 void ScriptedRoom::doGeneration()
 {
+    if (has_generated)
+        return;
+
+    has_generated = true;
+
     const auto& L = ScriptedThing_Lua::L;
 
     lua_getglobal(L, name.c_str());
@@ -299,6 +321,7 @@ void RoomNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
         }
     }
 
+    room->has_generated = true;
     db.close();
 }
 

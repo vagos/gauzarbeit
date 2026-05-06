@@ -69,6 +69,10 @@ std::shared_ptr<Room> WorldGenSystem::generateRoom(int x, int y)
 
     auto room = std::make_shared<ScriptedRoom>(x, y);
     room->name = generateRoomName(rng);
+
+    const std::int64_t key = (x & 0xFFFF) << 16 | (y & 0xFFFF);
+    Room::mapRooms[key] = room;
+
     populateRoom(room, rng);
 
     return room;

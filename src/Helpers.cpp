@@ -5,6 +5,7 @@
 #include <cctype>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <regex>
 #include <sstream>
 
@@ -50,6 +51,18 @@ std::string CapitalizeWord(std::string word)
         word[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(word[0])));
 
     return word;
+}
+
+bool WithChance(double probability)
+{
+    if (probability <= 0.0)
+        return false;
+    if (probability >= 1.0)
+        return true;
+
+    static thread_local std::mt19937_64 rng(std::random_device{}());
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    return distribution(rng) < probability;
 }
 
 const std::string GetColor(Color color_code)

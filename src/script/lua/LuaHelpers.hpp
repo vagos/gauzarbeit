@@ -5,11 +5,21 @@
 #include <iostream>
 #include <lua.hpp>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 class Thing;
 
-bool CheckLua(lua_State* L, int r);
+#define CheckLua(L, r)                                                                             \
+    do                                                                                             \
+    {                                                                                              \
+        if ((r) != LUA_OK)                                                                         \
+        {                                                                                          \
+            std::string errormsg = lua_tostring((L), -1);                                          \
+            Log(errormsg);                                                                         \
+            throw std::runtime_error("Lua error: " + errormsg);                                    \
+        }                                                                                          \
+    } while (0)
 
 template <typename T> const std::shared_ptr<Thing> GetSmartPtr(const T& c, Thing* t_ptr)
 {

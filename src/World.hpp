@@ -6,6 +6,7 @@
 #include "player/Player.hpp"
 #include "thing/Thing.hpp"
 #include <algorithm>
+#include <chrono>
 #include <cstddef>
 #include <list>
 #include <map>
@@ -47,10 +48,13 @@ class World
     void addPlayer(std::shared_ptr<Thing> player);
     void removePlayer(const std::shared_ptr<Thing>& player);
     void removeOfflinePlayers();
+    double getCurrentTime() const { return current_time_seconds; }
 
     void doUpdate();
 
   private:
     static World* current_world;
+    std::chrono::steady_clock::time_point start_time;
+    double current_time_seconds = 0.0;
 };
 #endif // WORLD_HPP

@@ -49,6 +49,7 @@ class Room : public Thing
     const std::shared_ptr<Thing> getAnything(const std::string& name);
 
     const std::string onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector);
+    void onSay(const std::shared_ptr<Thing>& speaker, const std::string& message);
 
     virtual void doUpdate(World& world);
 
@@ -59,6 +60,7 @@ class Room : public Thing
 
     std::vector<std::shared_ptr<Thing>> players;
     std::vector<std::shared_ptr<Thing>> things;
+    bool has_generated = false;
 };
 
 class ScriptedRoom : public Room

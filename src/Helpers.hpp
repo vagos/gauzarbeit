@@ -32,6 +32,7 @@ bool IsNumber(const std::string& s);
 bool PartlyMatch(const std::string& s1, const std::string& s2, int n = 3);
 std::vector<std::string> TokenizeString(const std::string& s);
 std::string CapitalizeWord(std::string word);
+bool WithChance(double probability);
 
 enum class Color
 {

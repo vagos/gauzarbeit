@@ -60,6 +60,42 @@ inline std::shared_ptr<Thing> FindByPtr(const std::vector<std::shared_ptr<Thing>
     return r != c.end() ? *r : nullptr;
 }
 
+inline std::shared_ptr<Room> FindRoomByThingPtr(Thing* thing_ptr)
+{
+    for (const auto& [_, room] : Room::mapRooms)
+    {
+        if (room.get() == thing_ptr)
+            return room;
+    }
+
+    return nullptr;
+}
+
+inline std::shared_ptr<Thing> ResolveThingTarget(Thing* owner_ptr, Thing* target_ptr)
+{
+    if (!owner_ptr || !target_ptr || !owner_ptr->_physical)
+        return nullptr;
+
+    if (owner_ptr == target_ptr)
+        return owner_ptr->shared_from_this();
+
+    auto& current_room = owner_ptr->physical()->current_room;
+    if (current_room)
+    {
+        if (auto target = FindByPtr(current_room->players, target_ptr))
+            return target;
+        if (auto target = FindByPtr(current_room->things, target_ptr))
+            return target;
+    }
+
+    if (auto target = FindByPtr(owner_ptr->physical()->inventory, target_ptr))
+        return target;
+
+    return nullptr;
+}
+
+std::unique_ptr<Thinker> MakeScriptedThinkerJS();
+
 class ScriptedThing_JS : public script::ScriptedThing
 {
   public:
@@ -75,6 +111,7 @@ class ScriptedThing_JS : public script::ScriptedThing
         _physical = std::make_unique<Physical>();
         _inspectable = std::make_unique<Inspectable>();
         _talker = std::make_unique<Talker>();
+        _thinker = MakeScriptedThinkerJS();
         _achiever = std::make_unique<Achiever>();
         _networked = std::make_unique<Networked>();
 
@@ -271,6 +308,59 @@ class ScriptedThing_JS : public script::ScriptedThing
         return newThingObject(ctx, player.get());
     }
 
+    static JSValue getRoom(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+    {
+        auto t = self(ctx, this_val);
+        if (!t)
+            return JS_EXCEPTION;
+
+        if (auto room = FindRoomByThingPtr(t))
+            return newThingObject(ctx, room.get(), true);
+
+        if (!t->_physical || !t->physical()->current_room)
+            return JS_UNDEFINED;
+
+        return newThingObject(ctx, t->physical()->current_room.get(), true);
+    }
+
+    static JSValue getThings(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+    {
+        auto room = FindRoomByThingPtr(self(ctx, this_val));
+        if (!room)
+            return JS_UNDEFINED;
+
+        JSValue array = JS_NewArray(ctx);
+        uint32_t index = 0;
+        for (const auto& thing : room->things)
+        {
+            if (!thing)
+                continue;
+
+            JS_SetPropertyUint32(ctx, array, index++, newThingObject(ctx, thing.get()));
+        }
+
+        return array;
+    }
+
+    static JSValue getPlayers(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+    {
+        auto room = FindRoomByThingPtr(self(ctx, this_val));
+        if (!room)
+            return JS_UNDEFINED;
+
+        JSValue array = JS_NewArray(ctx);
+        uint32_t index = 0;
+        for (const auto& player : room->players)
+        {
+            if (!player)
+                continue;
+
+            JS_SetPropertyUint32(ctx, array, index++, newThingObject(ctx, player.get()));
+        }
+
+        return array;
+    }
+
     static JSValue gainItem(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
     {
         auto t = self(ctx, this_val);
@@ -306,12 +396,50 @@ class ScriptedThing_JS : public script::ScriptedThing
         if (!t || argc < 1)
             return JS_EXCEPTION;
 
+        if (JS_IsString(argv[0]))
+        {
+            std::string name;
+            if (!toString(ctx, argv[0], name))
+                return JS_EXCEPTION;
+
+            auto item = t->physical()->getItem(name);
+            return JS_NewBool(ctx, item && t->physical()->hasItem(item));
+        }
+
         Thing* item_ptr = argThing(ctx, argv[0]);
         if (!item_ptr)
             return JS_NewBool(ctx, 0);
 
         auto item = FindByPtr(t->physical()->inventory, item_ptr);
         return JS_NewBool(ctx, item && t->physical()->hasItem(item));
+    }
+
+    static JSValue moveTo(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+    {
+        auto t = self(ctx, this_val);
+        if (!t || argc < 1 || !t->_physical)
+            return JS_EXCEPTION;
+
+        if (argc >= 1 && JS_IsObject(argv[0]))
+        {
+            auto room = FindRoomByThingPtr(argThing(ctx, argv[0]));
+            if (room)
+            {
+                t->physical()->doMove(t->shared_from_this(), room);
+                return JS_UNDEFINED;
+            }
+        }
+
+        if (argc < 2)
+            return JS_EXCEPTION;
+
+        int32_t x = 0;
+        int32_t y = 0;
+        if (JS_ToInt32(ctx, &x, argv[0]) || JS_ToInt32(ctx, &y, argv[1]))
+            return JS_EXCEPTION;
+
+        t->physical()->doMove(t->shared_from_this(), x, y);
+        return JS_UNDEFINED;
     }
 
     static JSValue broadcastMessage(JSContext* ctx, JSValueConst this_val, int argc,
@@ -429,10 +557,26 @@ class ScriptedThing_JS : public script::ScriptedThing
         if (!toString(ctx, argv[1], message))
             return JS_EXCEPTION;
 
+        if (t->_physical && t->physical()->current_room &&
+            target == t->physical()->current_room.get())
+        {
+            t->physical()->current_room->onSay(t->shared_from_this(), message);
+            return JS_UNDEFINED;
+        }
+
+        if (auto room = FindRoomByThingPtr(target))
+        {
+            room->onSay(t->shared_from_this(), message);
+            return JS_UNDEFINED;
+        }
+
+        auto target_thing = ResolveThingTarget(t, target);
+        if (!target_thing || !target_thing->_networked)
+            return JS_UNDEFINED;
+
         std::stringstream msg;
         msg << t->name << ": " << message;
-        if (target->_networked)
-            target->networked()->addResponse(msg.str());
+        target_thing->networked()->addResponse(msg.str());
         return JS_UNDEFINED;
     }
 
@@ -574,26 +718,7 @@ class ScriptedThing_JS : public script::ScriptedThing
 
         return newThingObject(ctx, r.get(), true);
     }
-
-    static JSValue gauzarbeitGenerateRoom(JSContext* ctx, JSValueConst this_val, int argc,
-                                          JSValueConst* argv)
-    {
-        if (argc < 2)
-            return JS_EXCEPTION;
-
-        int32_t x = 0;
-        int32_t y = 0;
-        if (JS_ToInt32(ctx, &x, argv[0]) || JS_ToInt32(ctx, &y, argv[1]))
-            return JS_EXCEPTION;
-
-        auto* world = World::getCurrent();
-        if (!world)
-            return JS_ThrowInternalError(ctx, "No active world for GenerateRoom");
-
-        auto r = Room::get(*world, x, y);
-        return newThingObject(ctx, r.get(), true);
-    }
-
+    
     static JSValue gauzarbeitColorString(JSContext* ctx, JSValueConst this_val, int argc,
                                          JSValueConst* argv)
     {
@@ -618,6 +743,19 @@ class ScriptedThing_JS : public script::ScriptedThing
         std::string db_line;
         Networked::getDB() >> db_line;
         return JS_NewString(ctx, db_line.c_str());
+    }
+
+    static JSValue gauzarbeitWithChance(JSContext* ctx, JSValueConst this_val, int argc,
+                                        JSValueConst* argv)
+    {
+        if (argc < 1)
+            return JS_EXCEPTION;
+
+        double probability = 0;
+        if (JS_ToFloat64(ctx, &probability, argv[0]))
+            return JS_EXCEPTION;
+
+        return JS_NewBool(ctx, WithChance(probability));
     }
 
     static void Init()
@@ -665,10 +803,18 @@ class ScriptedThing_JS : public script::ScriptedThing
                           JS_NewCFunction(ctx, ScriptedThing_JS::getThing, "getThing", 1));
         JS_SetPropertyStr(ctx, proto, "getPlayer",
                           JS_NewCFunction(ctx, ScriptedThing_JS::getPlayer, "getPlayer", 1));
+        JS_SetPropertyStr(ctx, proto, "getRoom",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::getRoom, "getRoom", 0));
+        JS_SetPropertyStr(ctx, proto, "getThings",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::getThings, "getThings", 0));
+        JS_SetPropertyStr(ctx, proto, "getPlayers",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::getPlayers, "getPlayers", 0));
         JS_SetPropertyStr(ctx, proto, "gainItem",
                           JS_NewCFunction(ctx, ScriptedThing_JS::gainItem, "gainItem", 1));
         JS_SetPropertyStr(ctx, proto, "hasItem",
                           JS_NewCFunction(ctx, ScriptedThing_JS::hasItem, "hasItem", 1));
+        JS_SetPropertyStr(ctx, proto, "moveTo",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::moveTo, "moveTo", 2));
         JS_SetPropertyStr(
             ctx, proto, "broadcastMessage",
             JS_NewCFunction(ctx, ScriptedThing_JS::broadcastMessage, "broadcastMessage", 1));
@@ -697,15 +843,15 @@ class ScriptedThing_JS : public script::ScriptedThing
                           JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitSpawn, "Spawn", 3));
         JS_SetPropertyStr(ctx, gauzarbeit, "GetRoom",
                           JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGetRoom, "GetRoom", 3));
-        JS_SetPropertyStr(ctx, gauzarbeit, "GenerateRoom",
-                          JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGenerateRoom,
-                                          "GenerateRoom", 2));
         JS_SetPropertyStr(
             ctx, gauzarbeit, "ColorString",
             JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitColorString, "ColorString", 2));
         JS_SetPropertyStr(
             ctx, gauzarbeit, "GetDBLine",
             JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGetDBLine, "GetDBLine", 0));
+        JS_SetPropertyStr(
+            ctx, gauzarbeit, "WithChance",
+            JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitWithChance, "WithChance", 1));
 
         JSValue event_obj = JS_NewObject(ctx);
         for (const ScriptConstant* c = ScriptAPI::kEventConstants; c->name; ++c)
@@ -744,3 +890,33 @@ class ScriptedThing_JS : public script::ScriptedThing
     static JSContext* ctx;
     static JSClassID classID;
 };
+
+class ScriptedThinker_JS : public Thinker
+{
+  public:
+    void doThink(const std::shared_ptr<Thing>& owner, World& world) override
+    {
+        (void)world;
+
+        JSContext* ctx = ScriptedThing_JS::ctx;
+        JSValue global = JS_GetGlobalObject(ctx);
+        JSValue obj = JS_GetPropertyStr(ctx, global, owner->name.c_str());
+        JSValue fn = JS_GetPropertyStr(ctx, obj, "onThink");
+
+        if (JS_IsFunction(ctx, fn))
+        {
+            JSValue ret = JS_Call(ctx, fn, obj, 1, &obj);
+            CheckJS(ctx, ret);
+            JS_FreeValue(ctx, ret);
+        }
+
+        JS_FreeValue(ctx, fn);
+        JS_FreeValue(ctx, obj);
+        JS_FreeValue(ctx, global);
+    }
+};
+
+inline std::unique_ptr<Thinker> MakeScriptedThinkerJS()
+{
+    return std::make_unique<ScriptedThinker_JS>();
+}

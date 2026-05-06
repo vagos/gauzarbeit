@@ -26,18 +26,15 @@ class Physical
     std::shared_ptr<Room> getRoom() { return current_room; }
 
     void gainItem(std::shared_ptr<Thing> item) { inventory.push_back(item); }
-
     void giveItem(std::shared_ptr<Thing> target, std::shared_ptr<Thing> item);
 
     std::shared_ptr<Thing> getItem(std::string item_name);
-
     std::shared_ptr<Thing> getItem(int item_index) { return inventory[item_index]; }
 
     void loseItem(std::shared_ptr<Thing> item)
     {
         inventory.erase(std::remove(inventory.begin(), inventory.end(), item), inventory.end());
     }
-
     void dropItem(std::shared_ptr<Thing> item);
     void pickupItem(std::shared_ptr<Thing> item);
 

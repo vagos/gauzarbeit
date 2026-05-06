@@ -39,6 +39,7 @@ std::vector<std::string> World::spawn_table = LoadSpawnTable();
 World::World()
 {
     current_world = this;
+    start_time = std::chrono::steady_clock::now();
     Player::setPlayerCommands();
 }
 
@@ -63,6 +64,9 @@ const std::shared_ptr<Thing> World::getPlayer(const std::string& name) const
 
 void World::doUpdate()
 {
+    const auto now = std::chrono::steady_clock::now();
+    current_time_seconds = std::chrono::duration<double>(now - start_time).count();
+
     for (auto& sys : systems)
     {
         sys->doUpdate(*this);

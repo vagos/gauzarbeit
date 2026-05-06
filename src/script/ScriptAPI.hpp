@@ -13,14 +13,16 @@ struct ScriptConstant
 struct ScriptAPI
 {
     static constexpr const char* kThingMethods[] = {
-        "getName",  "getType",          "setStat",   "getStat",  "sendMessage", "doSay",
-        "loseItem", "dropItem",         "equipItem", "getThing", "getPlayer",   "gainItem",
-        "hasItem",  "broadcastMessage", "addTask",   "tickTask", "gainXP",      "getEventInfo",
-        "getLevel", "gainQuest",        "doAttack",  nullptr,
+        "getName",          "getType",    "setStat",     "getStat",      "sendMessage",
+        "doSay",            "loseItem",   "dropItem",    "equipItem",    "getThing",
+        "getPlayer",        "getRoom",    "getThings",   "getPlayers",   "gainItem",
+        "hasItem",          "moveTo",     "broadcastMessage", "addTask",  "tickTask",
+        "gainXP",           "getEventInfo", "getLevel",  "gainQuest",    "doAttack",
+        nullptr,
     };
 
     static constexpr const char* kGauzarbeitFuncs[] = {
-        "Spawn", "GetRoom", "GenerateRoom", "ColorString", "GetDBLine", nullptr,
+        "Spawn", "GetRoom", "ColorString", "GetDBLine", "WithChance", nullptr,
     };
 
     static constexpr ScriptConstant kEventConstants[] = {
