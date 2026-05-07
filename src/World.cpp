@@ -96,6 +96,18 @@ void World::doUpdate()
         }
     }
 
+    for (auto& [name, player] : playersOnline)
+    {
+        try
+        {
+            player->tasker()->doUpdate(player);
+        }
+        catch (std::exception& e)
+        {
+            HandleException(player, e);
+        }
+    }
+
     for (auto& [name, player] : playersOnline) // TODO: make this last
         player->notifier()->clearEvent();
 

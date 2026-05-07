@@ -1,7 +1,6 @@
 #ifndef PLAYER_NOTIFIER_HPP
 #define PLAYER_NOTIFIER_HPP
 
-#include "Quest.hpp"
 #include "Room.hpp"
 #include "thing/Thing.hpp"
 #include <cassert>

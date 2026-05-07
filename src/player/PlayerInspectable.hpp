@@ -48,12 +48,12 @@ class PlayerInspectable : public Inspectable
             {
                 inspect << "Tasks: \n";
                 inspect << VerticalListString(owner->tasker()->tasks, '-',
-                                              [owner](const Tasker::Task& task)
+                                              [owner](const std::unique_ptr<Tasker::Task>& task)
                                               {
                                                   std::stringstream ss;
-                                                  ss << '[' << (task.tick ? 'x' : ' ') << ']'
+                                                  ss << '[' << (task->tick ? 'x' : ' ') << ']'
                                                      << ' ';
-                                                  ss << owner->tasker()->formatTask(task);
+                                                  ss << owner->tasker()->formatTask(*task);
                                                   return ss.str();
                                               });
             }
