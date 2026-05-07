@@ -183,6 +183,37 @@ TEST_CASE("Lua index skips Lua-only field lookup for JS scripted things")
     lua_settop(L, 0);
 }
 
+TEST_CASE("Lua GetRoom with no arguments returns a sorted room list")
+{
+    InitScriptVMsForTests();
+
+    Room::mapRooms.clear();
+
+    auto room_a = Room::get(2, 1);
+    room_a->name = "Alpha";
+    auto room_b = Room::get(1, 3);
+    room_b->name = "Beta";
+
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+
+    CheckLua(L, luaL_dostring(
+                    L,
+                    "local rooms = Gauzarbeit.GetRoom()\n"
+                    "return #rooms, rooms[1].x, rooms[1].y, rooms[1].name, rooms[2].x, rooms[2].y, rooms[2].name"));
+
+    REQUIRE(lua_gettop(L) == 7);
+    CHECK(lua_tointeger(L, 1) == 2);
+    CHECK(lua_tointeger(L, 2) == 2);
+    CHECK(lua_tointeger(L, 3) == 1);
+    CHECK(std::string(lua_tostring(L, 4)) == "Alpha");
+    CHECK(lua_tointeger(L, 5) == 1);
+    CHECK(lua_tointeger(L, 6) == 3);
+    CHECK(std::string(lua_tostring(L, 7)) == "Beta");
+
+    lua_settop(L, 0);
+}
+
 TEST_CASE("Lua thing can index a JS thing via Lua __index")
 {
     InitScriptVMsForTests();

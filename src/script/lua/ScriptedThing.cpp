@@ -10,6 +10,7 @@
 #include <cassert>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace
 {
@@ -36,6 +37,51 @@ int PushThingList(lua_State* L, const std::vector<std::shared_ptr<Thing>>& thing
 
         lua_pushinteger(L, index++);
         lua_pushlightuserdata(L, thing.get());
+        lua_settable(L, -3);
+    }
+
+    return 1;
+}
+
+int PushRoomList(lua_State* L)
+{
+    std::vector<std::shared_ptr<Room>> rooms;
+    rooms.reserve(Room::mapRooms.size());
+    for (const auto& [_, room] : Room::mapRooms)
+    {
+        if (room)
+            rooms.push_back(room);
+    }
+
+    std::sort(rooms.begin(), rooms.end(),
+              [](const auto& a, const auto& b)
+              {
+                  if (a->y != b->y)
+                      return a->y < b->y;
+                  if (a->x != b->x)
+                      return a->x < b->x;
+                  return a->name < b->name;
+              });
+
+    lua_newtable(L);
+    int index = 1;
+    for (const auto& room : rooms)
+    {
+        lua_pushinteger(L, index++);
+        lua_newtable(L);
+
+        lua_pushstring(L, "x");
+        lua_pushinteger(L, room->x);
+        lua_settable(L, -3);
+
+        lua_pushstring(L, "y");
+        lua_pushinteger(L, room->y);
+        lua_settable(L, -3);
+
+        lua_pushstring(L, "name");
+        lua_pushstring(L, room->name.c_str());
+        lua_settable(L, -3);
+
         lua_settable(L, -3);
     }
 
@@ -1073,6 +1119,25 @@ int Gauzarbeit_SetRoom(lua_State* L)
     return 1;
 }
 
+int Gauzarbeit_GetRoom(lua_State* L)
+{
+    if (lua_gettop(L) == 0)
+        return PushRoomList(L);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+        return 0;
+
+    int x = (int)lua_tonumber(L, 1);
+    int y = (int)lua_tonumber(L, 2);
+
+    auto r = Room::get(x, y);
+    if (!r)
+        return 0;
+
+    lua_pushlightuserdata(L, r.get());
+    return 1;
+}
+
 int Gauzarbeit_ColorString(lua_State* L)
 {
     assert(lua_isstring(L, 1));
@@ -1185,6 +1250,7 @@ void ScriptedThing_Lua::Init()
     }
 
     const luaL_Reg gauzarbeitFuncs[] = {{"Spawn", Gauzarbeit_Spawn},
+                                        {"GetRoom", Gauzarbeit_GetRoom},
                                         {"SetRoom", Gauzarbeit_SetRoom},
                                         {"ColorString", Gauzarbeit_ColorString},
                                         {"GetDBLine", Gauzarbeit_LoadDB},

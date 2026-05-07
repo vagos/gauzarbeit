@@ -731,6 +731,57 @@ class ScriptedThing_JS : public script::ScriptedThing
         return JS_UNDEFINED;
     }
 
+    static JSValue gauzarbeitGetRoom(JSContext* ctx, JSValueConst this_val, int argc,
+                                     JSValueConst* argv)
+    {
+        if (argc == 0)
+        {
+            std::vector<std::shared_ptr<Room>> rooms;
+            rooms.reserve(Room::mapRooms.size());
+            for (const auto& [_, room] : Room::mapRooms)
+            {
+                if (room)
+                    rooms.push_back(room);
+            }
+
+            std::sort(rooms.begin(), rooms.end(),
+                      [](const auto& a, const auto& b)
+                      {
+                          if (a->y != b->y)
+                              return a->y < b->y;
+                          if (a->x != b->x)
+                              return a->x < b->x;
+                          return a->name < b->name;
+                      });
+
+            JSValue array = JS_NewArray(ctx);
+            uint32_t index = 0;
+            for (const auto& room : rooms)
+            {
+                JSValue obj = JS_NewObject(ctx);
+                JS_SetPropertyStr(ctx, obj, "x", JS_NewInt32(ctx, room->x));
+                JS_SetPropertyStr(ctx, obj, "y", JS_NewInt32(ctx, room->y));
+                JS_SetPropertyStr(ctx, obj, "name", JS_NewString(ctx, room->name.c_str()));
+                JS_SetPropertyUint32(ctx, array, index++, obj);
+            }
+            return array;
+        }
+
+        if (argc < 2)
+            return JS_EXCEPTION;
+
+        int32_t x = 0;
+        int32_t y = 0;
+        if (JS_ToInt32(ctx, &x, argv[0]) || JS_ToInt32(ctx, &y, argv[1]))
+            return JS_EXCEPTION;
+
+        auto r = Room::get(x, y);
+        if (!r)
+            return JS_UNDEFINED;
+
+        return newThingObject(ctx, r.get(), true);
+    }
+
     static JSValue gauzarbeitSetRoom(JSContext* ctx, JSValueConst this_val, int argc,
                                      JSValueConst* argv)
     {
@@ -875,6 +926,8 @@ class ScriptedThing_JS : public script::ScriptedThing
         JSValue gauzarbeit = JS_NewObject(ctx);
         JS_SetPropertyStr(ctx, gauzarbeit, "Spawn",
                           JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitSpawn, "Spawn", 3));
+        JS_SetPropertyStr(ctx, gauzarbeit, "GetRoom",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGetRoom, "GetRoom", 2));
         JS_SetPropertyStr(ctx, gauzarbeit, "SetRoom",
                           JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitSetRoom, "SetRoom", 3));
         JS_SetPropertyStr(
