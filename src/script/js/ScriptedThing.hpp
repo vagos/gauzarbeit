@@ -430,6 +430,40 @@ class ScriptedThing_JS : public script::ScriptedThing
             }
         }
 
+        if (argc == 1)
+        {
+            int32_t direction = 0;
+            if (JS_ToInt32(ctx, &direction, argv[0]) == 0)
+            {
+                if (!t->physical()->current_room)
+                    return JS_UNDEFINED;
+
+                int x = t->physical()->current_room->x;
+                int y = t->physical()->current_room->y;
+
+                switch (direction)
+                {
+                case 0:
+                    y += 1;
+                    break;
+                case 1:
+                    y -= 1;
+                    break;
+                case 2:
+                    x += 1;
+                    break;
+                case 3:
+                    x -= 1;
+                    break;
+                default:
+                    return JS_UNDEFINED;
+                }
+
+                t->physical()->doMove(t->shared_from_this(), x, y);
+                return JS_UNDEFINED;
+            }
+        }
+
         if (argc < 2)
             return JS_EXCEPTION;
 
@@ -813,8 +847,8 @@ class ScriptedThing_JS : public script::ScriptedThing
                           JS_NewCFunction(ctx, ScriptedThing_JS::gainItem, "gainItem", 1));
         JS_SetPropertyStr(ctx, proto, "hasItem",
                           JS_NewCFunction(ctx, ScriptedThing_JS::hasItem, "hasItem", 1));
-        JS_SetPropertyStr(ctx, proto, "moveTo",
-                          JS_NewCFunction(ctx, ScriptedThing_JS::moveTo, "moveTo", 2));
+        JS_SetPropertyStr(ctx, proto, "doMove",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::moveTo, "doMove", 2));
         JS_SetPropertyStr(
             ctx, proto, "broadcastMessage",
             JS_NewCFunction(ctx, ScriptedThing_JS::broadcastMessage, "broadcastMessage", 1));
@@ -866,6 +900,13 @@ class ScriptedThing_JS : public script::ScriptedThing
             JS_SetPropertyStr(ctx, color_obj, c->name, JS_NewInt32(ctx, c->value));
         }
         JS_SetPropertyStr(ctx, gauzarbeit, "Color", color_obj);
+
+        JSValue direction_obj = JS_NewObject(ctx);
+        for (const ScriptConstant* c = ScriptAPI::kDirectionConstants; c->name; ++c)
+        {
+            JS_SetPropertyStr(ctx, direction_obj, c->name, JS_NewInt32(ctx, c->value));
+        }
+        JS_SetPropertyStr(ctx, gauzarbeit, "Direction", direction_obj);
 
         JS_SetPropertyStr(ctx, global, "Gauzarbeit", gauzarbeit);
 

@@ -77,11 +77,17 @@ void Room::removeThing(std::shared_ptr<Thing> thing)
 
 void Room::addPlayer(std::shared_ptr<Thing> player)
 {
+    if (!player)
+        return;
+
     players.push_back(player);
 }
 
 void Room::addThing(std::shared_ptr<Thing> thing)
 {
+    if (!thing)
+        return;
+
     if (thing->is_player)
     {
         addPlayer(thing);
@@ -112,6 +118,9 @@ void Room::doUpdate(World& world)
 {
     for (const auto& t : things)
     {
+        if (!t)
+            continue;
+
         try
         {
             t->doUpdate(world);
@@ -126,7 +135,7 @@ void Room::doUpdate(World& world)
     // Remove dead things
     things.erase(std::remove_if(things.begin(), things.end(),
                                 [](auto& t)
-                                { return t->_attackable && !t->attackable()->is_alive(); }),
+                                { return !t || (t->_attackable && !t->attackable()->is_alive()); }),
                  things.end());
 }
 

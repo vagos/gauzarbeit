@@ -16,7 +16,7 @@ struct ScriptAPI
         "getName",          "getType",    "setStat",     "getStat",      "sendMessage",
         "doSay",            "loseItem",   "dropItem",    "equipItem",    "getThing",
         "getPlayer",        "getRoom",    "getThings",   "getPlayers",   "gainItem",
-        "hasItem",          "moveTo",     "broadcastMessage", "addTask",  "tickTask",
+        "hasItem",          "doMove",     "broadcastMessage", "addTask",  "tickTask",
         "gainXP",           "getEventInfo", "getLevel",  "gainQuest",    "doAttack",
         nullptr,
     };
@@ -36,6 +36,10 @@ struct ScriptAPI
     static constexpr ScriptConstant kColorConstants[] = {
         {"None", 0},   {"White", 1}, {"Red", 2},     {"Green", 3}, {"Blue", 4},
         {"Yellow", 5}, {"Cyan", 6},  {"Magenta", 7}, {nullptr, 0},
+    };
+
+    static constexpr ScriptConstant kDirectionConstants[] = {
+        {"North", 0}, {"South", 1}, {"East", 2}, {"West", 3}, {nullptr, 0},
     };
 };
 

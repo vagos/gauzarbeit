@@ -657,6 +657,37 @@ int ScriptedThing_Lua::MoveTo(lua_State* L)
         return 0;
     }
 
+    if (lua_isnumber(L, 2) && lua_gettop(L) < 3)
+    {
+        if (!ptrThing->physical()->current_room)
+            return 0;
+
+        int direction = (int)lua_tonumber(L, 2);
+        int x = ptrThing->physical()->current_room->x;
+        int y = ptrThing->physical()->current_room->y;
+
+        switch (direction)
+        {
+        case 0:
+            y += 1;
+            break;
+        case 1:
+            y -= 1;
+            break;
+        case 2:
+            x += 1;
+            break;
+        case 3:
+            x -= 1;
+            break;
+        default:
+            return 0;
+        }
+
+        ptrThing->physical()->doMove(owner, x, y);
+        return 0;
+    }
+
     if (!lua_isnumber(L, 2) || !lua_isnumber(L, 3))
         return 0;
 
@@ -1039,7 +1070,7 @@ void ScriptedThing_Lua::Init()
                                      {"getPlayers", ScriptedThing_Lua::GetPlayers},
                                      {"gainItem", ScriptedThing_Lua::GainItem},
                                      {"hasItem", ScriptedThing_Lua::HasItem},
-                                     {"moveTo", ScriptedThing_Lua::MoveTo},
+                                     {"doMove", ScriptedThing_Lua::MoveTo},
                                      {"broadcastMessage", ScriptedThing_Lua::BroadcastMessage},
                                      {"addTask", ScriptedThing_Lua::AddTask},
                                      {"tickTask", ScriptedThing_Lua::TickTask},
@@ -1075,6 +1106,17 @@ void ScriptedThing_Lua::Init()
             lua_setfield(L, -2, c->name);
         }
         lua_setfield(L, -2, "Color");
+    }
+
+    // Create Gauzarbeit.Direction table
+    {
+        lua_newtable(L);
+        for (const ScriptConstant* c = ScriptAPI::kDirectionConstants; c->name; ++c)
+        {
+            lua_pushnumber(L, c->value);
+            lua_setfield(L, -2, c->name);
+        }
+        lua_setfield(L, -2, "Direction");
     }
 
     const luaL_Reg gauzarbeitFuncs[] = {{"Spawn", Gauzarbeit_Spawn},

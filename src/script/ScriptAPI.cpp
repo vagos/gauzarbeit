@@ -71,6 +71,17 @@ void VerifyLuaAPI(lua_State* L)
     }
     lua_pop(L, 1);
 
+    lua_getfield(L, -1, "Direction");
+    for (const ScriptConstant* c = ScriptAPI::kDirectionConstants; c->name; ++c)
+    {
+        if (!LuaHasField(L, c->name))
+        {
+            Log("Lua API missing Gauzarbeit.Direction constant: " << c->name);
+            missing = true;
+        }
+    }
+    lua_pop(L, 1);
+
     lua_pop(L, 1);
 
     assert(!missing);
@@ -128,6 +139,17 @@ void VerifyJSAPI(JSContext* ctx, JSValue proto)
             }
         }
         JS_FreeValue(ctx, color_obj);
+
+        JSValue direction_obj = JS_GetPropertyStr(ctx, gauzarbeit, "Direction");
+        for (const ScriptConstant* c = ScriptAPI::kDirectionConstants; c->name; ++c)
+        {
+            if (!JSHasField(ctx, direction_obj, c->name))
+            {
+                Log("JS API missing Gauzarbeit.Direction constant: " << c->name);
+                missing = true;
+            }
+        }
+        JS_FreeValue(ctx, direction_obj);
     }
 
     JS_FreeValue(ctx, gauzarbeit);

@@ -27,7 +27,6 @@ void Physical::doMove(std::shared_ptr<Thing> owner, int x, int y)
         current_room->removeThing(owner);
 
     current_room = Room::get(x, y);
-
     current_room->addThing(owner);
 }
 
@@ -37,7 +36,6 @@ void Physical::doMove(std::shared_ptr<Thing> owner, World& world, int x, int y)
         current_room->removeThing(owner);
 
     current_room = Room::get(world, x, y);
-
     current_room->addThing(owner);
 }
 
