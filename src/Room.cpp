@@ -44,7 +44,7 @@ std::shared_ptr<Room> Room::get(World& world, std::int32_t x, std::int32_t y)
 
     if (!mapRooms[key])
     {
-        std::ostringstream filename;
+        std::ostringstream filename; // TODO: There's a ton of repetition here.
         filename << x << "_" << y;
         const auto room_db_path = std::filesystem::path("./db/rooms") / filename.str();
 
