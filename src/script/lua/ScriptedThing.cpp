@@ -14,8 +14,9 @@
 
 namespace
 {
-std::shared_ptr<Room> FindRoomByThingPtr(Thing* thing_ptr)
+std::shared_ptr<Room> FindRoomByThingPtr(Thing* thing_ptr) 
 {
+    // TODO: Instead of doing this, we could just reinterpret_cast the lightuserdata to a Room*
     for (const auto& [_, room] : Room::mapRooms)
     {
         if (reinterpret_cast<Thing*>(room.get()) == thing_ptr)
@@ -539,6 +540,28 @@ int ScriptedThing_Lua::Index(lua_State* L)
         return 1;
 
     lua_pop(L, 1);
+
+    // TODO: There must be a better way to do this 
+    if (auto room = FindRoomByThingPtr(ptrThing))
+    {
+        if (std::string(index) == "x")
+        {
+            lua_pushinteger(L, room->x);
+            return 1;
+        }
+
+        if (std::string(index) == "y")
+        {
+            lua_pushinteger(L, room->y);
+            return 1;
+        }
+
+        if (std::string(index) == "name")
+        {
+            lua_pushstring(L, room->name.c_str());
+            return 1;
+        }
+    }
 
     if (ptrThing->script_language != Thing::ScriptLanguage::Lua)
         return 0;

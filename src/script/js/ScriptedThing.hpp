@@ -178,7 +178,11 @@ class ScriptedThing_JS : public script::ScriptedThing
         JS_SetOpaque(obj, t);
         if (is_room)
         {
+            auto room = static_cast<Room*>(t);
             JS_SetPropertyStr(ctx, obj, "__isRoom", JS_NewBool(ctx, 1));
+            JS_SetPropertyStr(ctx, obj, "x", JS_NewInt32(ctx, room->x));
+            JS_SetPropertyStr(ctx, obj, "y", JS_NewInt32(ctx, room->y));
+            JS_SetPropertyStr(ctx, obj, "name", JS_NewString(ctx, room->name.c_str()));
         }
         JS_FreeValue(ctx, proto);
         JS_FreeValue(ctx, global);

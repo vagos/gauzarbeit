@@ -214,6 +214,33 @@ TEST_CASE("Lua GetRoom with no arguments returns a sorted room list")
     lua_settop(L, 0);
 }
 
+TEST_CASE("Lua room userdata exposes coordinates and name")
+{
+    InitScriptVMsForTests();
+
+    Room::mapRooms.clear();
+
+    auto room = Room::get(4, -2);
+    room->name = "Crossroads";
+    auto lua_thing = std::make_shared<ScriptedThing_Lua>("TestDummy");
+    lua_thing->physical()->current_room = room;
+    room->addThing(lua_thing);
+
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+    lua_pushlightuserdata(L, lua_thing.get());
+    lua_setglobal(L, "__lua");
+
+    CheckLua(L, luaL_dostring(L, "local room = __lua:getRoom()\n"
+                                 "return room.x, room.y, room.name"));
+
+    REQUIRE(lua_gettop(L) == 3);
+    CHECK(lua_tointeger(L, 1) == 4);
+    CHECK(lua_tointeger(L, 2) == -2);
+    CHECK(std::string(lua_tostring(L, 3)) == "Crossroads");
+    lua_settop(L, 0);
+}
+
 TEST_CASE("Lua thing can index a JS thing via Lua __index")
 {
     InitScriptVMsForTests();
