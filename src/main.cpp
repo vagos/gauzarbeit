@@ -42,7 +42,8 @@ int main(int argc, char* argv[])
     {
     const std::filesystem::path rooms_dir("./db/rooms");
     if (!std::filesystem::exists(rooms_dir))
-        return -1; // TODO: Create the directory if it doesn't exist.
+         // TODO: Create the directory if it doesn't exist.
+        throw std::runtime_error("Rooms directory does not exist: " + rooms_dir.string());
 
     for (const auto& entry : std::filesystem::directory_iterator(rooms_dir))
     {
