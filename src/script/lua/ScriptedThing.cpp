@@ -1,6 +1,5 @@
 #include "script/lua/ScriptedThing.hpp"
 #include "Helpers.hpp"
-#include "Quest.hpp"
 #include "Room.hpp"
 #include "Server.hpp"
 #include "World.hpp"
@@ -14,7 +13,7 @@
 
 namespace
 {
-std::shared_ptr<Room> FindRoomByThingPtr(Thing* thing_ptr) 
+std::shared_ptr<Room> FindRoomByThingPtr(Thing* thing_ptr)
 {
     // TODO: Instead of doing this, we could just reinterpret_cast the lightuserdata to a Room*
     for (const auto& [_, room] : Room::mapRooms)
@@ -278,23 +277,176 @@ class ScriptedNotifier : public Notifier
 class ScriptedTasker : public Tasker
 {
   public:
-    void doReward(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer) override
+    void onTaskComplete(const std::shared_ptr<Thing>& owner, const Task& task) override
     {
+        Tasker::onTaskComplete(owner, task);
+
         const auto& L = ScriptedThing_Lua::L;
         const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
-        lua_getfield(L, -1, "doReward");
+        lua_getfield(L, -1, "onTaskComplete");
 
         if (lua_isfunction(L, -1))
         {
             lua_pushlightuserdata(L, owner.get());
-            lua_pushlightuserdata(L, completer.get());
+            lua_pushstring(L, task.description.c_str());
             CheckLua(L, lua_pcall(L, 2, 0, 0));
         }
 
         lua_settop(L, base_top);
     }
+};
+
+void PushLuaCopy(lua_State* L, int index)
+{
+    index = lua_absindex(L, index);
+
+    if (!lua_istable(L, index))
+    {
+        lua_pushvalue(L, index);
+        return;
+    }
+
+    lua_newtable(L);
+    int copy_index = lua_gettop(L);
+
+    lua_pushnil(L);
+    while (lua_next(L, index) != 0)
+    {
+        PushLuaCopy(L, -2);
+        PushLuaCopy(L, -2);
+        lua_settable(L, copy_index);
+        lua_pop(L, 1);
+    }
+}
+
+int CopyLuaRef(lua_State* L, int ref)
+{
+    if (ref == LUA_NOREF)
+        return LUA_NOREF;
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+    PushLuaCopy(L, -1);
+    int copy_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    lua_pop(L, 1);
+    return copy_ref;
+}
+
+void UnrefLuaRef(int& ref)
+{
+    if (ref == LUA_NOREF)
+        return;
+    auto& L = ScriptedThing_Lua::L;
+    luaL_unref(L, LUA_REGISTRYINDEX, ref);
+    ref = LUA_NOREF;
+}
+
+class Task_Lua : public Tasker::Task
+{
+  public:
+    Task_Lua(const std::string& description, lua_State* L, int state_index, int update_index,
+             int format_index)
+        : Task(description)
+    {
+        if (lua_isfunction(L, update_index))
+        {
+            lua_pushvalue(L, update_index);
+            update_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+        }
+
+        if (lua_isfunction(L, format_index))
+        {
+            lua_pushvalue(L, format_index);
+            format_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+        }
+
+        if (state_index && !lua_isnoneornil(L, state_index))
+        {
+            PushLuaCopy(L, state_index);
+            initial_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+            state_ref = CopyLuaRef(L, initial_ref);
+        }
+    }
+
+    ~Task_Lua() override
+    {
+        UnrefLuaRef(state_ref);
+        UnrefLuaRef(initial_ref);
+        UnrefLuaRef(update_ref);
+        UnrefLuaRef(format_ref);
+    }
+
+    bool onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
+                  Event::Type notification_type, const std::shared_ptr<Thing>& target) override
+    {
+        if (update_ref == LUA_NOREF)
+            return false;
+
+        auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
+
+        lua_rawgeti(L, LUA_REGISTRYINDEX, update_ref);
+        if (state_ref != LUA_NOREF)
+            lua_rawgeti(L, LUA_REGISTRYINDEX, state_ref);
+        else
+            lua_pushnil(L);
+        lua_pushlightuserdata(L, owner.get());
+        lua_pushlightuserdata(L, actor.get());
+        lua_pushnumber(L, (int)notification_type);
+        if (target)
+            lua_pushlightuserdata(L, target.get());
+        else
+            lua_pushnil(L);
+
+        CheckLua(L, lua_pcall(L, 5, 2, 0));
+
+        bool done = false;
+
+        if (lua_isboolean(L, -2))
+            done = lua_toboolean(L, -2);
+        else if (!lua_isnil(L, -2))
+        {
+            UnrefLuaRef(state_ref);
+            lua_pushvalue(L, -2);
+            state_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+        }
+
+        if (lua_isboolean(L, -1))
+            done = lua_toboolean(L, -1);
+
+        lua_settop(L, base_top);
+        return done;
+    }
+
+    std::string format() const override
+    {
+        if (format_ref == LUA_NOREF)
+            return Task::format();
+
+        auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
+
+        lua_rawgeti(L, LUA_REGISTRYINDEX, format_ref);
+        if (state_ref != LUA_NOREF)
+            lua_rawgeti(L, LUA_REGISTRYINDEX, state_ref);
+        else
+            lua_pushnil(L);
+        lua_pushstring(L, description.c_str());
+        CheckLua(L, lua_pcall(L, 2, 1, 0));
+
+        std::string result = description;
+        if (lua_isstring(L, -1))
+            result = lua_tostring(L, -1);
+
+        lua_settop(L, base_top);
+        return result;
+    }
+
+    int state_ref = LUA_NOREF;
+    int initial_ref = LUA_NOREF;
+    int update_ref = LUA_NOREF;
+    int format_ref = LUA_NOREF;
 };
 
 class ScriptedPhysical : public Physical
@@ -541,7 +693,7 @@ int ScriptedThing_Lua::Index(lua_State* L)
 
     lua_pop(L, 1);
 
-    // TODO: There must be a better way to do this 
+    // TODO: There must be a better way to do this
     if (auto room = FindRoomByThingPtr(ptrThing))
     {
         if (std::string(index) == "x")
@@ -861,7 +1013,17 @@ int ScriptedThing_Lua::AddTask(lua_State* L)
 
     if (ptrThing->_tasker)
     {
-        lua_pushnumber(L, ptrThing->tasker()->addTask(task_description));
+        int task_index = 0;
+        if (lua_isfunction(L, 3))
+            task_index = ptrThing->tasker()->addTask(std::make_unique<Task_Lua>(
+                task_description, L, 0, 3, 4));
+        else if (!lua_isnoneornil(L, 3) || lua_isfunction(L, 4) || lua_isfunction(L, 5))
+            task_index = ptrThing->tasker()->addTask(std::make_unique<Task_Lua>(
+                task_description, L, 3, 4, 5));
+        else
+            task_index = ptrThing->tasker()->addTask(task_description);
+
+        lua_pushnumber(L, task_index);
         return 1;
     }
 
@@ -876,10 +1038,56 @@ int ScriptedThing_Lua::TickTask(lua_State* L)
 
     if (ptrThing->_tasker)
     {
-        ptrThing->tasker()->tickTask((int)lua_tonumber(L, 2));
+        if (lua_type(L, 2) == LUA_TSTRING)
+            ptrThing->tasker()->tickTask(std::string(lua_tostring(L, 2)));
+        else
+            ptrThing->tasker()->tickTask((int)lua_tonumber(L, 2));
     }
 
     return 0;
+}
+
+int ScriptedThing_Lua::HasTask(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    bool has_task = false;
+
+    if (ptrThing->_tasker && lua_isstring(L, 2))
+        has_task = ptrThing->tasker()->hasTask(std::string(lua_tostring(L, 2)));
+
+    lua_pushboolean(L, has_task);
+    return 1;
+}
+
+int ScriptedThing_Lua::HasDoneTask(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    bool has_done_task = false;
+
+    if (ptrThing->_tasker && lua_isstring(L, 2))
+        has_done_task = ptrThing->tasker()->hasDoneTask(std::string(lua_tostring(L, 2)));
+
+    lua_pushboolean(L, has_done_task);
+    return 1;
+}
+
+int ScriptedThing_Lua::RewardTask(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    bool rewarded = false;
+
+    if (ptrThing->_tasker && lua_isstring(L, 2))
+        rewarded = ptrThing->tasker()->rewardTask(ptrThing->shared_from_this(),
+                                                 std::string(lua_tostring(L, 2)));
+
+    lua_pushboolean(L, rewarded);
+    return 1;
 }
 
 int ScriptedThing_Lua::GainXP(lua_State* L)
@@ -980,18 +1188,24 @@ int ScriptedThing_Lua::GetPlayer(lua_State* L)
     return 1;
 }
 
-int ScriptedThing_Lua::GainQuest(lua_State* L)
+int ScriptedThing_Lua::GiveTask(lua_State* L)
 {
     assert(lua_isuserdata(L, 1));
 
-    if (!lua_isstring(L, 2))
+    if (!lua_isuserdata(L, 2) || !lua_isstring(L, 3))
         return 0;
 
     Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+    Thing* ptrReceiver = (Thing*)lua_touserdata(L, 2);
 
-    std::string q_n(lua_tostring(L, 2));
+    if (!ptrThing->_tasker || !ptrReceiver->_tasker)
+        return 0;
 
-    ptrThing->achiever()->gainQuest(ScriptedQuest(q_n));
+    std::string task_description(lua_tostring(L, 3));
+    auto task = (!lua_isnoneornil(L, 4) && !lua_isfunction(L, 4))
+                    ? std::make_unique<Task_Lua>(task_description, L, 4, 5, 6)
+                    : std::make_unique<Task_Lua>(task_description, L, 0, 4, 5);
+    ptrThing->tasker()->giveTask(ptrReceiver->shared_from_this(), std::move(task));
 
     return 0;
 }
@@ -1227,10 +1441,13 @@ void ScriptedThing_Lua::Init()
                                      {"broadcastMessage", ScriptedThing_Lua::BroadcastMessage},
                                      {"addTask", ScriptedThing_Lua::AddTask},
                                      {"tickTask", ScriptedThing_Lua::TickTask},
+                                     {"hasTask", ScriptedThing_Lua::HasTask},
+                                     {"hasDoneTask", ScriptedThing_Lua::HasDoneTask},
+                                     {"rewardTask", ScriptedThing_Lua::RewardTask},
                                      {"gainXP", ScriptedThing_Lua::GainXP},
                                      {"getEventInfo", ScriptedThing_Lua::GetEventInfo},
                                      {"getLevel", ScriptedThing_Lua::GetLevel},
-                                     {"gainQuest", ScriptedThing_Lua::GainQuest},
+                                     {"giveTask", ScriptedThing_Lua::GiveTask},
                                      {"doAttack", ScriptedThing_Lua::DoAttack},
                                      {NULL, NULL}};
 

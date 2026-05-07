@@ -29,4 +29,6 @@ void Thing::doUpdate(World& world)
         _thinker->doThink(shared_from_this(), world);
     if (_notifier)
         _notifier->doUpdate(shared_from_this());
+    if (_tasker)
+        _tasker->doUpdate(shared_from_this());
 }

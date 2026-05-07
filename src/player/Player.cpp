@@ -19,6 +19,7 @@ Player::Player()
     _notifier = std::make_unique<PlayerNotifier>();
     _talker = std::make_unique<PlayerTalker>();
     _achiever = std::make_unique<PlayerAchiever>();
+    _tasker = std::make_unique<Tasker>();
     _inspectable = std::make_unique<PlayerInspectable>();
     _thinker = std::make_unique<PlayerThinker>();
 }

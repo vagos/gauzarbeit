@@ -17,8 +17,6 @@ struct Guild
     std::vector<std::shared_ptr<Thing>> online_members;
     std::set<std::string> member_names;
 
-    std::vector<std::shared_ptr<Thing>> quests;
-
     void addMember(const std::shared_ptr<Thing>& adder, const std::shared_ptr<Thing> member);
     void removeMember(const std::string& m_name);
 
@@ -30,7 +28,7 @@ struct Guild
     std::string name;
 };
 
-class Talker // This component can give quests/dialog
+class Talker // This component can give tasks/dialog
 {
   public:
     Talker() {}

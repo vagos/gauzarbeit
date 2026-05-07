@@ -142,11 +142,11 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
             goto Notify;
         }
 
-        t = owner->achiever()->getQuest(event.target);
-
-        if (t)
+        if (auto task = owner->tasker()->getTask(event.target))
         {
-            owner->networked()->addResponse(t->inspectable()->onInspect(t, owner));
+            std::stringstream res;
+            res << '[' << (task->tick ? 'x' : ' ') << ']' << ' ' << task->description << '\n';
+            owner->networked()->addResponse(res.str());
             goto Notify;
         }
 

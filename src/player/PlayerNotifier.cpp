@@ -33,10 +33,8 @@ void PlayerNotifier::doNotify(const std::shared_ptr<Thing>& owner, Event::Type n
             t->notifier()->onNotify(t, owner, notification_type, target);
     }
 
-    for (auto& quest : owner->achiever()->quests)
-    {
-        quest->notifier()->onNotify(quest, owner, notification_type, target);
-    }
+    if (owner->_tasker)
+        owner->tasker()->onNotify(owner, owner, notification_type, target);
 
     if (owner->talker()->guild)
         owner->talker()->guild->onNotify(owner, notification_type, target);
@@ -86,19 +84,6 @@ void PlayerNotifier::onNotify(const std::shared_ptr<Thing>& owner,
         owner->achiever()->getRewards(owner, target->achiever()->getLevel());
 
         break;
-    }
-
-    case Event::Type::Gain_Quest:
-    {
-        assert(target);
-
-        if (actor != owner)
-            break;
-
-        std::stringstream res;
-        res << "Quest " << std::quoted(target->name) << " added to your Quest Log!\n";
-
-        owner->networked()->addResponse(ColorString(res.str(), Color::Green));
     }
 
     default:

@@ -1,7 +1,6 @@
 #ifndef PLAYER_TALKER_HPP
 #define PLAYER_TALKER_HPP
 
-#include "Quest.hpp"
 #include "Room.hpp"
 #include "thing/Talker.hpp"
 #include <cassert>

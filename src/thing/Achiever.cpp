@@ -1,34 +1,6 @@
 #include "Helpers.hpp"
 #include "thing/Thing.hpp"
 
-const std::shared_ptr<Thing> Achiever::getQuest(const std::string& q_name)
-{
-    return FindByName(quests, q_name);
-}
-
-void Achiever::doUpdate(const std::shared_ptr<Thing>& owner)
-{
-    for (auto& q : quests)
-    {
-        if (q->tasker()->isCompleted())
-        {
-            q->tasker()->doReward(q, owner);
-            onQuestComplete(owner, q);
-        }
-    }
-
-    quests.erase(std::remove_if(quests.begin(), quests.end(),
-                                [](const auto& t) { return t->tasker()->isCompleted(); }),
-                 quests.end()); // Remove completed quests
-}
-
-void Achiever::onQuestComplete(const std::shared_ptr<Thing>& owner,
-                               const std::shared_ptr<Thing>& quest)
-{
-    getRewards(owner, quest->tasker()->getDifficulty());
-    completed_quests.push_back(quest);
-}
-
 void Achiever::setStat(const std::string& s_n, float val)
 {
     if (!extra_stats[s_n])

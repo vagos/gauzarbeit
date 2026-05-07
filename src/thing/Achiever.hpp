@@ -18,19 +18,10 @@ class Achiever
         float value = 0;
     };
 
-    std::vector<std::shared_ptr<Thing>> quests;
-    std::vector<std::shared_ptr<Thing>> completed_quests;
     std::unordered_map<std::string, std::shared_ptr<Stat>> extra_stats;
 
     virtual void setStat(const std::string& s_n, float val);
     float getStat(const std::string& s_n);
-
-    virtual void gainQuest(std::shared_ptr<Thing> quest) { quests.push_back(quest); }
-    const std::shared_ptr<Thing> getQuest(const std::string& q_name);
-
-    void doUpdate(const std::shared_ptr<Thing>& owner);
-    virtual void onQuestComplete(const std::shared_ptr<Thing>& owner,
-                                 const std::shared_ptr<Thing>& quest);
 
     void gainXP(int extra_xp) { xp += extra_xp; }
     virtual void getRewards(const std::shared_ptr<Thing> owner, int size) { gainXP(size); }

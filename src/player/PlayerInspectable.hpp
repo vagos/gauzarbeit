@@ -14,8 +14,7 @@ class PlayerInspectable : public Inspectable
         std::stringstream inspect;
 
         inspect << BlockListString(owner->achiever()->extra_stats, 0,
-                                   [](auto& p)
-                                   { return p.first + ": " + p.second->getName(); })
+                                   [](auto& p) { return p.first + ": " + p.second->getName(); })
                 << '\n';
 
         inspect << "Level: " << owner->achiever()->getLevel() << '\n'
@@ -45,12 +44,18 @@ class PlayerInspectable : public Inspectable
                         << "\n\n";
             }
 
-            if (!owner->achiever()->quests.empty())
+            if (!owner->tasker()->tasks.empty())
             {
-                inspect << "Quests: \n";
-                inspect << VerticalListString(owner->achiever()->quests, '-',
-                                              [](const std::shared_ptr<Thing>& t)
-                                              { return t->inspectable()->getName(t); });
+                inspect << "Tasks: \n";
+                inspect << VerticalListString(owner->tasker()->tasks, '-',
+                                              [owner](const Tasker::Task& task)
+                                              {
+                                                  std::stringstream ss;
+                                                  ss << '[' << (task.tick ? 'x' : ' ') << ']'
+                                                     << ' ';
+                                                  ss << owner->tasker()->formatTask(task);
+                                                  return ss.str();
+                                              });
             }
         }
 

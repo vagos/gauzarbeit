@@ -4,8 +4,8 @@
 #include "script/ScriptedThing.hpp"
 #include "script/lua/LuaHelpers.hpp"
 #include "script/lua/ScriptedThing.hpp"
-#include <filesystem>
 #include <doctest/doctest.h>
+#include <filesystem>
 #include <lua.hpp>
 
 TEST_CASE("Physical pickup and drop move items between room and inventory")
@@ -102,25 +102,21 @@ TEST_CASE("Attackable doAttack kills and removes target")
     CHECK(room->getThing("Target") == nullptr);
 }
 
-TEST_CASE("Achiever completes quests and grants rewards")
+TEST_CASE("Tasker completes tasks and grants rewards")
 {
     auto owner = MakeBasicThing("Player");
-    auto quest = MakeBasicThing("Quest");
 
-    auto tasker = std::make_shared<Tasker>();
-    tasker->addTask("Find cheese");
-    tasker->addTask("Return to chef");
-    tasker->tickTask(0);
-    tasker->tickTask(1);
-    quest->_tasker = tasker;
+    owner->tasker()->addTask("Find cheese");
+    owner->tasker()->addTask("Return to chef");
+    owner->tasker()->tickTask(0);
+    owner->tasker()->tickTask(1);
 
-    owner->achiever()->gainQuest(quest);
-    owner->achiever()->doUpdate(owner);
+    owner->tasker()->doUpdate(owner);
 
-    CHECK(owner->achiever()->getXP() == 2);
-    CHECK(owner->achiever()->quests.empty());
-    CHECK(owner->achiever()->completed_quests.size() == 1);
-    CHECK(owner->achiever()->completed_quests.front() == quest);
+    CHECK(owner->achiever()->getXP() == 25);
+    CHECK(owner->tasker()->tasks.empty());
+    CHECK(owner->tasker()->completed_tasks.size() == 2);
+    CHECK(owner->tasker()->completed_tasks.front().description == "Find cheese");
 }
 
 TEST_CASE("Tasker completion and difficulty tracking")
@@ -197,10 +193,9 @@ TEST_CASE("Lua GetRoom with no arguments returns a sorted room list")
     lua_State* L = ScriptedThing_Lua::L;
     lua_settop(L, 0);
 
-    CheckLua(L, luaL_dostring(
-                    L,
-                    "local rooms = Gauzarbeit.GetRoom()\n"
-                    "return #rooms, rooms[1].x, rooms[1].y, rooms[1].name, rooms[2].x, rooms[2].y, rooms[2].name"));
+    CheckLua(L, luaL_dostring(L, "local rooms = Gauzarbeit.GetRoom()\n"
+                                 "return #rooms, rooms[1].x, rooms[1].y, rooms[1].name, "
+                                 "rooms[2].x, rooms[2].y, rooms[2].name"));
 
     REQUIRE(lua_gettop(L) == 7);
     CHECK(lua_tointeger(L, 1) == 2);

@@ -1,11 +1,12 @@
 TestTalker.doInit = function () {
-  this.gainQuest("TestQuest");
+  this.addTask("TestTask");
 };
 
 TestTalker.onTalk = function (talker) {
+  this.giveTask(talker, "TestTask");
   talker.sendMessage("TestTalker heard you.\n");
 };
 
 TestTalker.onInspect = function (inspector) {
-  return "A test NPC that offers TestQuest.\n";
+  return "A test NPC that offers TestTask.\n";
 };

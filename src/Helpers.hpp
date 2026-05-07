@@ -70,7 +70,6 @@ struct Event
         Leave,
         Gain,
         Look,
-        Gain_Quest,
         Register,
         Custom,
     };

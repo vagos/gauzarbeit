@@ -20,23 +20,16 @@ const std::string Inspectable::onInspect(const std::shared_ptr<Thing>& owner,
         inspect << VerticalListString(owner->physical()->inventory, '-');
     }
 
-    if (!owner->achiever()->quests.empty())
-    {
-        inspect << "Quests: \n";
-        inspect << VerticalListString(owner->achiever()->quests, '-',
-                                      [](const auto& t) { return t->name; });
-    }
-
     if (!owner->tasker()->tasks.empty())
     {
         inspect << "Tasks: \n";
 
         inspect << VerticalListString(owner->tasker()->tasks, '-',
-                                      [](const Tasker::Task& task)
+                                      [owner](const std::unique_ptr<Tasker::Task>& task)
                                       {
                                           std::stringstream ss;
-                                          ss << '[' << (task.tick ? 'x' : ' ') << ']' << ' ';
-                                          ss << task.description;
+                                          ss << '[' << (task->tick ? 'x' : ' ') << ']' << ' ';
+                                          ss << owner->tasker()->formatTask(*task);
                                           return ss.str();
                                       });
     }

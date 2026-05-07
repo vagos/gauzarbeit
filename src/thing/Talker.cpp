@@ -1,21 +1,14 @@
 #include "Helpers.hpp"
-#include "Quest.hpp"
 #include "thing/Thing.hpp"
 #include <iomanip>
 
 void Talker::onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker)
 {
     const auto& event = talker->notifier()->event;
-    auto q = owner->achiever()->getQuest(event.object);
-
     Log(event.object);
 
-    if (!q)
+    if (event.object.empty())
         return;
-
-    talker->achiever()->gainQuest(ScriptedQuest(q->name));
-    // talker -> achiever() -> gainQuest( q );
-    talker->notifier()->onNotify(talker, talker, Event::Type::Gain_Quest, q);
 }
 
 // GUILD
@@ -55,8 +48,4 @@ void Guild::addMember(const std::shared_ptr<Thing>& adder, const std::shared_ptr
 void Guild::onNotify(const std::shared_ptr<Thing>& actor, Event::Type notification_type,
                      const std::shared_ptr<Thing>& target)
 {
-    for (auto& q : quests)
-    {
-        q->notifier()->onNotify(q, actor, notification_type, target);
-    }
 }
