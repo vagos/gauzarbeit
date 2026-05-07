@@ -77,16 +77,13 @@ void Room::removeThing(std::shared_ptr<Thing> thing)
 
 void Room::addPlayer(std::shared_ptr<Thing> player)
 {
-    if (!player)
-        return;
-
+    assert(player);
     players.push_back(player);
 }
 
 void Room::addThing(std::shared_ptr<Thing> thing)
 {
-    if (!thing)
-        return;
+    assert(thing);
 
     if (thing->is_player)
     {
@@ -116,7 +113,8 @@ const std::shared_ptr<Thing> Room::getAnything(const std::string& name)
 
 void Room::doUpdate(World& world)
 {
-    for (const auto& t : things)
+    const auto things_copy = things;
+    for (const auto& t : things_copy)
     {
         if (!t)
             continue;
