@@ -11,19 +11,13 @@ local function build_world_map(user)
 
     local current_room = user:getRoom()
     local room_by_key = {}
-    local current_key = nil
-    local current_x = nil
-    local current_y = nil
+    local current_x = current_room and current_room.x
+    local current_y = current_room and current_room.y
+    local current_key = current_x and current_y and (current_x .. "," .. current_y) or nil
 
     for _, room in ipairs(rooms) do
         local key = room.x .. "," .. room.y
         room_by_key[key] = room
-
-        if Gauzarbeit.GetRoom(room.x, room.y) == current_room then
-            current_key = key
-            current_x = room.x
-            current_y = room.y
-        end
     end
 
     if not current_x or not current_y then
