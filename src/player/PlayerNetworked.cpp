@@ -25,6 +25,15 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
     if (event.verb.empty())
         return;
 
+    if (event.type == Event::Type::Leave)
+    {
+        addResponse("Goodbye!\n");
+        if (isLoggedIn())
+            doDatabaseStore(owner);
+        doDisconnect(owner);
+        return;
+    }
+
     if (event.verb == "login")
     {
         if (isLoggedIn())
@@ -136,7 +145,7 @@ void PlayerNetworked::sendResponse(std::shared_ptr<Thing> owner)
         return;
     }
 
-    if (owner->_physical && owner->physical()->current_room)
+    if (isLoggedIn() && owner->_physical && owner->physical()->current_room)
     {
         setStatusLine(owner->name + "@" + owner->physical()->current_room->name);
     }
@@ -146,11 +155,6 @@ void PlayerNetworked::sendResponse(std::shared_ptr<Thing> owner)
     }
 
     std::string response = streamResponse.str();
-    if (!response.empty() && response.back() != '\n')
-    {
-        response += '\n';
-    }
-
     if (!getStatusLine().empty())
     {
         response += "[" + getStatusLine() + "] >> ";

@@ -61,6 +61,17 @@ if ! nc -z 127.0.0.1 "$PORT" >/dev/null 2>&1; then
 fi
 
 {
+    printf "quit\n"
+    sleep 0.2
+} | nc -w 2 127.0.0.1 "$PORT" >"$OUT"
+
+grep -F "Goodbye!" "$OUT" >/dev/null
+if grep -F "You need to log in!" "$OUT" >/dev/null; then
+    echo "Anonymous quit should not require login." >&2
+    exit 1
+fi
+
+{
     printf "look\n"
     sleep 0.3
     printf "register %s %s\n" "$PLAYER_NAME" "$PLAYER_PASS"
@@ -90,3 +101,7 @@ grep -F "Room: Kitchen" "$OUT" >/dev/null
 } | nc -w 2 127.0.0.1 "$PORT" >"$OUT"
 
 grep -F "Wrong password! Please try again." "$OUT" >/dev/null
+if grep -F "[${PLAYER_NAME}@" "$OUT" >/dev/null; then
+    echo "Failed login should not render a room status prompt." >&2
+    exit 1
+fi

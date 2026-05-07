@@ -24,7 +24,7 @@ TEST_CASE("BlockListString groups identical entries")
     };
 
     auto list = BlockListString(
-        things, '*', [](const std::shared_ptr<Thing>& t) { return t->name; }, 3, 20);
+        things, '*', [](const std::shared_ptr<Thing>& t) { return t->name; }, 3);
 
     CHECK(list.find("* Rat (2)") != std::string::npos);
     CHECK(list.find("* Cheese") != std::string::npos);

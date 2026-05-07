@@ -89,7 +89,8 @@ void Server::updateClients(World& world)
 
     for (const auto& c : clients)
     {
-        if (c->networked()->isOnline() && !c->physical()->current_room)
+        if (c->networked()->isOnline() && c->networked()->isLoggedIn() &&
+            !c->physical()->current_room)
         {
             world.addPlayer(c);
             c->physical()->doMove(c, world, 0, 0); // TODO: Move this
