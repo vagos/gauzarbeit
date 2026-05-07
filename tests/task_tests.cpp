@@ -1,0 +1,160 @@
+#include "Room.hpp"
+#include "TestSupport.hpp"
+#include "World.hpp"
+#include "player/Player.hpp"
+#include "player/PlayerNotifier.hpp"
+#include "script/ScriptedThing.hpp"
+#include "script/js/ScriptedThing.hpp"
+#include "script/lua/ScriptedThing.hpp"
+#include <doctest/doctest.h>
+
+TEST_CASE("Tasker gives task objects")
+{
+    auto giver = MakeBasicThing("Giver");
+    auto receiver = MakeBasicThing("Receiver");
+
+    CHECK(giver->tasker()->giveTask(receiver, std::make_unique<Tasker::Task>("Collect herbs")));
+
+    REQUIRE(receiver->tasker()->tasks.size() == 1);
+    CHECK(receiver->tasker()->tasks.front()->description == "Collect herbs");
+    CHECK(!receiver->tasker()->tasks.front()->tick);
+}
+
+TEST_CASE("Lua scripted tasker gives and ticks receiver tasks")
+{
+    InitScriptVMsForTests();
+
+    auto receiver = MakeBasicThing("Receiver");
+    auto giver = std::make_shared<ScriptedThing_Lua>("TaskGiver");
+    auto ticker = std::make_shared<ScriptedThing_Lua>("TaskTicker");
+
+    giver->talker()->onTalk(giver, receiver);
+    REQUIRE(receiver->tasker()->tasks.size() == 1);
+    CHECK(receiver->tasker()->tasks.front()->description == "Collect herbs");
+
+    ticker->talker()->onTalk(ticker, receiver);
+    CHECK(receiver->tasker()->tasks.front()->tick);
+}
+
+TEST_CASE("WelcomeMan gives rat task")
+{
+    InitScriptVMsForTests();
+
+    auto receiver = MakeBasicThing("Receiver");
+    receiver->notifier()->event.object = "rats";
+    auto welcome_man = std::make_shared<ScriptedThing_Lua>("WelcomeMan");
+
+    welcome_man->talker()->onTalk(welcome_man, receiver);
+
+    REQUIRE(receiver->tasker()->tasks.size() == 1);
+    CHECK(receiver->tasker()->tasks.front()->description == "Kill 5 Rats.");
+    CHECK(receiver->tasker()->formatTask(*receiver->tasker()->tasks.front()) ==
+          "Kill 5 Rats. 0/5 Rats killed.");
+
+    welcome_man->talker()->onTalk(welcome_man, receiver);
+    CHECK(receiver->tasker()->tasks.size() == 1);
+}
+
+TEST_CASE("WelcomeMan rat task tracks kill progress")
+{
+    InitScriptVMsForTests();
+
+    auto receiver = MakeBasicThing("Receiver");
+    receiver->notifier()->event.object = "rats";
+    auto welcome_man = std::make_shared<ScriptedThing_Lua>("WelcomeMan");
+    auto rat = MakeBasicThing("Rat");
+
+    welcome_man->talker()->onTalk(welcome_man, receiver);
+    REQUIRE(receiver->tasker()->tasks.size() == 1);
+
+    for (int i = 0; i < 4; ++i)
+        receiver->tasker()->onNotify(receiver, receiver, Event::Type::Kill, rat);
+
+    REQUIRE(receiver->tasker()->tasks.size() == 1);
+    CHECK(!receiver->tasker()->tasks.front()->tick);
+    CHECK(receiver->tasker()->formatTask(*receiver->tasker()->tasks.front()) ==
+          "Kill 5 Rats. 4/5 Rats killed.");
+
+    receiver->tasker()->onNotify(receiver, receiver, Event::Type::Kill, rat);
+    CHECK(receiver->tasker()->tasks.front()->tick);
+}
+
+TEST_CASE("Player kill notifications complete rat task before returning to WelcomeMan")
+{
+    InitScriptVMsForTests();
+
+    World world;
+    auto room = std::make_shared<Room>(0, 0);
+    auto receiver = std::make_shared<Player>();
+    receiver->name = "Receiver";
+    receiver->physical()->current_room = room;
+    room->addThing(receiver);
+    world.addPlayer(receiver);
+
+    receiver->notifier()->event.object = "rats";
+    auto welcome_man = std::make_shared<ScriptedThing_Lua>("WelcomeMan");
+    auto rat = MakeBasicThing("Rat");
+    rat->physical()->current_room = room;
+    room->addThing(rat);
+
+    welcome_man->talker()->onTalk(welcome_man, receiver);
+    REQUIRE(receiver->tasker()->tasks.size() == 1);
+
+    for (int i = 0; i < 5; ++i)
+        receiver->notifier()->doNotify(receiver, Event::Type::Kill, rat);
+
+    REQUIRE(receiver->tasker()->tasks.size() == 1);
+    CHECK(receiver->tasker()->tasks.front()->tick);
+    world.doUpdate();
+
+    CHECK(receiver->tasker()->tasks.size() == 1);
+    CHECK(receiver->tasker()->tasks.front()->tick);
+
+    receiver->notifier()->event.object = "rats";
+    welcome_man->talker()->onTalk(welcome_man, receiver);
+    CHECK(receiver->tasker()->done_tasks.size() == 1);
+    CHECK(receiver->tasker()->tasks.empty());
+    CHECK(receiver->physical()->inventory.size() == 10);
+}
+
+TEST_CASE("WelcomeMan rewards completed rat task once")
+{
+    InitScriptVMsForTests();
+
+    auto receiver = MakeBasicThing("Receiver");
+    receiver->notifier()->event.object = "rats";
+    auto welcome_man = std::make_shared<ScriptedThing_Lua>("WelcomeMan");
+
+    receiver->tasker()->addTask("Kill 5 Rats.");
+    receiver->tasker()->tickTask("Kill 5 Rats.");
+    receiver->tasker()->doUpdate(receiver);
+
+    welcome_man->talker()->onTalk(welcome_man, receiver);
+
+    CHECK(receiver->tasker()->done_tasks.size() == 1);
+    CHECK(receiver->tasker()->tasks.empty());
+    CHECK(receiver->physical()->inventory.size() == 10);
+    for (const auto& item : receiver->physical()->inventory)
+        CHECK(item->name == "Winston");
+
+    welcome_man->talker()->onTalk(welcome_man, receiver);
+    CHECK(receiver->physical()->inventory.size() == 10);
+    CHECK(receiver->tasker()->tasks.empty());
+    CHECK(receiver->tasker()->done_tasks.size() == 1);
+}
+
+TEST_CASE("JavaScript scripted tasker gives and ticks receiver tasks")
+{
+    InitScriptVMsForTests();
+
+    auto receiver = MakeBasicThing("Receiver");
+    auto giver = std::make_shared<ScriptedThing_JS>("TaskGiverJS");
+    auto ticker = std::make_shared<ScriptedThing_JS>("TaskTickerJS");
+
+    giver->talker()->onTalk(giver, receiver);
+    REQUIRE(receiver->tasker()->tasks.size() == 1);
+    CHECK(receiver->tasker()->tasks.front()->description == "Collect JS token");
+
+    ticker->talker()->onTalk(ticker, receiver);
+    CHECK(receiver->tasker()->tasks.front()->tick);
+}

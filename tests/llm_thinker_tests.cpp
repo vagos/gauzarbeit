@@ -52,8 +52,7 @@ TEST_CASE("LLM notifier responds to targeted ask")
 
     LLMConfig config;
     config.model_path = "";
-    LLMSystem llm(config,
-                  [](const std::string&) { return std::string("I can help with quests."); });
+    LLMSystem llm(config, [](const std::string&) { return std::string("I can help with tasks."); });
 
     auto room = std::make_shared<Room>(8, 8);
 
@@ -68,7 +67,7 @@ TEST_CASE("LLM notifier responds to targeted ask")
     room->addThing(npc);
 
     player->notifier()->event.object = "kitchen";
-    player->notifier()->event.extra = "quests";
+    player->notifier()->event.extra = "tasks";
     npc->notifier()->onNotify(npc, player, Event::Type::Ask, npc);
 
     auto player_net = std::dynamic_pointer_cast<TestNetworked>(player->networked());
@@ -78,11 +77,11 @@ TEST_CASE("LLM notifier responds to targeted ask")
     {
         llm.doUpdate(world);
         npc->notifier()->doUpdate(npc);
-        if (player_net->response().find("> Guide: I can help with quests.") != std::string::npos)
+        if (player_net->response().find("> Guide: I can help with tasks.") != std::string::npos)
             break;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
-    CHECK(player_net->response().find("> Guide: I can help with quests.") != std::string::npos);
+    CHECK(player_net->response().find("> Guide: I can help with tasks.") != std::string::npos);
 }

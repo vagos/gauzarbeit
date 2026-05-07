@@ -111,12 +111,13 @@ TEST_CASE("Tasker completes tasks and grants rewards")
     owner->tasker()->tickTask(0);
     owner->tasker()->tickTask(1);
 
-    owner->tasker()->doUpdate(owner);
+    CHECK(owner->tasker()->rewardTask(owner, "Find cheese"));
+    CHECK(owner->tasker()->rewardTask(owner, "Return to chef"));
 
     CHECK(owner->achiever()->getXP() == 25);
     CHECK(owner->tasker()->tasks.empty());
-    CHECK(owner->tasker()->completed_tasks.size() == 2);
-    CHECK(owner->tasker()->completed_tasks.front().description == "Find cheese");
+    CHECK(owner->tasker()->done_tasks.size() == 2);
+    CHECK(owner->tasker()->done_tasks.front()->description == "Find cheese");
 }
 
 TEST_CASE("Tasker completion and difficulty tracking")
