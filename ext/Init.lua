@@ -22,7 +22,7 @@ Gauzarbeit.Spawn(0, 0, "Gun")
 Gauzarbeit.Spawn(0, 0, "WelcomeMan")
 Gauzarbeit.Spawn(0, 0, "WantedBadge")
 
-Gauzarbeit.GetRoom("Kitchen", 0, 0)
+Gauzarbeit.SetRoom("Kitchen", 0, 0)
 
 -- Server configurations
 

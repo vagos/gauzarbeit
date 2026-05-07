@@ -12,6 +12,6 @@ Gauzarbeit.CreateStat("MaxHealth", function (val) { return String(val); });
 Gauzarbeit.CreateStat("CurrentHealth", function (val) { return String(val); });
 
 // Add a test room with scripted test entities.
-Gauzarbeit.GetRoom("TestLab", 0, 1);
+Gauzarbeit.SetRoom("TestLab", 0, 1);
 
 print("JavaScript initialised!");

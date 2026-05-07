@@ -1056,7 +1056,7 @@ int Gauzarbeit_Spawn(lua_State* L)
     return 0;
 }
 
-int Gauzarbeit_Room(lua_State* L)
+int Gauzarbeit_SetRoom(lua_State* L)
 {
     std::string r_t(lua_tostring(L, 1));
 
@@ -1185,7 +1185,7 @@ void ScriptedThing_Lua::Init()
     }
 
     const luaL_Reg gauzarbeitFuncs[] = {{"Spawn", Gauzarbeit_Spawn},
-                                        {"GetRoom", Gauzarbeit_Room},
+                                        {"SetRoom", Gauzarbeit_SetRoom},
                                         {"ColorString", Gauzarbeit_ColorString},
                                         {"GetDBLine", Gauzarbeit_LoadDB},
                                         {"WithChance", Gauzarbeit_WithChance},

@@ -731,7 +731,7 @@ class ScriptedThing_JS : public script::ScriptedThing
         return JS_UNDEFINED;
     }
 
-    static JSValue gauzarbeitGetRoom(JSContext* ctx, JSValueConst this_val, int argc,
+    static JSValue gauzarbeitSetRoom(JSContext* ctx, JSValueConst this_val, int argc,
                                      JSValueConst* argv)
     {
         if (argc < 3)
@@ -875,8 +875,8 @@ class ScriptedThing_JS : public script::ScriptedThing
         JSValue gauzarbeit = JS_NewObject(ctx);
         JS_SetPropertyStr(ctx, gauzarbeit, "Spawn",
                           JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitSpawn, "Spawn", 3));
-        JS_SetPropertyStr(ctx, gauzarbeit, "GetRoom",
-                          JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitGetRoom, "GetRoom", 3));
+        JS_SetPropertyStr(ctx, gauzarbeit, "SetRoom",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitSetRoom, "SetRoom", 3));
         JS_SetPropertyStr(
             ctx, gauzarbeit, "ColorString",
             JS_NewCFunction(ctx, ScriptedThing_JS::gauzarbeitColorString, "ColorString", 2));

@@ -2,4 +2,4 @@
 dofile("./ext/Init.lua")
 
 -- Add a test room with scripted test entities.
-Gauzarbeit.GetRoom("TestLab", 0, 1)
+Gauzarbeit.SetRoom("TestLab", 0, 1)
