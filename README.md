@@ -4,7 +4,7 @@ An online sandbox mmo rpg with focus on modding support.
 
 ### Features
 
-* Scriptabble Items, NPCs, Quests and Locations
+* Scriptabble Items, NPCs, Tasks and Locations
 * Infinite Worlds
 
 ### Tutorials
