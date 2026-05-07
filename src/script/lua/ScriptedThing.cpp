@@ -73,15 +73,21 @@ class ScriptedThinker : public Thinker
         (void)world;
 
         const auto& L = ScriptedThing_Lua::L;
+        // Restore the Lua stack before returning.
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "onThink");
 
         if (!lua_isfunction(L, -1))
+        {
+            lua_settop(L, base_top);
             return;
+        }
 
         lua_pushlightuserdata(L, owner.get());
         CheckLua(L, lua_pcall(L, 1, 0, 0));
+        lua_settop(L, base_top);
     }
 };
 
@@ -95,18 +101,24 @@ class ScriptedAchiever : public Achiever
         const std::string getName() override
         {
             auto& L = ScriptedThing_Lua::L;
+            const int base_top = lua_gettop(L);
 
             lua_getglobal(L, "Gauzarbeit");
             lua_getfield(L, -1, "Stats");
             lua_getfield(L, -1, name.c_str());
 
             if (!lua_isfunction(L, -1))
+            {
+                lua_settop(L, base_top);
                 return Achiever::Stat::getName();
+            }
 
             lua_pushnumber(L, value);
             CheckLua(L, lua_pcall(L, 1, 1, 0));
 
-            return std::string(lua_tostring(L, -1));
+            std::string result(lua_tostring(L, -1));
+            lua_settop(L, base_top);
+            return result;
         }
 
         std::string name;
@@ -127,17 +139,22 @@ class ScriptedUsable : public Usable
     void onUse(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& user) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "onUse");
 
         if (!lua_isfunction(L, -1))
+        {
+            lua_settop(L, base_top);
             return;
+        }
 
         lua_pushlightuserdata(L, owner.get());
         lua_pushlightuserdata(L, user.get());
 
         CheckLua(L, lua_pcall(L, 2, 0, 0));
+        lua_settop(L, base_top);
     }
 };
 
@@ -148,6 +165,7 @@ class ScriptedAttackable : public Attackable
                   const std::shared_ptr<Thing>& attacker) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "onAttack");
@@ -159,6 +177,7 @@ class ScriptedAttackable : public Attackable
             CheckLua(L, lua_pcall(L, 2, 0, 0));
         }
 
+        lua_settop(L, base_top);
         Attackable::onAttack(owner, attacker);
     }
 
@@ -166,6 +185,7 @@ class ScriptedAttackable : public Attackable
                   const std::shared_ptr<Thing>& target) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "doAttack");
@@ -177,6 +197,7 @@ class ScriptedAttackable : public Attackable
             CheckLua(L, lua_pcall(L, 2, 0, 0));
         }
 
+        lua_settop(L, base_top);
         Attackable::doAttack(owner, target);
     }
 };
@@ -187,11 +208,15 @@ class ScriptedNotifier : public Notifier
                   Event::Type notification_type, const std::shared_ptr<Thing>& target) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "onNotify");
         if (!lua_isfunction(L, -1))
+        {
+            lua_settop(L, base_top);
             return;
+        }
 
         lua_pushlightuserdata(L, owner.get());
         lua_pushlightuserdata(L, actor.get());
@@ -199,6 +224,7 @@ class ScriptedNotifier : public Notifier
         lua_pushlightuserdata(L, target.get());
 
         CheckLua(L, lua_pcall(L, 4, 0, 0));
+        lua_settop(L, base_top);
     }
 };
 
@@ -208,6 +234,7 @@ class ScriptedTasker : public Tasker
     void doReward(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> completer) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "doReward");
@@ -218,6 +245,8 @@ class ScriptedTasker : public Tasker
             lua_pushlightuserdata(L, completer.get());
             CheckLua(L, lua_pcall(L, 2, 0, 0));
         }
+
+        lua_settop(L, base_top);
     }
 };
 
@@ -231,12 +260,16 @@ class ScriptedInspectable : public Inspectable
                                 const std::shared_ptr<Thing>& inspector) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "onInspect");
 
         if (!lua_isfunction(L, -1))
+        {
+            lua_settop(L, base_top);
             return Inspectable::onInspect(owner, inspector);
+        }
 
         lua_pushlightuserdata(L, owner.get());
         lua_pushlightuserdata(L, inspector.get());
@@ -244,42 +277,57 @@ class ScriptedInspectable : public Inspectable
 
         assert(lua_isstring(L, -1));
 
-        return Inspectable::onInspect(owner, inspector) + std::string(lua_tostring(L, -1));
+        std::string result =
+            Inspectable::onInspect(owner, inspector) + std::string(lua_tostring(L, -1));
+        lua_settop(L, base_top);
+        return result;
     }
 
     const std::string onHelp(std::shared_ptr<Thing> owner,
                              std::shared_ptr<Thing> inspector) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "onHelp");
 
         if (!lua_isfunction(L, -1))
+        {
+            lua_settop(L, base_top);
             return Inspectable::getName(owner);
+        }
 
         lua_pushlightuserdata(L, owner.get());
         CheckLua(L, lua_pcall(L, 1, 1, 0));
 
         assert(lua_isstring(L, -1));
-        return std::string(lua_tostring(L, -1));
+        std::string result(lua_tostring(L, -1));
+        lua_settop(L, base_top);
+        return result;
     }
 
     const std::string getName(const std::shared_ptr<Thing>& owner) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "getName");
 
         if (!lua_isfunction(L, -1))
+        {
+            lua_settop(L, base_top);
             return Inspectable::getName(owner);
+        }
 
         lua_pushlightuserdata(L, owner.get());
         CheckLua(L, lua_pcall(L, 1, 1, 0));
 
         assert(lua_isstring(L, -1));
-        return std::string(lua_tostring(L, -1));
+        std::string result(lua_tostring(L, -1));
+        lua_settop(L, base_top);
+        return result;
     }
 };
 
@@ -289,6 +337,7 @@ class ScriptedTalker : public Talker
     void onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "onTalk");
@@ -300,6 +349,7 @@ class ScriptedTalker : public Talker
             CheckLua(L, lua_pcall(L, 2, 0, 0));
         }
 
+        lua_settop(L, base_top);
         Talker::onTalk(owner, talker);
     }
 };
@@ -309,31 +359,42 @@ class ScriptedNetworked : public Networked
     void doDatabaseLoad(std::shared_ptr<Thing> owner) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "doDatabaseLoad");
 
         if (!lua_isfunction(L, -1))
+        {
+            lua_settop(L, base_top);
             return;
+        }
 
         lua_pushlightuserdata(L, owner.get());
         CheckLua(L, lua_pcall(L, 1, 0, 0));
+        lua_settop(L, base_top);
     }
 
     const std::string doDatabaseSave(std::shared_ptr<Thing> owner) override
     {
         const auto& L = ScriptedThing_Lua::L;
+        const int base_top = lua_gettop(L);
 
         lua_getglobal(L, owner->name.c_str());
         lua_getfield(L, -1, "doDatabaseSave");
         if (!lua_isfunction(L, -1))
+        {
+            lua_settop(L, base_top);
             return "";
+        }
 
         lua_pushlightuserdata(L, owner.get());
         CheckLua(L, lua_pcall(L, 1, 1, 0));
         assert(lua_isstring(L, -1));
 
-        return std::string(lua_tostring(L, -1));
+        std::string result(lua_tostring(L, -1));
+        lua_settop(L, base_top);
+        return result;
     }
 };
 } // namespace
@@ -341,6 +402,8 @@ class ScriptedNetworked : public Networked
 ScriptedThing_Lua::ScriptedThing_Lua(const std::string& name, const std::string& script_dir)
     : script::ScriptedThing(name)
 {
+    const int base_top = lua_gettop(L);
+
     script_language = ScriptLanguage::Lua;
 
     // Create components
@@ -388,6 +451,8 @@ ScriptedThing_Lua::ScriptedThing_Lua(const std::string& name, const std::string&
 
         CheckLua(L, lua_pcall(L, 1, 0, 0));
     }
+
+    lua_settop(L, base_top);
 }
 
 ScriptedThing_Lua::~ScriptedThing_Lua()
