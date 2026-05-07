@@ -27,7 +27,7 @@ class RoomNetworked : public Networked
 class Room : public Thing
 {
   public:
-    Room(int x, int y) : x(x), y(y)
+    Room(int x, int y) : Thing("A Room"), x(x), y(y)
     {
         _networked = std::make_shared<RoomNetworked>();
     }
