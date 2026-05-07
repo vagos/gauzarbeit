@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Helpers.hpp"
-#include "Quest.hpp"
 #include "Room.hpp"
 #include "World.hpp"
 #include "script/ScriptAPI.hpp"
@@ -94,7 +93,8 @@ inline std::shared_ptr<Thing> ResolveThingTarget(Thing* owner_ptr, Thing* target
     return nullptr;
 }
 
-std::unique_ptr<Thinker> MakeScriptedThinkerJS();
+std::unique_ptr<Thinker> MakeScriptedThinkerJS(); // TODO: Just define these components the same way we do for the Lua side
+std::unique_ptr<Talker> MakeScriptedTalkerJS();
 
 class ScriptedThing_JS : public script::ScriptedThing
 {
@@ -110,7 +110,7 @@ class ScriptedThing_JS : public script::ScriptedThing
         _tasker = std::make_unique<Tasker>();
         _physical = std::make_unique<Physical>();
         _inspectable = std::make_unique<Inspectable>();
-        _talker = std::make_unique<Talker>();
+        _talker = MakeScriptedTalkerJS();
         _thinker = MakeScriptedThinkerJS();
         _achiever = std::make_unique<Achiever>();
         _networked = std::make_unique<Networked>();
@@ -520,12 +520,48 @@ class ScriptedThing_JS : public script::ScriptedThing
         if (!t || argc < 1 || !t->_tasker)
             return JS_UNDEFINED;
 
+        if (JS_IsString(argv[0]))
+        {
+            std::string desc;
+            if (!toString(ctx, argv[0], desc))
+                return JS_EXCEPTION;
+            t->tasker()->tickTask(desc);
+            return JS_UNDEFINED;
+        }
+
         int32_t idx = 0;
         if (JS_ToInt32(ctx, &idx, argv[0]))
             return JS_EXCEPTION;
 
         t->tasker()->tickTask(idx);
         return JS_UNDEFINED;
+    }
+
+    static JSValue hasDoneTask(JSContext* ctx, JSValueConst this_val, int argc,
+                               JSValueConst* argv)
+    {
+        auto t = self(ctx, this_val);
+        if (!t || argc < 1 || !t->_tasker)
+            return JS_FALSE;
+
+        std::string desc;
+        if (!toString(ctx, argv[0], desc))
+            return JS_EXCEPTION;
+
+        return JS_NewBool(ctx, t->tasker()->hasDoneTask(desc));
+    }
+
+    static JSValue rewardTask(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+    {
+        auto t = self(ctx, this_val);
+        if (!t || argc < 1 || !t->_tasker)
+            return JS_FALSE;
+
+        std::string desc;
+        if (!toString(ctx, argv[0], desc))
+            return JS_EXCEPTION;
+
+        return JS_NewBool(ctx, t->tasker()->rewardTask(t->shared_from_this(), desc));
     }
 
     static JSValue gainXP(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
@@ -567,17 +603,23 @@ class ScriptedThing_JS : public script::ScriptedThing
         return obj;
     }
 
-    static JSValue gainQuest(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
+    static JSValue giveTask(JSContext* ctx, JSValueConst this_val, int argc, JSValueConst* argv)
     {
         auto t = self(ctx, this_val);
-        if (!t || argc < 1)
+        if (!t || argc < 2 || !t->_tasker)
             return JS_EXCEPTION;
 
-        std::string q_name;
-        if (!toString(ctx, argv[0], q_name))
+        Thing* target = argThing(ctx, argv[0]);
+        if (!target || !target->_tasker)
+            return JS_UNDEFINED;
+
+        std::string task_name;
+        if (!toString(ctx, argv[1], task_name))
             return JS_EXCEPTION;
 
-        t->achiever()->gainQuest(ScriptedQuest(q_name));
+        Log("JS giveTask " << task_name);
+        t->tasker()->giveTask(target->shared_from_this(),
+                              std::make_unique<Tasker::Task>(task_name));
         return JS_UNDEFINED;
     }
 
@@ -807,7 +849,7 @@ class ScriptedThing_JS : public script::ScriptedThing
 
         return newThingObject(ctx, r.get(), true);
     }
-    
+
     static JSValue gauzarbeitColorString(JSContext* ctx, JSValueConst this_val, int argc,
                                          JSValueConst* argv)
     {
@@ -911,20 +953,23 @@ class ScriptedThing_JS : public script::ScriptedThing
                           JS_NewCFunction(ctx, ScriptedThing_JS::addTask, "addTask", 1));
         JS_SetPropertyStr(ctx, proto, "tickTask",
                           JS_NewCFunction(ctx, ScriptedThing_JS::tickTask, "tickTask", 1));
+        JS_SetPropertyStr(ctx, proto, "hasDoneTask",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::hasDoneTask, "hasDoneTask", 1));
+        JS_SetPropertyStr(ctx, proto, "rewardTask",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::rewardTask, "rewardTask", 1));
         JS_SetPropertyStr(ctx, proto, "gainXP",
                           JS_NewCFunction(ctx, ScriptedThing_JS::gainXP, "gainXP", 1));
         JS_SetPropertyStr(ctx, proto, "getEventInfo",
                           JS_NewCFunction(ctx, ScriptedThing_JS::getEventInfo, "getEventInfo", 0));
         JS_SetPropertyStr(ctx, proto, "getLevel",
                           JS_NewCFunction(ctx, ScriptedThing_JS::getLevel, "getLevel", 0));
-        JS_SetPropertyStr(ctx, proto, "gainQuest",
-                          JS_NewCFunction(ctx, ScriptedThing_JS::gainQuest, "gainQuest", 1));
+        JS_SetPropertyStr(ctx, proto, "giveTask",
+                          JS_NewCFunction(ctx, ScriptedThing_JS::giveTask, "giveTask", 2));
         JS_SetPropertyStr(ctx, proto, "doAttack",
                           JS_NewCFunction(ctx, ScriptedThing_JS::doAttack, "doAttack", 1));
 
         JS_DefinePropertyValueStr(ctx, global, "__THING_PROTO__", JS_DupValue(ctx, proto),
                                   JS_PROP_C_W_E);
-        JS_SetClassProto(ctx, classID, proto);
 
         // Create Gauzarbeit global object
         JSValue gauzarbeit = JS_NewObject(ctx);
@@ -973,6 +1018,7 @@ class ScriptedThing_JS : public script::ScriptedThing
         JS_FreeValue(ctx, val);
 
         VerifyJSAPI(ctx, proto);
+        JS_SetClassProto(ctx, classID, proto);
 
         JS_FreeValue(ctx, proto);
         JS_FreeValue(ctx, global);
@@ -1017,4 +1063,39 @@ class ScriptedThinker_JS : public Thinker
 inline std::unique_ptr<Thinker> MakeScriptedThinkerJS()
 {
     return std::make_unique<ScriptedThinker_JS>();
+}
+
+class ScriptedTalker_JS : public Talker
+{
+  public:
+    void onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker) override
+    {
+        JSContext* ctx = ScriptedThing_JS::ctx;
+        JSValue global = JS_GetGlobalObject(ctx);
+        JSValue obj = JS_GetPropertyStr(ctx, global, owner->name.c_str());
+        JSValue fn = JS_GetPropertyStr(ctx, obj, "onTalk");
+
+        if (JS_IsFunction(ctx, fn))
+        {
+            JSValue proto = JS_GetPropertyStr(ctx, global, "__THING_PROTO__");
+            JSValue arg = JS_NewObjectProtoClass(ctx, proto, ScriptedThing_JS::classID);
+            JS_SetOpaque(arg, talker.get());
+
+            JSValue ret = JS_Call(ctx, fn, obj, 1, &arg);
+            CheckJS(ctx, ret);
+            JS_FreeValue(ctx, ret);
+            JS_FreeValue(ctx, arg);
+            JS_FreeValue(ctx, proto);
+        }
+
+        JS_FreeValue(ctx, fn);
+        JS_FreeValue(ctx, obj);
+        JS_FreeValue(ctx, global);
+        Talker::onTalk(owner, talker);
+    }
+};
+
+inline std::unique_ptr<Talker> MakeScriptedTalkerJS()
+{
+    return std::make_unique<ScriptedTalker_JS>();
 }
