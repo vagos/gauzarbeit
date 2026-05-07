@@ -37,36 +37,6 @@ int main(int argc, char* argv[])
     Server server(port, io_service, endpoint);
     World world;
     world.systems.push_back(std::make_unique<WorldGenSystem>());
-    
-    // Load persisted rooms from database
-    {
-    const std::filesystem::path rooms_dir("./db/rooms");
-    if (!std::filesystem::exists(rooms_dir))
-         // TODO: Create the directory if it doesn't exist.
-        throw std::runtime_error("Rooms directory does not exist: " + rooms_dir.string());
-
-    for (const auto& entry : std::filesystem::directory_iterator(rooms_dir))
-    {
-        if (!entry.is_regular_file())
-            continue;
-
-        const std::string stem = entry.path().stem().string();
-        const auto sep = stem.find('_');
-        if (sep == std::string::npos)
-            continue;
-
-        try
-        {
-            const int x = std::stoi(stem.substr(0, sep));
-            const int y = std::stoi(stem.substr(sep + 1));
-            Room::get(x, y);
-        }
-        catch (const std::exception&)
-        {
-        }
-    }
-    }
-
 
     try
     {

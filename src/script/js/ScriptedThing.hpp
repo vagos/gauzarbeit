@@ -845,7 +845,11 @@ class ScriptedThing_JS : public script::ScriptedThing
 
         auto r = Room::get(x, y);
         r->name = name;
-        r->doGeneration();
+
+        if (r->networked()->inDatabase(r))
+            r->networked()->doDatabaseLoad(r);
+        else
+            r->doGeneration();
 
         return newThingObject(ctx, r.get(), true);
     }

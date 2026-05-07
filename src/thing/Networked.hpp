@@ -28,6 +28,7 @@ class Networked
     virtual void getRequest(std::shared_ptr<Thing> owner, World& world) {}
     virtual void sendResponse(std::shared_ptr<Thing> owner) {}
 
+    virtual bool inDatabase(std::shared_ptr<Thing> owner) { return false; }
     virtual void doDatabaseLoad(std::shared_ptr<Thing> owner) {} // Maybe add parent
     virtual const std::string doDatabaseSave(std::shared_ptr<Thing> owner) { return ""; }
     virtual void doDatabaseStore(std::shared_ptr<Thing> owner) {}

@@ -19,6 +19,7 @@ class RoomInspectable;
 class RoomNetworked : public Networked
 {
   public:
+    bool inDatabase(std::shared_ptr<Thing> owner) override;
     void doDatabaseLoad(std::shared_ptr<Thing> owner) override;
     const std::string doDatabaseSave(std::shared_ptr<Thing> owner) override;
     void doDatabaseStore(std::shared_ptr<Thing> owner) override;

@@ -23,6 +23,15 @@ std::filesystem::path RoomDBPath(const Room& room)
 }
 } // namespace
 
+bool RoomNetworked::inDatabase(std::shared_ptr<Thing> owner)
+{
+    auto room = std::static_pointer_cast<Room>(owner);
+    if (!room)
+        return false;
+
+    return std::filesystem::exists(RoomDBPath(*room));
+}
+
 std::shared_ptr<Room> Room::get(std::int32_t x, std::int32_t y)
 {
     std::int64_t key = (x & 0xFFFF) << 16 | (y & 0xFFFF);
@@ -44,13 +53,9 @@ std::shared_ptr<Room> Room::get(World& world, std::int32_t x, std::int32_t y)
 
     if (!mapRooms[key])
     {
-        std::ostringstream filename; // TODO: There's a ton of repetition here.
-        filename << x << "_" << y;
-        const auto room_db_path = std::filesystem::path("./db/rooms") / filename.str();
-
         std::shared_ptr<Room> newRoom;
-        if (std::filesystem::exists(room_db_path))
-            newRoom = std::make_shared<ScriptedRoom>(x, y);
+        if (auto room = std::make_shared<ScriptedRoom>(x, y); room->networked()->inDatabase(room))
+            newRoom = room;
         else if (auto* worldgen = world.getSystem<WorldGenSystem>())
             newRoom = worldgen->generateRoom(x, y);
         else
@@ -277,10 +282,10 @@ void RoomNetworked::doDatabaseLoad(std::shared_ptr<Thing> owner)
     if (!room)
         return;
 
-    const auto filename = RoomDBPath(*room);
-    if (!std::filesystem::exists(filename))
+    if (!inDatabase(owner))
         return;
 
+    const auto filename = RoomDBPath(*room);
     if (db.is_open())
         db.close();
 

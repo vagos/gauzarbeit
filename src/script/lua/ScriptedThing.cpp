@@ -1349,7 +1349,11 @@ int Gauzarbeit_SetRoom(lua_State* L)
     auto r = Room::get(x, y);
 
     r->name = r_t;
-    r->doGeneration();
+
+    if (r->networked()->inDatabase(r))
+        r->networked()->doDatabaseLoad(r);
+    else
+        r->doGeneration();
 
     lua_pushlightuserdata(L, r.get());
 

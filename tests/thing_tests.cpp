@@ -294,3 +294,39 @@ TEST_CASE("Room serialization saves and restores non-player things")
 
     std::filesystem::remove(room_db);
 }
+
+TEST_CASE("SetRoom loads persisted rooms instead of re-running room init")
+{
+    InitScriptVMsForTests();
+
+    const int x = 988;
+    const int y = 655;
+    const std::filesystem::path room_db = "./db/rooms/988_655";
+
+    std::filesystem::remove(room_db);
+    Room::mapRooms.clear();
+
+    auto room = Room::get(x, y);
+    room->name = "PersistedKitchen";
+
+    auto dummy = ScriptedThing("TestDummy");
+    REQUIRE(dummy != nullptr);
+    dummy->physical()->current_room = room;
+    room->addThing(dummy);
+    room->networked()->doDatabaseStore(room);
+
+    Room::mapRooms.clear();
+
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+    CheckLua(L, luaL_dostring(L, "return Gauzarbeit.SetRoom('Kitchen', 988, 655)"));
+    lua_settop(L, 0);
+
+    auto loaded = Room::get(x, y);
+    REQUIRE(loaded != nullptr);
+    CHECK(loaded->getThing("TestDummy") != nullptr);
+    CHECK(loaded->getThing("WanderingCook") == nullptr);
+    CHECK(loaded->getThing("Rat") == nullptr);
+
+    std::filesystem::remove(room_db);
+}
