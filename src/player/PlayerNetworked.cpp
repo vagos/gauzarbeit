@@ -124,7 +124,7 @@ void PlayerNetworked::getRequest(std::shared_ptr<Thing> owner, World& world)
     if (!streamRequest.str().size())
         return;
 
-    Log(*owner << ": " << streamRequest.str() << "\r\r\r"
+    Log(*owner << ": " << streamRequest.str() << "\r\r\r\r"
                << "(" << streamRequest.str().size() << " bytes"
                << ")");
 }
@@ -155,6 +155,7 @@ void PlayerNetworked::sendResponse(std::shared_ptr<Thing> owner)
     }
 
     std::string response = streamResponse.str();
+
     if (!getStatusLine().empty())
     {
         response += "[" + getStatusLine() + "] >> ";

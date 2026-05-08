@@ -37,13 +37,15 @@ TEST_CASE("LLM notifier responds to chat from players")
     {
         llm.doUpdate(world);
         npc->notifier()->doUpdate(npc);
-        if (player_net->response().find("> Guide: Roger that.") != std::string::npos)
+        if (player_net->response().find(std::string(PromptReset) + "> Guide: Roger that.") !=
+            std::string::npos)
             break;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
-    CHECK(player_net->response().find("> Guide: Roger that.") != std::string::npos);
+    CHECK(player_net->response().find(std::string(PromptReset) + "> Guide: Roger that.") !=
+          std::string::npos);
 }
 
 TEST_CASE("LLM notifier responds to targeted ask")
@@ -77,11 +79,13 @@ TEST_CASE("LLM notifier responds to targeted ask")
     {
         llm.doUpdate(world);
         npc->notifier()->doUpdate(npc);
-        if (player_net->response().find("> Guide: I can help with tasks.") != std::string::npos)
+        if (player_net->response().find(std::string(PromptReset) + "> Guide: I can help with tasks.") !=
+            std::string::npos)
             break;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
-    CHECK(player_net->response().find("> Guide: I can help with tasks.") != std::string::npos);
+    CHECK(player_net->response().find(std::string(PromptReset) + "> Guide: I can help with tasks.") !=
+          std::string::npos);
 }

@@ -65,6 +65,13 @@ TEST_CASE("GetColor")
     CHECK(GetColor(Color::Green) == "\u001b[32m");
 }
 
+TEST_CASE("Terminal control constants")
+{
+    CHECK(std::string(TerminalCarriageReturn) == "\r");
+    CHECK(std::string(TerminalClearLine) == "\x1b[2K");
+    CHECK(std::string(PromptReset) == "\r\x1b[2K");
+}
+
 TEST_CASE("BarString")
 {
     CHECK(BarString(0.5f, 10) == "[:::::    ]");

@@ -145,6 +145,27 @@ TEST_CASE("Room routes players into players list when added as a thing")
     CHECK(std::find(room->things.begin(), room->things.end(), player) == room->things.end());
 }
 
+TEST_CASE("Room speech broadcasts clear the active line")
+{
+    auto room = std::make_shared<Room>(1, 2);
+    auto speaker = MakeBasicThing("Rat");
+    auto listener = MakeBasicThing("Listener");
+
+    speaker->is_player = true;
+    listener->is_player = true;
+    speaker->physical()->current_room = room;
+    listener->physical()->current_room = room;
+    room->addThing(speaker);
+    room->addThing(listener);
+
+    room->onSay(speaker, "Squeak");
+
+    auto listener_net = std::dynamic_pointer_cast<TestNetworked>(listener->networked());
+    REQUIRE(listener_net != nullptr);
+    CHECK(listener_net->response().find(std::string(PromptReset) + "Rat: Squeak") !=
+          std::string::npos);
+}
+
 TEST_CASE("Lua index/newindex uses Lua registry table for Lua scripted things")
 {
     InitScriptVMsForTests();

@@ -170,7 +170,7 @@ void LLMNotifier::broadcast(const std::shared_ptr<Thing>& owner, const std::stri
     auto room = owner->physical()->current_room;
 
     std::stringstream line;
-    line << "> " << owner->name << ": " << reply << '\n';
+    line << PromptReset << "> " << owner->name << ": " << reply;
 
     for (const auto& player : room->players)
     {

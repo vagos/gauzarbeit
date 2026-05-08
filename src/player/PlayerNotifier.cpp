@@ -60,14 +60,15 @@ void PlayerNotifier::onNotify(const std::shared_ptr<Thing>& owner,
     case Event::Type::Chat:
     {
         std::stringstream chat;
-        chat << "> " << actor->name << ": " << actor->notifier()->event.payload << '\n';
+        chat << PromptReset << "> " << actor->name << ": "
+             << actor->notifier()->event.payload;
         owner->networked()->addResponse(chat.str());
         break;
     }
 
     case Event::Type::Message:
     {
-        owner->networked()->addResponse(actor->notifier()->event.payload);
+        owner->networked()->addResponse(std::string(PromptReset) + actor->notifier()->event.payload);
         break;
     }
 

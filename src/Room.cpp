@@ -175,7 +175,7 @@ void Room::onSay(const std::shared_ptr<Thing>& speaker, const std::string& messa
         return;
 
     std::stringstream line;
-    line << speaker->name << ": " << message;
+    line << PromptReset << speaker->name << ": " << message;
 
     for (const auto& player : players)
     {

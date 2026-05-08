@@ -46,6 +46,10 @@ enum class Color
     Magenta,
 };
 
+inline constexpr const char TerminalCarriageReturn[] = "\r";
+inline constexpr const char TerminalClearLine[] = "\x1b[2K";
+inline constexpr const char PromptReset[] = "\r\x1b[2K";
+
 struct Event
 {
     enum class Type
