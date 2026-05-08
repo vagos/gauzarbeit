@@ -12,6 +12,7 @@
 
 void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 {
+    Thinker::doThink(owner, world);
     const auto& event = owner->notifier()->event;
 
     if (event.verb.empty())
@@ -31,7 +32,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         if (!enemy)
             throw TargetNotFound();
 
-        DoFight(owner, enemy);
+        owner->attackable()->doAttack(owner, enemy);
 
         break;
     }

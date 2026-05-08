@@ -128,12 +128,14 @@ class ScriptedThinker : public Thinker
         if (!lua_isfunction(L, -1))
         {
             lua_settop(L, base_top);
+            Thinker::doThink(owner, world);
             return;
         }
 
         lua_pushlightuserdata(L, owner.get());
         CheckLua(L, lua_pcall(L, 1, 0, 0));
         lua_settop(L, base_top);
+        Thinker::doThink(owner, world);
     }
 };
 

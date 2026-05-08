@@ -1,5 +1,6 @@
 #include "Room.hpp"
 #include "TestSupport.hpp"
+#include "World.hpp"
 #include "player/Player.hpp"
 #include "script/ScriptedThing.hpp"
 #include "script/lua/LuaHelpers.hpp"
@@ -83,6 +84,7 @@ TEST_CASE("Physical doMove updates the owning room")
 
 TEST_CASE("Attackable doAttack kills and removes target")
 {
+    World world;
     auto room = std::make_shared<Room>(0, 0);
     auto attacker = MakeBasicThing("Attacker");
     auto target = MakeBasicThing("Target");
@@ -96,6 +98,13 @@ TEST_CASE("Attackable doAttack kills and removes target")
     attacker->attackable()->dmg = 1;
 
     attacker->attackable()->doAttack(attacker, target);
+
+    CHECK(target->attackable()->is_alive());
+    CHECK(target->attackable()->current_health == doctest::Approx(1.0));
+    CHECK(target->notifier()->event.type == Event::Type::Attacked);
+    CHECK(target->notifier()->event.target == "Attacker");
+
+    target->thinker()->doThink(target, world);
 
     CHECK(!target->attackable()->is_alive());
     CHECK(target->physical()->current_room == nullptr);

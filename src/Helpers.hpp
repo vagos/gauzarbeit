@@ -17,6 +17,7 @@ constexpr int SIZE = 65;
 #define Log(msg) std::cerr << __FILE__ << ":" << __LINE__ << " " << msg << std::endl;
 
 class Thing;
+class World;
 class Networked;
 class Physical;
 class Usable;
@@ -216,7 +217,5 @@ const std::string VerticalListString(const T& c, const char b, const char sep = 
 }
 
 void HandleException(const std::shared_ptr<Thing>& t, std::exception& e);
-
-void DoFight(const std::shared_ptr<Thing>& t1, const std::shared_ptr<Thing>& t2);
 
 #endif // HELPERS_HPP

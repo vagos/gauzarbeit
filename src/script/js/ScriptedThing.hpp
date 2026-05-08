@@ -1061,6 +1061,7 @@ class ScriptedThinker_JS : public Thinker
         JS_FreeValue(ctx, fn);
         JS_FreeValue(ctx, obj);
         JS_FreeValue(ctx, global);
+        Thinker::doThink(owner, world);
     }
 };
 

@@ -7,12 +7,14 @@ void Attackable::doAttack(const std::shared_ptr<Thing>& owner, const std::shared
 {
     assert(owner->_physical && target->_physical);
     assert(owner->physical()->current_room == target->physical()->current_room);
+    assert(owner->_notifier && target->_notifier);
     Log(owner->name << " is attacking " << target->name);
 
     owner->notifier()->doNotify(owner, Event::Type::Attack, target);
-
-    target->attackable()->getDamaged(target, owner, dmg);
-    target->attackable()->onAttack(target, owner);
+    target->notifier()->clearEvent();
+    target->notifier()->event.type = Event::Type::Attacked;
+    target->notifier()->event.verb = "attacked";
+    target->notifier()->event.target = owner->name;
 }
 
 void Attackable::onAttack(const std::shared_ptr<Thing>& owner,

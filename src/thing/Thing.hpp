@@ -162,10 +162,12 @@ class Notifier
 
     void clearEvent()
     {
+        event.type = Event::Type::Invalid;
         event.verb = "";
         event.object = "";
         event.target = "";
         event.extra = "";
+        event.payload = "";
     }
 
     virtual void doUpdate(const std::shared_ptr<Thing>& owner) {}
@@ -327,7 +329,7 @@ class Thinker
   public:
     Thinker() {}
 
-    virtual void doThink(const std::shared_ptr<Thing>& owner, World& world) {}
+    virtual void doThink(const std::shared_ptr<Thing>& owner, World& world);
 };
 
 class Usable
