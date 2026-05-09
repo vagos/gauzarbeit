@@ -30,7 +30,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         auto enemy = owner->physical()->getRoom()->getAnything(event.target);
 
         if (!enemy)
-            throw TargetNotFound();
+            throw TargetNotFound(event.target);
 
         owner->attackable()->doAttack(owner, enemy);
 
@@ -58,7 +58,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
             auto t = owner->physical()->getItem(event.target);
 
             if (!t)
-                throw TargetNotFound();
+                throw TargetNotFound(event.target);
 
             owner->networked()->addResponse(t->inspectable()->getName(t) + ": " +
                                             t->inspectable()->onHelp(t, owner));
@@ -82,7 +82,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         auto t = owner->physical()->current_room->getThing(event.target);
 
         if (!t)
-            throw TargetNotFound();
+            throw TargetNotFound(event.target);
 
         if (event.object.size())
         {
@@ -115,7 +115,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         /*
         auto p = owner -> physical() -> current_room -> getPlayer( event.target );
 
-        if (!p) throw TargetNotFound();
+        if (!p) throw TargetNotFound(event.target);
 
         std::stringstream whisper; whisper << owner -> name << " whispered to you: " <<
         std::quoted(message) << '\n'; p -> networked() -> addResponse( ColorString( whisper.str(),
@@ -167,7 +167,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
             goto Notify;
         }
 
-        throw TargetNotFound();
+        throw TargetNotFound(event.target);
 
     Notify:
 
@@ -190,7 +190,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         }
 
         if (!t)
-            throw TargetNotFound();
+            throw TargetNotFound(event.target);
 
         t->usable()->onUse(t, owner);
 
@@ -209,7 +209,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
     {
         auto t = owner->physical()->current_room->getThing(event.target);
         if (!t)
-            throw TargetNotFound();
+            throw TargetNotFound(event.target);
         /* if (!t->physical()->onPickup(t, owner)) */
         /*     throw MissingComponent(); */
 
@@ -223,10 +223,10 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
     {
         auto o = owner->physical()->getItem(event.object);
         if (!o)
-            throw TargetNotFound();
+            throw TargetNotFound(event.object);
         auto t = owner->physical()->getRoom()->getThing(event.target);
         if (!t)
-            throw TargetNotFound();
+            throw TargetNotFound(event.target);
         t->physical()->gainItem(o);
         owner->physical()->loseItem(o);
         owner->notifier()->doNotify(owner, event.type, t);

@@ -7,12 +7,16 @@
 
 struct TargetNotFound : public std::exception
 {
-
-    TargetNotFound()
+    explicit TargetNotFound(std::string target)
+        : message("Target not found: " + (target.empty() ? std::string("<unknown>") : target) +
+                  "\n")
     {
     }
 
-    virtual const char* what() const throw() { return "Nothing with that name was found!\n"; }
+    const char* what() const noexcept override { return message.c_str(); }
+
+  private:
+    std::string message;
 };
 
 struct InvalidCommand : public std::exception
