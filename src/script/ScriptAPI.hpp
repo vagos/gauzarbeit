@@ -22,6 +22,11 @@ struct ScriptAPI
 
     static constexpr const char* kGauzarbeitFuncs[] = {
         "Spawn", "GetRoom", "SetRoom", "ColorString", "GetDBLine", "WithChance", nullptr,
+        // TODO 
+        /*
+        SetRoom -> CreateRoom
+        Delete
+        */
     };
 
     static constexpr ScriptConstant kEventConstants[] = {
