@@ -129,6 +129,14 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 
         std::shared_ptr<Thing> t;
 
+        if (event.target == "here" || event.target == "room")
+        {
+            t = owner->physical()->current_room;
+            auto t = std::reinterpret_pointer_cast<Room>(owner->physical()->current_room);
+            owner->networked()->addResponse(t->onInspect(t, owner));
+            goto Notify;
+        }
+
         if (event.target.size() == 0)
         {
             owner->networked()->addResponse(owner->inspectable()->onInspect(owner, owner));
@@ -202,6 +210,8 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         auto t = owner->physical()->current_room->getThing(event.target);
         if (!t)
             throw TargetNotFound();
+        /* if (!t->physical()->onPickup(t, owner)) */
+        /*     throw MissingComponent(); */
 
         owner->physical()->pickupItem(t);
         owner->notifier()->doNotify(owner, event.type, t);
@@ -209,53 +219,23 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         break;
     }
 
-    case Event::Type::Look:
+    case Event::Type::Provide:
     {
-        owner->networked()->addResponse(
-            owner->physical()->current_room->onInspect(owner->physical()->current_room, owner));
+        auto o = owner->physical()->getItem(event.object);
+        if (!o)
+            throw TargetNotFound();
+        auto t = owner->physical()->getRoom()->getThing(event.target);
+        if (!t)
+            throw TargetNotFound();
+        t->physical()->gainItem(o);
+        owner->physical()->loseItem(o);
+        owner->notifier()->doNotify(owner, event.type, t);
+        owner->networked()->addResponse("You gave " + t->name + " your " + o->name + "\n");
         break;
     }
+
 
     default:
         break;
     }
-
-    // TODO: Turn these into actual events
-    if (event.verb == "get")
-    {
-        owner->physical()->gainItem(ScriptedThing(event.target));
-    }
-
-    if (event.verb == "spawn")
-    {
-        auto t = ScriptedThing(event.target);
-        t->physical()->doMove(t, owner->physical()->current_room->x,
-                              owner->physical()->current_room->y);
-    }
-
-    //    else if (event.verb == "give") // fix this
-    //    {
-    //        auto p = world.getPlayer(event.target);
-    //
-    //        if (!p)
-    //        {
-    //            owner -> networked -> addResponse( ColorString("Player not found!\n", Color::Red)
-    //            ); return;
-    //        }
-    //
-    //        auto item = getItem( event.extra );
-    //
-    //        if (!item) return;
-    //
-    //        p -> physical -> gainItem( item );
-    //
-    //        std::stringstream message;
-    //        message << "You were given a " << item -> name << " by " << owner -> name << "\n";
-    //        p -> networked -> addResponse( message .str() );
-    //
-    //        owner -> networked -> addResponse("You gave " + event.target + " your " + item -> name
-    //        + "\n");
-    //
-    //        loseItem(item);
-    //    }
 }

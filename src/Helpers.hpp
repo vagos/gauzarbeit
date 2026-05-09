@@ -55,7 +55,6 @@ struct Event
 {
     enum class Type
     {
-        Invalid,
         Message,
         Say,
         Chat,
@@ -74,9 +73,10 @@ struct Event
         Death,
         Leave,
         Gain,
-        Look,
+        Provide,
         Register,
         Custom,
+        Invalid,
     };
 
     std::string verb;
@@ -89,16 +89,11 @@ struct Event
 };
 
 const std::string GetColor(Color color_code);
-
 const std::string HeaderString(const std::string& s, const std::string& title, const char h = ' ',
                                int size = SIZE);
-
 const std::string ColorString(const std::string& s, Color color_code);
-
 const std::string CenteredString(const std::string& s, int size = SIZE);
-
 template <typename T> const std::shared_ptr<Thing> GetSmartPtr(const T& container, Thing* t_ptr);
-
 const std::shared_ptr<Thing> FindByName(std::vector<std::shared_ptr<Thing>>& container,
                                         const std::string& s);
 

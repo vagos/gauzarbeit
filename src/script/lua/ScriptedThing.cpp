@@ -856,7 +856,12 @@ int ScriptedThing_Lua::GetThings(lua_State* L)
 {
     assert(lua_isuserdata(L, 1));
 
-    auto room = FindRoomByThingPtr((Thing*)lua_touserdata(L, 1));
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    if (ptrThing->_physical)
+        return PushThingList(L, ptrThing->physical()->inventory);
+
+    auto room = FindRoomByThingPtr(ptrThing);
     if (!room)
         return 0;
 
@@ -1485,8 +1490,8 @@ void ScriptedThing_Lua::Init()
                                      {"__newindex", ScriptedThing_Lua::NewIndex},
                                      {"getName", ScriptedThing_Lua::GetName},
                                      {"getType", ScriptedThing_Lua::GetName},
-                                     {"setStat", SetStat},
-                                     {"getStat", GetStat},
+                                     {"setStat", ScriptedThing_Lua::SetStat},
+                                     {"getStat", ScriptedThing_Lua::GetStat},
                                      {"sendMessage", ScriptedThing_Lua::SendMessage},
                                      {"doSay", ScriptedThing_Lua::DoSay},
                                      {"loseItem", ScriptedThing_Lua::LoseItem},

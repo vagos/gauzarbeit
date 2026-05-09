@@ -29,6 +29,7 @@ void Player::setPlayerCommands()
     playerCommands["inv"] = Event::Type::Inspect;
     playerCommands["inspect"] = Event::Type::Inspect;
     playerCommands["check"] = Event::Type::Inspect;
+    playerCommands["look"] = Event::Type::Inspect;
 
     playerCommands["attack"] = Event::Type::Attack;
     playerCommands["use"] = Event::Type::Use;
@@ -47,9 +48,11 @@ void Player::setPlayerCommands()
     playerCommands["go"] = Event::Type::Move;
 
     playerCommands["pickup"] = Event::Type::Gain;
+    playerCommands["get"] = Event::Type::Gain;
     playerCommands["grab"] = Event::Type::Gain;
 
-    playerCommands["look"] = Event::Type::Look;
+    playerCommands["give"] = Event::Type::Provide;
+    playerCommands["put"] = Event::Type::Provide;
 
     playerCommands["tell"] = Event::Type::Say;
     playerCommands["say"] = Event::Type::Say;

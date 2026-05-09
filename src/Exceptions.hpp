@@ -10,7 +10,6 @@ struct TargetNotFound : public std::exception
 
     TargetNotFound()
     {
-        //    assert(false);
     }
 
     virtual const char* what() const throw() { return "Nothing with that name was found!\n"; }
