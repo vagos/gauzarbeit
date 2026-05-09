@@ -4,6 +4,39 @@
 #include "player/CommandParser.hpp"
 #include "player/PlayerPhysical.hpp"
 #include "script/ScriptedThing.hpp"
+#include "script/lua/ScriptedThing.hpp"
+#include <boost/algorithm/string.hpp>
+
+namespace
+{
+bool IsAdmin(std::shared_ptr<Thing> owner)
+{
+    return owner->name == "admin"; // TODO: Make this configurable.
+}
+
+std::string EvalCommand(const std::shared_ptr<Thing>& owner, const Event& event)
+{
+    std::string code = event.object;
+    if (!event.extra.empty())
+    {
+        if (!code.empty())
+            code += ' ';
+        code += event.extra;
+    }
+
+    boost::algorithm::trim(code);
+    if (code.empty())
+        throw std::runtime_error("Usage: eval lua <code>");
+
+    std::string language = event.target;
+    boost::algorithm::to_lower(language);
+
+    if (language == "lua")
+        return ScriptedThing_Lua::Eval(code, owner.get());
+
+    throw std::runtime_error("Unknown script language: " + event.target);
+}
+} // namespace
 
 void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 {
@@ -94,11 +127,33 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
 
         setLoggedIn(true);
     }
-    else
+    else // Registration and login has happened.
     {
         if (!isLoggedIn())
         {
             addResponse(ColorString("You need to log in!\n", Color::Red));
+            return;
+        }
+
+        if (event.verb == "eval")
+        {
+            if (!IsAdmin(owner))
+            {
+                addResponse(ColorString("You are not allowed to run admin commands.\n",
+                                        Color::Red));
+                return;
+            }
+
+            try
+            {
+                const std::string result = EvalCommand(owner, event);
+                addResponse(ColorString(result + '\n', Color::Green));
+            }
+            catch (const std::exception& e)
+            {
+                addResponse(ColorString(std::string(e.what()) + '\n', Color::Red));
+            }
+
             return;
         }
 

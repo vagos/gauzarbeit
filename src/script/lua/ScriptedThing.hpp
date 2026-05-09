@@ -33,6 +33,7 @@ class ScriptedThing_Lua : public script::ScriptedThing
     static int HasItem(lua_State* L);
     static int EquipItem(lua_State* L);
     static int MoveTo(lua_State* L);
+    static std::string Eval(const std::string& code, Thing* admin = nullptr);
 
     static int GetStat(lua_State* L);
     static int SetStat(lua_State* L);

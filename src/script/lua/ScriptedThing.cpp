@@ -1414,6 +1414,62 @@ int Gauzarbeit_WithChance(lua_State* L)
     return 1;
 }
 
+std::string ScriptedThing_Lua::Eval(const std::string& code, Thing* admin)
+{
+    const int base_top = lua_gettop(L);
+
+    auto cleanup = [&]()
+    {
+        lua_settop(L, base_top);
+        if (admin)
+        {
+            lua_pushnil(L);
+            lua_setglobal(L, "self");
+        }
+    };
+
+    try
+    {
+        if (admin)
+        {
+            lua_pushlightuserdata(L, admin);
+            lua_setglobal(L, "self");
+        }
+
+        CheckLua(L, luaL_loadstring(L, code.c_str()));
+        CheckLua(L, lua_pcall(L, 0, LUA_MULTRET, 0));
+
+        const int result_top = lua_gettop(L);
+        std::stringstream out;
+
+        if (result_top == base_top)
+        {
+            out << "ok";
+        }
+        else
+        {
+            for (int i = base_top + 1; i <= result_top; ++i)
+            {
+                if (i > base_top + 1)
+                    out << ", ";
+
+                lua_pushvalue(L, i);
+                const char* text = luaL_tolstring(L, -1, nullptr);
+                out << (text ? text : "");
+                lua_pop(L, 2);
+            }
+        }
+
+        cleanup();
+        return out.str();
+    }
+    catch (...)
+    {
+        cleanup();
+        throw;
+    }
+}
+
 void ScriptedThing_Lua::Init()
 {
     luaL_openlibs(L);

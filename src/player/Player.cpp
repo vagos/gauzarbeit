@@ -55,6 +55,7 @@ void Player::setPlayerCommands()
     playerCommands["say"] = Event::Type::Say;
 
     playerCommands["register"] = Event::Type::Register;
+    playerCommands["eval"] = Event::Type::Custom; // TODO: Make this a new event type.
 }
 
 std::unordered_map<std::string, Event::Type> Player::playerCommands;
