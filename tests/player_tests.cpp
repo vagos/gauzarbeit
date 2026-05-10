@@ -63,8 +63,9 @@ TEST_CASE("Admin eval can spawn objects in the current room")
 
     const auto initial_count = room->things.size();
 
-    CHECK(ScriptedThing_Lua::Eval("Gauzarbeit.Spawn(self:getRoom().x, self:getRoom().y, 'TestDummy')",
-                                  admin.get()) == "ok");
+    CHECK(ScriptedThing_Lua::Eval("local t = Gauzarbeit.Spawn(self:getRoom().x, self:getRoom().y, 'TestDummy')\n"
+                                  "return t:getName()",
+                                  admin.get()) == "TestDummy");
 
     CHECK(room->things.size() == initial_count + 1);
     CHECK(room->getThing("TestDummy") != nullptr);
