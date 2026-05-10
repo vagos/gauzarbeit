@@ -21,6 +21,8 @@ Gauzarbeit.Spawn(0, 0, "Gun")
 Gauzarbeit.Spawn(0, 0, "Map")
 Gauzarbeit.Spawn(0, 0, "Compass")
 Gauzarbeit.Spawn(0, 0, "Cheesecake")
+local table = Gauzarbeit.Spawn(0, 0, "Table")
+table:gainItem(Gauzarbeit.Spawn(0, 0, "Cheesecake"))
 
 Gauzarbeit.Spawn(0, 0, "WelcomeMan")
 Gauzarbeit.Spawn(0, 0, "WantedBadge")
