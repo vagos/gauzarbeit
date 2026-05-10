@@ -43,17 +43,10 @@ class Physical
         return std::find(inventory.begin(), inventory.end(), item) != inventory.end();
     }
 
-    void equipItem(std::shared_ptr<Thing> item)
-    {
-        equipment.push_back(item);
-        loseItem(item);
-    }
-
     bool is_movable() { return movable; }
 
     std::shared_ptr<Room> current_room = nullptr;
     std::vector<std::shared_ptr<Thing>> inventory;
-    std::vector<std::shared_ptr<Thing>> equipment;
 
     bool movable = true;
 };

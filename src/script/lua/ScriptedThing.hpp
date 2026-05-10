@@ -31,7 +31,6 @@ class ScriptedThing_Lua : public script::ScriptedThing
     static int GetThings(lua_State* L);
     static int GetPlayers(lua_State* L);
     static int HasItem(lua_State* L);
-    static int EquipItem(lua_State* L);
     static int MoveTo(lua_State* L);
     static std::string Eval(const std::string& code, Thing* admin = nullptr);
 

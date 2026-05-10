@@ -1158,22 +1158,6 @@ int ScriptedThing_Lua::GetEventInfo(lua_State* L)
     return 0;
 }
 
-int ScriptedThing_Lua::EquipItem(lua_State* L)
-{
-    assert(lua_isuserdata(L, 1));
-
-    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
-
-    Thing* ptrThingItem = (Thing*)lua_touserdata(L, 2);
-
-    auto item = GetSmartPtr(ptrThing->physical()->inventory, ptrThingItem);
-
-    if (item)
-        ptrThing->physical()->equipItem(item);
-
-    return 0;
-}
-
 // Returns a Player with the given name in the room the thing is in
 int ScriptedThing_Lua::GetPlayer(lua_State* L)
 {
@@ -1498,7 +1482,6 @@ void ScriptedThing_Lua::Init()
                                      {"doSay", ScriptedThing_Lua::DoSay},
                                      {"loseItem", ScriptedThing_Lua::LoseItem},
                                      {"dropItem", ScriptedThing_Lua::DropItem},
-                                     {"equipItem", ScriptedThing_Lua::EquipItem},
                                      {"getThing", ScriptedThing_Lua::GetThing},
                                      {"getPlayer", ScriptedThing_Lua::GetPlayer},
                                      {"getRoom", ScriptedThing_Lua::GetRoom},

@@ -35,15 +35,6 @@ class PlayerInspectable : public Inspectable
                         << "\n\n";
             }
 
-            if (!owner->physical()->equipment.empty())
-            {
-                inspect << "Equipment: \n";
-                inspect << VerticalListString(owner->physical()->equipment, '-',
-                                              [](const std::shared_ptr<Thing>& t)
-                                              { return t->inspectable()->getName(t); })
-                        << "\n\n";
-            }
-
             if (!owner->tasker()->tasks.empty())
             {
                 inspect << "Tasks: \n";

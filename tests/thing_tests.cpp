@@ -44,7 +44,7 @@ TEST_CASE("Physical pickup respects immovable items")
     CHECK(room->getThing("Anvil") == item);
 }
 
-TEST_CASE("Physical give and equip move items between inventories")
+TEST_CASE("Physical give moves items between inventories")
 {
     auto giver = MakeBasicThing("Giver");
     auto receiver = MakeBasicThing("Receiver");
@@ -55,14 +55,6 @@ TEST_CASE("Physical give and equip move items between inventories")
 
     CHECK(!giver->physical()->hasItem(item));
     CHECK(receiver->physical()->hasItem(item));
-
-    auto gear = MakeBasicThing("Helmet");
-    giver->physical()->gainItem(gear);
-    giver->physical()->equipItem(gear);
-
-    CHECK(!giver->physical()->hasItem(gear));
-    CHECK(giver->physical()->equipment.size() == 1);
-    CHECK(giver->physical()->equipment.front() == gear);
 }
 
 TEST_CASE("Physical doMove updates the owning room")
