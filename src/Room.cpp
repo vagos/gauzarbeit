@@ -13,15 +13,12 @@
 #include <memory>
 #include <sstream>
 
-namespace
-{
 std::filesystem::path RoomDBPath(const Room& room)
 {
     std::ostringstream filename;
     filename << room.x << "_" << room.y;
     return std::filesystem::path("./db/rooms") / filename.str();
 }
-} // namespace
 
 bool RoomNetworked::inDatabase(std::shared_ptr<Thing> owner)
 {

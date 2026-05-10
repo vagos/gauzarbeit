@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <filesystem>
 
-namespace
-{
 std::vector<std::string> LoadSpawnTable()
 {
     const std::filesystem::path things_dir = ScriptPaths::ResolveDir("things");
@@ -29,7 +27,6 @@ std::vector<std::string> LoadSpawnTable()
     names.erase(std::unique(names.begin(), names.end()), names.end());
     return names;
 }
-} // namespace
 
 World* World::current_world = nullptr;
 std::vector<std::string> World::spawn_table = LoadSpawnTable();
