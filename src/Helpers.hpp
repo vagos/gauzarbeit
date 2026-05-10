@@ -47,6 +47,14 @@ enum class Color
     Magenta,
 };
 
+enum class Direction 
+{
+    North,
+    South,
+    East,
+    West,
+};
+
 inline constexpr const char TerminalCarriageReturn[] = "\r";
 inline constexpr const char TerminalClearLine[] = "\x1b[2K";
 inline constexpr const char PromptReset[] = "\r\x1b[2K";

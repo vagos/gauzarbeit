@@ -1,3 +1,4 @@
+#include "lib/magic_enum.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include "Helpers.hpp"
 #include "Room.hpp"
@@ -1541,10 +1542,10 @@ void ScriptedThing_Lua::Init()
     // Create Gauzarbeit.Color table
     {
         lua_newtable(L);
-        for (const ScriptConstant* c = ScriptAPI::kColorConstants; c->name; ++c)
+        for (const Color c : magic_enum::enum_values<Color>())
         {
-            lua_pushnumber(L, c->value);
-            lua_setfield(L, -2, c->name);
+            lua_pushnumber(L, static_cast<int>(c));
+            lua_setfield(L, -2, magic_enum::enum_name(c).data());
         }
         lua_setfield(L, -2, "Color");
     }
@@ -1552,10 +1553,10 @@ void ScriptedThing_Lua::Init()
     // Create Gauzarbeit.Direction table
     {
         lua_newtable(L);
-        for (const ScriptConstant* c = ScriptAPI::kDirectionConstants; c->name; ++c)
+        for (const Direction d : magic_enum::enum_values<Direction>())
         {
-            lua_pushnumber(L, c->value);
-            lua_setfield(L, -2, c->name);
+            lua_pushnumber(L, static_cast<int>(d));
+            lua_setfield(L, -2, magic_enum::enum_name(d).data());
         }
         lua_setfield(L, -2, "Direction");
     }
