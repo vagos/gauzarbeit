@@ -12,6 +12,9 @@ const std::string Inspectable::onInspect(const std::shared_ptr<Thing>& owner,
     inspect << "Name: " << owner->name << "\n\n\n";
     inspect << CenteredString("---") << "\n\n";
 
+    if (owner != inspector)
+        goto Return;
+
     if (!owner->physical()->inventory.empty())
     {
         inspect << "Inventory: \n";
@@ -31,6 +34,7 @@ const std::string Inspectable::onInspect(const std::shared_ptr<Thing>& owner,
                                       });
     }
 
+    Return:
     return HeaderString(inspect.str(), owner->name);
 }
 
