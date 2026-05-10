@@ -325,6 +325,48 @@ TEST_CASE("Room serialization saves and restores non-player things")
     std::filesystem::remove(room_db);
 }
 
+TEST_CASE("Room serialization preserves scripted thing payloads")
+{
+    InitScriptVMsForTests();
+
+    const int x = 989;
+    const int y = 656;
+    const std::filesystem::path room_db = "./db/rooms/989_656";
+
+    std::filesystem::remove(room_db);
+    Room::mapRooms.clear();
+
+    auto room = Room::get(x, y);
+    room->name = "TableRoom";
+
+    auto table = ScriptedThing("Table");
+    REQUIRE(table != nullptr);
+    table->physical()->doMove(table, room);
+
+    auto item = ScriptedThing("TestDummy");
+    REQUIRE(item != nullptr);
+    item->physical()->doMove(item, room);
+    table->physical()->pickupItem(item);
+    CHECK(table->physical()->hasItem(item));
+    CHECK(table->physical()->inventory.size() == 1);
+    CHECK(room->getThing("TestDummy") == nullptr);
+
+    auto saved_table = table->networked()->doDatabaseSave(table);
+    CHECK(saved_table == "1\nTestDummy\n");
+
+    room->networked()->doDatabaseStore(room);
+
+    Room::mapRooms.clear();
+
+    auto loaded = Room::get(x, y);
+    REQUIRE(loaded != nullptr);
+    auto loaded_table = loaded->getThing("Table");
+    REQUIRE(loaded_table != nullptr);
+    CHECK(loaded_table->physical()->getItem("TestDummy") != nullptr);
+
+    std::filesystem::remove(room_db);
+}
+
 TEST_CASE("SetRoom loads persisted rooms instead of re-running room init")
 {
     InitScriptVMsForTests();

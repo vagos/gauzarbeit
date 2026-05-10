@@ -354,6 +354,8 @@ const std::string RoomNetworked::doDatabaseSave(std::shared_ptr<Thing> owner)
             continue;
 
         data << thing->name << '\n';
+        if (thing->_networked)
+            data << thing->networked()->doDatabaseSave(thing);
     }
     data << "END\n";
 
