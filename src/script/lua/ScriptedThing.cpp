@@ -1314,18 +1314,14 @@ int ScriptedThing_Lua::SetStat(lua_State* L)
 
 int Gauzarbeit_Spawn(lua_State* L)
 {
+    std::shared_ptr<ScriptedThing_Lua> t;
+    Room* r = nullptr;
+
     if (lua_isuserdata(L, 1))
     {
-        Room* r = (Room*)lua_touserdata(L, 1);
+        r = (Room*)lua_touserdata(L, 1);
         std::string t_n(lua_tostring(L, 2));
-        auto t = std::make_shared<ScriptedThing_Lua>(t_n);
-
-        if (t->_physical)
-            t->physical()->doMove(t, r->x, r->y);
-        else
-            r->addThing(t);
-
-        return 0;
+        t = std::make_shared<ScriptedThing_Lua>(t_n);
     }
     else
     {
@@ -1333,20 +1329,23 @@ int Gauzarbeit_Spawn(lua_State* L)
         int y = (int)lua_tonumber(L, 2);
 
         std::string t_n(lua_tostring(L, 3));
-
-        auto r = Room::get(x, y);
-
-        assert(r);
-
-        auto t = std::make_shared<ScriptedThing_Lua>(t_n);
-
-        if (t->_physical)
-            t->physical()->doMove(t, r->x, r->y);
-        else
-            r->addThing(t);
+        auto room = Room::get(x, y);
+        r = room.get();
+        t = std::make_shared<ScriptedThing_Lua>(t_n);
     }
 
-    return 0;
+    assert(t);
+    assert(r);
+    if (t->_physical)
+        t->physical()->doMove(t, r->x, r->y);
+    else
+        r->addThing(t);
+
+    lua_pushlightuserdata(L, t.get());
+    luaL_getmetatable(L, "Gauzarbeit.Thing");
+    lua_setmetatable(L, -2);
+
+    return 1;
 }
 
 int Gauzarbeit_SetRoom(lua_State* L)
