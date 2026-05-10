@@ -15,7 +15,7 @@ TSTS := $(shell find tests -name '*.cpp')
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-INC_DIRS := $(shell find $(SRC_DIRS) -type d) /usr/local/include
+INC_DIRS := . $(shell find $(SRC_DIRS) -type d) /usr/local/include
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 PKG_CONFIG := pkg-config
