@@ -34,9 +34,9 @@ function Table:doDatabaseLoad()
 end
 
 function Table:onInspect(inspector)
-    local contentList = "Contents:\n"
+    local contentList = "Currently on it:"
     for _, thing in ipairs(self:getThings()) do
-        contentList = contentList .. " - " .. thing:getType() .. "\n"
+        contentList = contentList .. thing:getName() .. ", "
     end
-    return "A sturdy table that can hold various items.\n" .. contentList
+    return "A sturdy table that can hold various items.\n" .. contentList .. "\n"
 end
