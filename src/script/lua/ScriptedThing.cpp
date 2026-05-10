@@ -397,7 +397,11 @@ class Task_Lua : public Tasker::Task
         lua_pushlightuserdata(L, actor.get());
         lua_pushnumber(L, (int)notification_type);
         if (target)
+        {
             lua_pushlightuserdata(L, target.get());
+            luaL_getmetatable(L, "Gauzarbeit.Thing");
+            lua_setmetatable(L, -2);
+        }
         else
             lua_pushnil(L);
 

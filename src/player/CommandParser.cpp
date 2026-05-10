@@ -20,10 +20,11 @@ Event CommandParser::Parse(const std::string& request)
         return event;
     }
 
-    event.type = Player::playerCommands[event.verb];
-
-    if (event.type == Event::Type::Invalid)
+    const auto it = Player::playerCommands.find(event.verb);
+    if (it == Player::playerCommands.end())
         throw InvalidCommand();
+
+    event.type = it->second;
 
     return event;
 }

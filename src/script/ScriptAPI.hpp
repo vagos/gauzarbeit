@@ -30,11 +30,11 @@ struct ScriptAPI
     };
 
     static constexpr ScriptConstant kEventConstants[] = {
-        {"Invalid", 0},   {"Message", 1}, {"Say", 2},      {"Chat", 3},    {"Move", 4},
-        {"Enter", 5},     {"Use", 6},     {"Do", 7},       {"Buy", 8},     {"Info", 9},
-        {"Ask", 10},      {"Help", 11},   {"Inspect", 12}, {"Attack", 13}, {"Attacked", 14},
-        {"Kill", 15},     {"Death", 16},  {"Leave", 17},   {"Gain", 18},   {"Look", 19},
-        {"Register", 20}, {"Custom", 21}, {nullptr, 0},
+        {"Message", 0},   {"Say", 1},     {"Chat", 2},     {"Move", 3},    {"Enter", 4},
+        {"Use", 5},       {"Do", 6},      {"Buy", 7},      {"Info", 8},    {"Ask", 9},
+        {"Help", 10},     {"Inspect", 11}, {"Attack", 12}, {"Attacked", 13}, {"Kill", 14},
+        {"Death", 15},    {"Leave", 16},  {"Gain", 17},    {"Provide", 18}, {"Register", 19},
+        {"Custom", 20},   {"Invalid", 21}, {nullptr, 0},
     };
 
     static constexpr ScriptConstant kColorConstants[] = {
