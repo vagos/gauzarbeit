@@ -4,7 +4,6 @@
 #include "player/Player.hpp"
 #include "player/PlayerNotifier.hpp"
 #include "script/ScriptedThing.hpp"
-#include "script/js/ScriptedThing.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include <doctest/doctest.h>
 
@@ -141,20 +140,4 @@ TEST_CASE("WelcomeMan rewards completed rat task once")
     CHECK(receiver->physical()->inventory.size() == 10);
     CHECK(receiver->tasker()->tasks.empty());
     CHECK(receiver->tasker()->done_tasks.size() == 1);
-}
-
-TEST_CASE("JavaScript scripted tasker gives and ticks receiver tasks")
-{
-    InitScriptVMsForTests();
-
-    auto receiver = MakeBasicThing("Receiver");
-    auto giver = std::make_shared<ScriptedThing_JS>("TaskGiverJS");
-    auto ticker = std::make_shared<ScriptedThing_JS>("TaskTickerJS");
-
-    giver->talker()->onTalk(giver, receiver);
-    REQUIRE(receiver->tasker()->tasks.size() == 1);
-    CHECK(receiver->tasker()->tasks.front()->description == "Collect JS token");
-
-    ticker->talker()->onTalk(ticker, receiver);
-    CHECK(receiver->tasker()->tasks.front()->tick);
 }

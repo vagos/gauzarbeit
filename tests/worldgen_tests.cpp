@@ -1,6 +1,5 @@
 #include "system/WorldGenSystem.hpp"
 #include "World.hpp"
-#include "script/js/ScriptedThing.hpp"
 #include "script/lua/LuaHelpers.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include <cstring>

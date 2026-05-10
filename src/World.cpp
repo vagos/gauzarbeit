@@ -21,9 +21,7 @@ std::vector<std::string> LoadSpawnTable()
             continue;
 
         const auto extension = entry.path().extension();
-        if (extension != ".lua" && extension != ".js")
-            continue;
-
+        assert(extension == ".lua");
         names.push_back(entry.path().stem().string());
     }
 

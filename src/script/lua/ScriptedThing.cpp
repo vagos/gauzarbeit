@@ -2,14 +2,12 @@
 #include "script/lua/ScriptedThing.hpp"
 #include "Helpers.hpp"
 #include "Room.hpp"
-#include "Server.hpp"
 #include "World.hpp"
-#include "script/ScriptAPI.hpp"
-#include "script/ScriptPaths.hpp"
 #include "script/lua/LuaHelpers.hpp"
+#include "script/ScriptPaths.hpp"
+#include "Server.hpp"
 #include <cassert>
 #include <memory>
-#include <string>
 #include <vector>
 
 namespace
@@ -1531,10 +1529,10 @@ void ScriptedThing_Lua::Init()
     // Create Gauzarbeit.Event table
     {
         lua_newtable(L);
-        for (const ScriptConstant* c = ScriptAPI::kEventConstants; c->name; ++c)
+        for (const Event::Type c : magic_enum::enum_values<Event::Type>())
         {
-            lua_pushnumber(L, c->value);
-            lua_setfield(L, -2, c->name);
+            lua_pushnumber(L, static_cast<int>(c));
+            lua_setfield(L, -2, magic_enum::enum_name(c).data());
         }
         lua_setfield(L, -2, "Event");
     }
@@ -1577,7 +1575,6 @@ void ScriptedThing_Lua::Init()
     lua_getglobal(L, "MOTD");
     Server::MOTD.assign(lua_tostring(L, -1));
 
-    VerifyLuaAPI(L);
 }
 
 lua_State* ScriptedThing_Lua::L = luaL_newstate();

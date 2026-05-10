@@ -1,6 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "Helpers.hpp"
-#include "script/js/ScriptedThing.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include <cstdlib>
 #include <doctest/doctest.h>
@@ -13,7 +12,6 @@ void InitScriptVMsForTests()
 
     setenv("GAUZARBEIT_SCRIPT_ROOT", "tests/ext", 1);
     ScriptedThing_Lua::Init();
-    ScriptedThing_JS::Init();
     initialized = true;
 }
 

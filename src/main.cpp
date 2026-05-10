@@ -1,7 +1,6 @@
 #include "Server.hpp"
 #include "Helpers.hpp"
 #include "World.hpp"
-#include "script/js/ScriptedThing.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include "system/LLMSystem.hpp"
 #include "system/RoomSystem.hpp"
@@ -23,7 +22,6 @@ void HandleSignal(int)
 int main(int argc, char* argv[])
 {
     ScriptedThing_Lua::Init();
-    ScriptedThing_JS::Init();
 
     int port = 23;
     if (argc >= 2)

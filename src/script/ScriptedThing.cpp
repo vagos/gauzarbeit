@@ -1,6 +1,5 @@
 #include "script/ScriptedThing.hpp"
 #include "script/ScriptPaths.hpp"
-#include "script/js/ScriptedThing.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include <filesystem>
 #include <stdexcept>
@@ -8,15 +7,8 @@
 std::shared_ptr<Thing> ScriptedThing(const std::string& name, const std::string& script_dir)
 {
     const std::string lua_path = ScriptPaths::ResolveFromDir(script_dir, name, "lua");
-    const std::string js_path = ScriptPaths::ResolveFromDir(script_dir, name, "js");
 
     const bool has_lua = std::filesystem::exists(lua_path);
-    const bool has_js = std::filesystem::exists(js_path);
-
-    if (has_js)
-    {
-        return std::make_shared<ScriptedThing_JS>(name, script_dir);
-    }
 
     if (has_lua)
     {
