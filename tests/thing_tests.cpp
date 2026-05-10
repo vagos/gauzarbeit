@@ -193,16 +193,16 @@ TEST_CASE("Lua index/newindex uses Lua registry table for Lua scripted things")
     lua_settop(L, 0);
 }
 
-TEST_CASE("Lua index skips Lua-only field lookup for JS scripted things")
+TEST_CASE("Lua index skips Lua-only field lookup for non-Lua things")
 {
     InitScriptVMsForTests();
 
-    auto js_thing = ScriptedThing("TestDummy");
-    REQUIRE(js_thing != nullptr);
+    Thing js_thing("TestDummy");
+    js_thing.script_language = Thing::ScriptLanguage::JS;
 
     lua_State* L = ScriptedThing_Lua::L;
     lua_settop(L, 0);
-    lua_pushlightuserdata(L, js_thing.get());
+    lua_pushlightuserdata(L, &js_thing);
     lua_setglobal(L, "__test_thing");
 
     CheckLua(L, luaL_dostring(L, "return __test_thing.counter"));

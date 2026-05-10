@@ -87,7 +87,7 @@ grep -F "You are logged in as ${PLAYER_NAME}." "$OUT" >/dev/null
 {
     printf "login %s %s\n" "$PLAYER_NAME" "$PLAYER_PASS"
     sleep 0.2
-    printf "look\n"
+    printf "look here\n"
     sleep 0.2
     printf "quit\n"
 } | nc -w 2 127.0.0.1 "$PORT" >"$OUT"
