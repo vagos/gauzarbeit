@@ -59,8 +59,19 @@ TEST_CASE("TokenizeString")
 TEST_CASE("GetColor")
 {
     CHECK(GetColor(Color::None) == "\u001b[0m");
+    CHECK(GetColor(Color::Black) == "\u001b[30m");
     CHECK(GetColor(Color::Red) == "\u001b[31m");
     CHECK(GetColor(Color::Green) == "\u001b[32m");
+}
+
+TEST_CASE("ColorString styles")
+{
+    CHECK(ColorString("hello", Color::Red, static_cast<unsigned int>(Style::Bold)) ==
+          "\u001b[31m\u001b[1mhello\u001b[0m");
+    CHECK(ColorString("hello", Color::None, static_cast<unsigned int>(Style::Underline)) ==
+          "\u001b[0m\u001b[4mhello\u001b[0m");
+    CHECK(ColorString("hello", Color::Red, static_cast<unsigned int>(Style::Bright)) ==
+          "\u001b[91mhello\u001b[0m");
 }
 
 TEST_CASE("Terminal control constants")
