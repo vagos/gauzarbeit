@@ -39,4 +39,8 @@ container_ip="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddre
 
 container_name="$(docker inspect -f '{{.Name}}' "$container_id" | sed 's#^/##')"
 echo "Connecting to ${container_name} (${container_ip}:${port})..."
+if command -v rlwrap >/dev/null 2>&1; then
+    exec rlwrap -n -A -a -H /dev/null nc "$container_ip" "$port"
+fi
+
 exec nc "$container_ip" "$port"
