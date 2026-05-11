@@ -10,6 +10,6 @@ end
 
 function Rat:onThink()
   if (Gauzarbeit.WithChance(0.05)) then
-      self:doSay(self:getRoom(), "Squeak\n")
+      self:doSay(self:getRoom(), Gauzarbeit.ColorString("Squeak\n", Gauzarbeit.Color.White, Gauzarbeit.Style.Faint))
    end
 end
