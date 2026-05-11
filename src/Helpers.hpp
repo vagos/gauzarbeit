@@ -45,6 +45,21 @@ enum class Color
     Yellow,
     Cyan,
     Magenta,
+    Black,
+};
+
+enum class Style : unsigned int
+{
+    None = 0,
+    Bold = 1u << 0,
+    Faint = 1u << 1,
+    Italic = 1u << 2,
+    Underline = 1u << 3,
+    Blink = 1u << 4,
+    Reverse = 1u << 5,
+    Conceal = 1u << 6,
+    Strikethrough = 1u << 7,
+    Bright = 1u << 8,
 };
 
 enum class Direction 
@@ -55,8 +70,34 @@ enum class Direction
     West,
 };
 
+inline constexpr const char TerminalEscape[] = "\x1b";
 inline constexpr const char TerminalCarriageReturn[] = "\r";
 inline constexpr const char TerminalClearLine[] = "\x1b[2K";
+inline constexpr const char TerminalReset[] = "\x1b[0m";
+inline constexpr const char TerminalColorBlack[] = "\x1b[30m";
+inline constexpr const char TerminalColorRed[] = "\x1b[31m";
+inline constexpr const char TerminalColorGreen[] = "\x1b[32m";
+inline constexpr const char TerminalColorYellow[] = "\x1b[33m";
+inline constexpr const char TerminalColorBlue[] = "\x1b[34m";
+inline constexpr const char TerminalColorMagenta[] = "\x1b[35m";
+inline constexpr const char TerminalColorCyan[] = "\x1b[36m";
+inline constexpr const char TerminalColorWhite[] = "\x1b[37m";
+inline constexpr const char TerminalColorBrightBlack[] = "\x1b[90m";
+inline constexpr const char TerminalColorBrightRed[] = "\x1b[91m";
+inline constexpr const char TerminalColorBrightGreen[] = "\x1b[92m";
+inline constexpr const char TerminalColorBrightYellow[] = "\x1b[93m";
+inline constexpr const char TerminalColorBrightBlue[] = "\x1b[94m";
+inline constexpr const char TerminalColorBrightMagenta[] = "\x1b[95m";
+inline constexpr const char TerminalColorBrightCyan[] = "\x1b[96m";
+inline constexpr const char TerminalColorBrightWhite[] = "\x1b[97m";
+inline constexpr const char TerminalStyleBold[] = "\x1b[1m";
+inline constexpr const char TerminalStyleFaint[] = "\x1b[2m";
+inline constexpr const char TerminalStyleItalic[] = "\x1b[3m";
+inline constexpr const char TerminalStyleUnderline[] = "\x1b[4m";
+inline constexpr const char TerminalStyleBlink[] = "\x1b[5m";
+inline constexpr const char TerminalStyleReverse[] = "\x1b[7m";
+inline constexpr const char TerminalStyleConceal[] = "\x1b[8m";
+inline constexpr const char TerminalStyleStrikethrough[] = "\x1b[9m";
 inline constexpr const char PromptReset[] = "\r\x1b[2K";
 
 struct Event
@@ -99,7 +140,8 @@ struct Event
 const std::string GetColor(Color color_code);
 const std::string HeaderString(const std::string& s, const std::string& title, const char h = ' ',
                                int size = SIZE);
-const std::string ColorString(const std::string& s, Color color_code);
+const std::string ColorString(const std::string& s, Color color_code,
+                              unsigned int style_mask = 0);
 const std::string CenteredString(const std::string& s, int size = SIZE);
 template <typename T> const std::shared_ptr<Thing> GetSmartPtr(const T& container, Thing* t_ptr);
 const std::shared_ptr<Thing> FindByName(std::vector<std::shared_ptr<Thing>>& container,

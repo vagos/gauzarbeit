@@ -1380,8 +1380,14 @@ int Gauzarbeit_ColorString(lua_State* L)
     std::string s(lua_tostring(L, 1));
 
     auto c = (Color)lua_tonumber(L, 2);
+    unsigned int style_mask = 0;
+    if (lua_gettop(L) >= 3)
+    {
+        assert(lua_isnumber(L, 3));
+        style_mask = static_cast<unsigned int>(lua_tonumber(L, 3));
+    }
 
-    lua_pushstring(L, ColorString(s, c).c_str());
+    lua_pushstring(L, ColorString(s, c, style_mask).c_str());
 
     return 1;
 }
@@ -1528,6 +1534,17 @@ void ScriptedThing_Lua::Init()
             lua_setfield(L, -2, magic_enum::enum_name(c).data());
         }
         lua_setfield(L, -2, "Color");
+    }
+
+    // Create Gauzarbeit.Style table
+    {
+        lua_newtable(L);
+        for (const Style s : magic_enum::enum_values<Style>())
+        {
+            lua_pushnumber(L, static_cast<int>(s));
+            lua_setfield(L, -2, magic_enum::enum_name(s).data());
+        }
+        lua_setfield(L, -2, "Style");
     }
 
     // Create Gauzarbeit.Direction table

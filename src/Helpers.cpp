@@ -69,24 +69,89 @@ const std::string GetColor(Color color_code)
 {
     switch (color_code)
     {
+    case Color::Black:
+        return TerminalColorBlack;
     case Color::Red:
-        return "\u001b[31m";
+        return TerminalColorRed;
     case Color::Blue:
-        return "\u001b[34m";
+        return TerminalColorBlue;
     case Color::Green:
-        return "\u001b[32m";
+        return TerminalColorGreen;
     case Color::None:
-        return "\u001b[0m";
+        return TerminalReset;
     case Color::Yellow:
-        return "\u001b[33m";
+        return TerminalColorYellow;
+    case Color::Cyan:
+        return TerminalColorCyan;
+    case Color::Magenta:
+        return TerminalColorMagenta;
+    case Color::White:
+        return TerminalColorWhite;
     default:
         return "";
     }
 }
 
-const std::string ColorString(const std::string& s, Color color_code)
+const std::string ColorString(const std::string& s, Color color_code, unsigned int style_mask)
 {
-    return GetColor(color_code) + s + GetColor(Color::None);
+    std::string prefix;
+    const bool bright = (style_mask & static_cast<unsigned int>(Style::Bright)) != 0;
+    if (bright)
+    {
+        switch (color_code)
+        {
+        case Color::Black:
+            prefix += TerminalColorBrightBlack;
+            break;
+        case Color::Red:
+            prefix += TerminalColorBrightRed;
+            break;
+        case Color::Blue:
+            prefix += TerminalColorBrightBlue;
+            break;
+        case Color::Green:
+            prefix += TerminalColorBrightGreen;
+            break;
+        case Color::Yellow:
+            prefix += TerminalColorBrightYellow;
+            break;
+        case Color::Cyan:
+            prefix += TerminalColorBrightCyan;
+            break;
+        case Color::Magenta:
+            prefix += TerminalColorBrightMagenta;
+            break;
+        case Color::White:
+            prefix += TerminalColorBrightWhite;
+            break;
+        case Color::None:
+            break;
+        }
+    }
+    else
+    {
+        prefix += GetColor(color_code);
+    }
+
+    style_mask &= ~static_cast<unsigned int>(Style::Bright);
+    if (style_mask & static_cast<unsigned int>(Style::Bold))
+        prefix += TerminalStyleBold;
+    if (style_mask & static_cast<unsigned int>(Style::Faint))
+        prefix += TerminalStyleFaint;
+    if (style_mask & static_cast<unsigned int>(Style::Italic))
+        prefix += TerminalStyleItalic;
+    if (style_mask & static_cast<unsigned int>(Style::Underline))
+        prefix += TerminalStyleUnderline;
+    if (style_mask & static_cast<unsigned int>(Style::Blink))
+        prefix += TerminalStyleBlink;
+    if (style_mask & static_cast<unsigned int>(Style::Reverse))
+        prefix += TerminalStyleReverse;
+    if (style_mask & static_cast<unsigned int>(Style::Conceal))
+        prefix += TerminalStyleConceal;
+    if (style_mask & static_cast<unsigned int>(Style::Strikethrough))
+        prefix += TerminalStyleStrikethrough;
+
+    return prefix + s + TerminalReset;
 }
 
 const std::string CenteredString(const std::string& s, int size)
