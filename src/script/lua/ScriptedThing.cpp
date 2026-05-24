@@ -6,12 +6,21 @@
 #include "script/lua/LuaHelpers.hpp"
 #include "script/ScriptPaths.hpp"
 #include "Server.hpp"
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <vector>
 
 namespace
 {
+struct ScheduledLuaCallback
+{
+    double due_time = 0.0;
+    int callback_ref = LUA_NOREF;
+};
+
+std::vector<ScheduledLuaCallback> scheduled_lua_callbacks;
+
 std::shared_ptr<Room> FindRoomByThingPtr(Thing* thing_ptr)
 {
     // TODO: Instead of doing this, we could just reinterpret_cast the lightuserdata to a Room*
@@ -1411,6 +1420,53 @@ int Gauzarbeit_WithChance(lua_State* L)
     return 1;
 }
 
+int ScriptedThing_Lua::DoLater(lua_State* L)
+{
+    int callback_index = 1;
+    int delay_index = 2;
+    if (lua_isuserdata(L, 1))
+    {
+        callback_index = 2;
+        delay_index = 3;
+    }
+
+    if (!lua_isfunction(L, callback_index) || !lua_isnumber(L, delay_index))
+        return 0;
+
+    lua_pushvalue(L, callback_index);
+    const int callback_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
+    const auto* world = World::getCurrent();
+    const double current_time = world ? world->getCurrentTime() : 0.0;
+    const double delay = std::max(0.0, lua_tonumber(L, delay_index));
+    scheduled_lua_callbacks.push_back({current_time + delay, callback_ref});
+
+    return 0;
+}
+
+void ScriptedThing_Lua::RunScheduledCallbacks(double current_time)
+{
+    std::vector<ScheduledLuaCallback> callbacks_to_run;
+    for (auto it = scheduled_lua_callbacks.begin(); it != scheduled_lua_callbacks.end();)
+    {
+        if (it->due_time <= current_time)
+        {
+            callbacks_to_run.push_back(*it);
+            it = scheduled_lua_callbacks.erase(it);
+            continue;
+        }
+
+        ++it;
+    }
+
+    for (const auto& callback : callbacks_to_run)
+    {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, callback.callback_ref);
+        luaL_unref(L, LUA_REGISTRYINDEX, callback.callback_ref);
+        CheckLua(L, lua_pcall(L, 0, 0, 0));
+    }
+}
+
 std::string ScriptedThing_Lua::Eval(const std::string& code, Thing* admin)
 {
     const int base_top = lua_gettop(L);
@@ -1507,6 +1563,7 @@ void ScriptedThing_Lua::Init()
                                      {"getLevel", ScriptedThing_Lua::GetLevel},
                                      {"giveTask", ScriptedThing_Lua::GiveTask},
                                      {"doAttack", ScriptedThing_Lua::DoAttack},
+                                     {"doLater", ScriptedThing_Lua::DoLater},
                                      {NULL, NULL}};
 
     luaL_setfuncs(L, thingMethods, 0);

@@ -259,6 +259,55 @@ TEST_CASE("Lua room userdata exposes coordinates and name")
     lua_settop(L, 0);
 }
 
+TEST_CASE("Lua doLater runs callbacks after the scheduled time")
+{
+    InitScriptVMsForTests();
+
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+
+    CheckLua(L, luaL_dostring(L, "Gauzarbeit.__later_count = 0\n"
+                                 "Gauzarbeit.doLater(function()\n"
+                                 "    Gauzarbeit.__later_count = Gauzarbeit.__later_count + 1\n"
+                                 "end, 5)"));
+
+    ScriptedThing_Lua::RunScheduledCallbacks(4.9);
+    CheckLua(L, luaL_dostring(L, "return Gauzarbeit.__later_count"));
+    REQUIRE(lua_isnumber(L, -1));
+    CHECK(lua_tointeger(L, -1) == 0);
+    lua_settop(L, 0);
+
+    ScriptedThing_Lua::RunScheduledCallbacks(5.0);
+    CheckLua(L, luaL_dostring(L, "return Gauzarbeit.__later_count"));
+    REQUIRE(lua_isnumber(L, -1));
+    CHECK(lua_tointeger(L, -1) == 1);
+    lua_settop(L, 0);
+}
+
+TEST_CASE("Lua thing doLater method runs callbacks during world update")
+{
+    InitScriptVMsForTests();
+
+    World world;
+    auto lua_thing = std::make_shared<ScriptedThing_Lua>("TestDummy");
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+    lua_pushlightuserdata(L, lua_thing.get());
+    lua_setglobal(L, "__lua");
+
+    CheckLua(L, luaL_dostring(L, "__lua.later_count = 0\n"
+                                 "__lua:doLater(function()\n"
+                                 "    __lua.later_count = __lua.later_count + 1\n"
+                                 "end, 0)"));
+
+    world.doUpdate();
+
+    CheckLua(L, luaL_dostring(L, "return __lua.later_count"));
+    REQUIRE(lua_isnumber(L, -1));
+    CHECK(lua_tointeger(L, -1) == 1);
+    lua_settop(L, 0);
+}
+
 TEST_CASE("Lua thing can index a JS thing via Lua __index")
 {
     InitScriptVMsForTests();

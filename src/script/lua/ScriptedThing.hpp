@@ -54,8 +54,10 @@ class ScriptedThing_Lua : public script::ScriptedThing
     static int BroadcastMessage(lua_State* L);
 
     static int DoAttack(lua_State* L);
+    static int DoLater(lua_State* L);
 
     static void Init();
+    static void RunScheduledCallbacks(double current_time);
 
     static int GetLuaRef(const Thing* thing);
 

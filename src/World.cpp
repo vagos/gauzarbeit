@@ -1,5 +1,6 @@
 #include "World.hpp"
 #include "script/ScriptPaths.hpp"
+#include "script/lua/ScriptedThing.hpp"
 #include <algorithm>
 #include <filesystem>
 
@@ -66,6 +67,8 @@ void World::doUpdate()
     {
         sys->doUpdate(*this);
     }
+
+    ScriptedThing_Lua::RunScheduledCallbacks(current_time_seconds);
 
     for (auto& [name, player] : playersOnline)
     {
