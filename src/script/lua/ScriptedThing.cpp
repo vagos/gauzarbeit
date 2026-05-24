@@ -787,14 +787,11 @@ int ScriptedThing_Lua::SendMessage(lua_State* L)
 
     Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
 
-    Log(ptrThing->name);
-
     std::size_t s_l;
     const char* s = lua_tolstring(L, 2, &s_l);
 
     std::string message{s, s_l};
-
-    ptrThing->networked()->addResponse(message);
+    ptrThing->networked()->addResponse(std::string(PromptReset) + message);
 
     return 0;
 }
