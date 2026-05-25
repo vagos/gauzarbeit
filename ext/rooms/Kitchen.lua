@@ -1,5 +1,5 @@
 function Kitchen:doInit()
-    Gauzarbeit.Spawn(self, "WanderingCook")
+    Gauzarbeit.Spawn(self, "Wick_McWelcome")
     Gauzarbeit.Spawn(self, "Chair")
     Gauzarbeit.Spawn(self, "Cheese")
 

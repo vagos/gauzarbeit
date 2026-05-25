@@ -1,5 +1,3 @@
--- Wick McWelcome
-
 local function doRatQuest(self, player)
     local rat_task = "Kill 5 Rats."
 
@@ -32,13 +30,13 @@ local function doRatQuest(self, player)
     end
 end
 
-function WelcomeMan:onNotify(actor, notification_type, target)
-    if (notification_type == Gauzarbeit.Event.Greet) then
+function Wick_McWelcome:onNotify(actor, notification_type, target)
+    if (notification_type == Gauzarbeit.Event.Enter) then
         self:doSay(actor, "Hello and welcome to Welcome Square!\n")
     end
 end
 
-function WelcomeMan:onTalk(talker)
+function Wick_McWelcome:onTalk(talker)
     if (talker:getEventInfo().object == "help") then
         talker:sendMessage("Oh? Here is a Leaflet with some help for starting out.\n")
         talker:gainItem("HelpLeaflet")
@@ -55,12 +53,12 @@ function WelcomeMan:onTalk(talker)
     end
 end
 
-function WelcomeMan:onInspect(inspector)
+function Wick_McWelcome:onInspect(inspector)
     return "He seems like a friendly guy. How about you "..
     "approach him and ask about the tasks he has.\n"..
-    "Use 'ask WelcomeMan help' for more info!\n"
+    "Use 'ask Wick_McWelcome help' for more info!\n"
 end
 
-function WelcomeMan:getName()
-    return Gauzarbeit.ColorString("WelcomeMan", Gauzarbeit.Color.Green)
+function Wick_McWelcome:getName()
+    return Gauzarbeit.ColorString("Wick McWelcome", Gauzarbeit.Color.Green)
 end

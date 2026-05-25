@@ -1,7 +1,7 @@
 function EvilChair:doInit()
 
-    self:setMaxHealth(20)
-    self.setAttack(10)
+    self:setStat("MaxHealth", 20)
+    self:setStat("dmg", 10)
 
 end
 

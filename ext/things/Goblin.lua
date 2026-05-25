@@ -1,11 +1,9 @@
 function Goblin:doInit()
-    self:setMaxHealth(5)
+    self:setStat("Attack", 3)
 end
 
 function Goblin:doAttack(target)
-
     self:doSay(target, "I remove head!\n")
-
 end
 
 function Goblin:onAttack(attacker)
@@ -13,8 +11,6 @@ function Goblin:onAttack(attacker)
 end
 
 function Goblin:onInspect(inspector)
-    
     inspector:sendMessage("The Goblin seems uneasy that you are inspecting it.\n")
-
     return "A Golbin. Seems okay.\n"
 end

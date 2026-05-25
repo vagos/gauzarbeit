@@ -25,7 +25,7 @@ Gauzarbeit.Spawn(0, 0, "Firework")
 local table = Gauzarbeit.Spawn(0, 0, "Table")
 table:gainItem(Gauzarbeit.Spawn(0, 0, "Cheesecake"))
 
-Gauzarbeit.Spawn(0, 0, "WelcomeMan")
+Gauzarbeit.Spawn(0, 0, "Wick_McWelcome")
 Gauzarbeit.Spawn(0, 0, "WantedBadge")
 
 Gauzarbeit.SetRoom("Kitchen", 0, 0)

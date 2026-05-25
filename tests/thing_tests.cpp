@@ -87,8 +87,6 @@ TEST_CASE("Attackable doAttack kills and removes target")
     room->addThing(target);
 
     target->attackable()->setMaxHealth(1);
-    attacker->attackable()->dmg = 1;
-
     attacker->attackable()->doAttack(attacker, target);
 
     CHECK(target->attackable()->is_alive());
@@ -232,6 +230,26 @@ TEST_CASE("Lua GetRoom with no arguments returns a sorted room list")
     lua_settop(L, 0);
 }
 
+TEST_CASE("Lua can seed WithChance")
+{
+    InitScriptVMsForTests();
+
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+
+    CheckLua(L, luaL_dostring(L, "Gauzarbeit.SeedRNG(12345)\n"
+                                 "local first = Gauzarbeit.WithChance(0.5)\n"
+                                 "local second = Gauzarbeit.WithChance(0.5)\n"
+                                 "Gauzarbeit.SeedRNG(12345)\n"
+                                 "return first == Gauzarbeit.WithChance(0.5), "
+                                 "second == Gauzarbeit.WithChance(0.5)"));
+
+    REQUIRE(lua_gettop(L) == 2);
+    CHECK(lua_toboolean(L, 1));
+    CHECK(lua_toboolean(L, 2));
+    lua_settop(L, 0);
+}
+
 TEST_CASE("Lua room userdata exposes coordinates and name")
 {
     InitScriptVMsForTests();
@@ -263,11 +281,14 @@ TEST_CASE("Lua doLater runs callbacks after the scheduled time")
 {
     InitScriptVMsForTests();
 
+    auto lua_thing = std::make_shared<ScriptedThing_Lua>("TestDummy");
     lua_State* L = ScriptedThing_Lua::L;
     lua_settop(L, 0);
+    lua_pushlightuserdata(L, lua_thing.get());
+    lua_setglobal(L, "__lua");
 
     CheckLua(L, luaL_dostring(L, "Gauzarbeit.__later_count = 0\n"
-                                 "Gauzarbeit.doLater(function()\n"
+                                 "__lua:doLater(function()\n"
                                  "    Gauzarbeit.__later_count = Gauzarbeit.__later_count + 1\n"
                                  "end, 5)"));
 
@@ -334,6 +355,63 @@ TEST_CASE("Lua thing can index a JS thing via Lua __index")
                                  "other:getName() == 'TestTalker' and other.counter == nil"));
     CHECK(lua_toboolean(L, -1) == 1);
     lua_settop(L, 0);
+}
+
+TEST_CASE("Production Lua things initialize and inspect")
+{
+    InitScriptVMsForTests();
+
+    const auto things_dir = std::filesystem::absolute("ext/things");
+    auto inspector = MakeBasicThing("Inspector");
+
+    for (const auto& entry : std::filesystem::directory_iterator(things_dir))
+    {
+        if (!entry.is_regular_file() || entry.path().extension() != ".lua")
+            continue;
+
+        const auto thing_name = entry.path().stem().string();
+        CAPTURE(thing_name);
+
+        auto thing = std::make_shared<ScriptedThing_Lua>(thing_name, things_dir.string());
+        REQUIRE(thing != nullptr);
+        CHECK(thing->script_language == Thing::ScriptLanguage::Lua);
+        CHECK(!thing->inspectable()->onInspect(thing, inspector).empty());
+    }
+}
+
+TEST_CASE("PokeBall catches and releases a room thing")
+{
+    InitScriptVMsForTests();
+
+    Room::mapRooms.clear();
+
+    auto room = Room::get(12, 34);
+    auto player = MakeBasicThing("Player");
+    player->physical()->current_room = room;
+    room->addThing(player);
+
+    auto poke_ball = std::make_shared<ScriptedThing_Lua>(
+        "PokeBall", std::filesystem::absolute("ext/things").string());
+    poke_ball->physical()->current_room = room;
+    room->addThing(poke_ball);
+
+    auto target = std::make_shared<ScriptedThing_Lua>(
+        "Cheese", std::filesystem::absolute("ext/things").string());
+    target->physical()->current_room = room;
+    room->addThing(target);
+
+    player->notifier()->event.object = "Cheese";
+    poke_ball->usable()->onUse(poke_ball, player);
+
+    CHECK(room->getThing("Cheese") == nullptr);
+    CHECK(poke_ball->physical()->getItem("Cheese") != nullptr);
+    CHECK(poke_ball->inspectable()->onInspect(poke_ball, player).find("Cheese") !=
+          std::string::npos);
+
+    poke_ball->usable()->onUse(poke_ball, player);
+
+    CHECK(room->getThing("Cheese") != nullptr);
+    CHECK(poke_ball->physical()->getItem("Cheese") == nullptr);
 }
 
 TEST_CASE("Room serialization saves and restores non-player things")

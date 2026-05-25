@@ -35,13 +35,13 @@ TEST_CASE("Lua scripted tasker gives and ticks receiver tasks")
     CHECK(receiver->tasker()->tasks.front()->tick);
 }
 
-TEST_CASE("WelcomeMan gives rat task")
+TEST_CASE("Wick_McWelcome gives rat task")
 {
     InitScriptVMsForTests();
 
     auto receiver = MakeBasicThing("Receiver");
     receiver->notifier()->event.object = "rats";
-    auto welcome_man = std::make_shared<ScriptedThing_Lua>("WelcomeMan");
+    auto welcome_man = std::make_shared<ScriptedThing_Lua>("Wick_McWelcome");
 
     welcome_man->talker()->onTalk(welcome_man, receiver);
 
@@ -54,13 +54,13 @@ TEST_CASE("WelcomeMan gives rat task")
     CHECK(receiver->tasker()->tasks.size() == 1);
 }
 
-TEST_CASE("WelcomeMan rat task tracks kill progress")
+TEST_CASE("Wick_McWelcome rat task tracks kill progress")
 {
     InitScriptVMsForTests();
 
     auto receiver = MakeBasicThing("Receiver");
     receiver->notifier()->event.object = "rats";
-    auto welcome_man = std::make_shared<ScriptedThing_Lua>("WelcomeMan");
+    auto welcome_man = std::make_shared<ScriptedThing_Lua>("Wick_McWelcome");
     auto rat = MakeBasicThing("Rat");
 
     welcome_man->talker()->onTalk(welcome_man, receiver);
@@ -78,7 +78,7 @@ TEST_CASE("WelcomeMan rat task tracks kill progress")
     CHECK(receiver->tasker()->tasks.front()->tick);
 }
 
-TEST_CASE("Player kill notifications complete rat task before returning to WelcomeMan")
+TEST_CASE("Player kill notifications complete rat task before returning to Wick_McWelcome")
 {
     InitScriptVMsForTests();
 
@@ -91,7 +91,7 @@ TEST_CASE("Player kill notifications complete rat task before returning to Welco
     world.addPlayer(receiver);
 
     receiver->notifier()->event.object = "rats";
-    auto welcome_man = std::make_shared<ScriptedThing_Lua>("WelcomeMan");
+    auto welcome_man = std::make_shared<ScriptedThing_Lua>("Wick_McWelcome");
     auto rat = MakeBasicThing("Rat");
     rat->physical()->current_room = room;
     room->addThing(rat);
@@ -116,13 +116,13 @@ TEST_CASE("Player kill notifications complete rat task before returning to Welco
     CHECK(receiver->physical()->inventory.size() == 10);
 }
 
-TEST_CASE("WelcomeMan rewards completed rat task once")
+TEST_CASE("Wick_McWelcome rewards completed rat task once")
 {
     InitScriptVMsForTests();
 
     auto receiver = MakeBasicThing("Receiver");
     receiver->notifier()->event.object = "rats";
-    auto welcome_man = std::make_shared<ScriptedThing_Lua>("WelcomeMan");
+    auto welcome_man = std::make_shared<ScriptedThing_Lua>("Wick_McWelcome");
 
     receiver->tasker()->addTask("Kill 5 Rats.");
     receiver->tasker()->tickTask("Kill 5 Rats.");
