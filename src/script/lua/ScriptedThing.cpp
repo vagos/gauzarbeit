@@ -1417,6 +1417,14 @@ int Gauzarbeit_WithChance(lua_State* L)
     return 1;
 }
 
+int Gauzarbeit_SeedRNG(lua_State* L)
+{
+    assert(lua_isnumber(L, 1));
+
+    SeedRNG(static_cast<std::uint64_t>(lua_tointeger(L, 1)));
+    return 0;
+}
+
 int ScriptedThing_Lua::DoLater(lua_State* L)
 {
     int callback_index = 1;
@@ -1617,6 +1625,7 @@ void ScriptedThing_Lua::Init()
                                         {"SetRoom", Gauzarbeit_SetRoom},
                                         {"ColorString", Gauzarbeit_ColorString},
                                         {"GetDBLine", Gauzarbeit_LoadDB},
+                                        {"SeedRNG", Gauzarbeit_SeedRNG},
                                         {"WithChance", Gauzarbeit_WithChance},
                                         // CreateStat
                                         {NULL, NULL}};

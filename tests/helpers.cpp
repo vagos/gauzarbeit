@@ -81,6 +81,19 @@ TEST_CASE("Terminal control constants")
     CHECK(std::string(PromptReset) == "\r\x1b[2K");
 }
 
+TEST_CASE("SeedRNG makes WithChance deterministic")
+{
+    SeedRNG(12345);
+    const bool first = WithChance(0.5);
+    const bool second = WithChance(0.5);
+
+    SeedRNG(12345);
+    CHECK(WithChance(0.5) == first);
+    CHECK(WithChance(0.5) == second);
+    CHECK(!WithChance(0.0));
+    CHECK(WithChance(1.0));
+}
+
 TEST_CASE("BarString")
 {
     CHECK(BarString(0.5f, 10) == "[:::::    ]");

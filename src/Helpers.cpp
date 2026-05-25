@@ -9,6 +9,12 @@
 #include <regex>
 #include <sstream>
 
+std::mt19937_64& RandomGenerator()
+{
+    static thread_local std::mt19937_64 rng(std::random_device{}());
+    return rng;
+}
+
 bool IsNumber(const std::string& s)
 {
     std::string::const_iterator it = s.begin();
@@ -53,6 +59,11 @@ std::string CapitalizeWord(std::string word)
     return word;
 }
 
+void SeedRNG(std::uint64_t seed)
+{
+    RandomGenerator().seed(seed);
+}
+
 bool WithChance(double probability)
 {
     if (probability <= 0.0)
@@ -60,9 +71,8 @@ bool WithChance(double probability)
     if (probability >= 1.0)
         return true;
 
-    static thread_local std::mt19937_64 rng(std::random_device{}());
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    return distribution(rng) < probability;
+    return distribution(RandomGenerator()) < probability;
 }
 
 const std::string GetColor(Color color_code)
