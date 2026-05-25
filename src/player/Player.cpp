@@ -50,6 +50,7 @@ void Player::setPlayerCommands()
     playerCommands["pickup"] = Event::Type::Gain;
     playerCommands["get"] = Event::Type::Gain;
     playerCommands["grab"] = Event::Type::Gain;
+    playerCommands["take"] = Event::Type::Gain;
 
     playerCommands["give"] = Event::Type::Provide;
     playerCommands["put"] = Event::Type::Provide;
