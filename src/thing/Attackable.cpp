@@ -1,7 +1,10 @@
 #include "thing/Attackable.hpp"
 #include "Room.hpp"
 #include "thing/Thing.hpp"
+#include "Helpers.hpp"
 #include <cassert>
+#include <iterator>
+#include <vector>
 
 void Attackable::doAttack(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& target)
 {
@@ -35,8 +38,8 @@ void Attackable::onDeath(const std::shared_ptr<Thing>& owner)
     assert(owner->physical() && owner->physical()->current_room);
 
     alive = false;
-
-    owner->notifier()->doNotify(owner, Event::Type::Death); // notify everyone about the death
+    // Notify everyone about the death
+    owner->notifier()->doNotify(owner, Event::Type::Death);
 
     // Drop items on death
     for (auto& item : owner->physical()->inventory)
@@ -52,4 +55,44 @@ void Attackable::getDamaged(const std::shared_ptr<Thing>& owner,
                             const std::shared_ptr<Thing>& attacker, int dmg)
 {
     current_health -= dmg;
+}
+
+int Attackable::getDamage(const std::shared_ptr<Thing>& owner)
+{
+    SeedRNG(owner->id);
+    // Build an expression based on the achiever's stats and evaluate it to get the damage.
+    const auto& stats = owner->achiever()->extra_stats;
+    const auto operations = {"+", "+", "+", "*"};
+    float dmg = 1.0f;
+
+    // iterate over the stats
+    for (const auto& [name, stat] : stats)
+    {
+        std::vector<const char*> sampled_operation;
+        std::sample(operations.begin(), operations.end(), std::back_inserter(sampled_operation), 1,
+                    RandomGenerator());
+        const auto op = sampled_operation.front();
+        const float stat_value = stat->value;
+
+        switch (op[0])
+        {
+        case '+':
+            dmg += stat_value;
+            break;
+        /* case '-': */
+        /*     dmg -= stat_value; */
+        /*     break; */
+        case '*':
+            dmg *= stat_value;
+            break;
+        /* case '/': */
+        /*     dmg /= (stat_value + 1); // Avoid division by zero */
+        /*     break; */
+        default:
+            dmg += stat_value;
+            break;
+        }
+    }
+    Log("Calculated damage for " << owner->name << ": " << dmg);
+    return std::max(1, static_cast<int>(dmg));
 }

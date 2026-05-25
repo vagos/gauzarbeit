@@ -14,15 +14,13 @@ class Attackable
                           const std::shared_ptr<Thing>& target);
     virtual void onAttack(const std::shared_ptr<Thing>& owner,
                           const std::shared_ptr<Thing>& attacker);
-    /* virtual void onAttack(const std::shared_ptr<Thing>& owner, */
-    /*                       const std::shared_ptr<Thing>& attacker, int dmg); */
-
     virtual void getDamaged(const std::shared_ptr<Thing>& owner,
                             const std::shared_ptr<Thing>& attacker, int dmg);
 
     virtual void doUpdate(const std::shared_ptr<Thing>& owner) {}
-
     virtual void onDeath(const std::shared_ptr<Thing>& owner);
+
+    virtual int getDamage(const std::shared_ptr<Thing>& owner);
 
     void setMaxHealth(int max_hp)
     {
@@ -34,7 +32,6 @@ class Attackable
 
   public:
     int max_health = 1;
-    int dmg = 1;
     float current_health = 1;
 
   protected:

@@ -63,7 +63,7 @@ void Thinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         return;
     }
 
-    owner->attackable()->getDamaged(owner, attacker, attacker->attackable()->dmg);
+    owner->attackable()->getDamaged(owner, attacker, attacker->attackable()->getDamage(attacker));
     owner->attackable()->onAttack(owner, attacker);
 
     if (owner->attackable()->is_alive() && attacker != owner && attacker->_attackable &&
