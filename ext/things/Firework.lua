@@ -32,6 +32,7 @@ function Thing:onUse(user)
     self.fuseLit = true
     user:sendMessage("You light the Firework. The fuse snaps to life.\n")
     user:broadcastMessage(user:getName().." lit a Firework. It starts hissing.\n")
+    self:doDestroy()
 
     self:doLater(function()
         user:sendMessage("The Firework spits green sparks across the floor.\n")
@@ -44,9 +45,7 @@ function Thing:onUse(user)
     self:doLater(function()
         local pop = RainbowString({"BANG", "! ", "The ", "Firework ", "erupts ", "in ", "rainbow ", "sparks", "!\n"})
         user:sendMessage(pop)
-        user:sendMessage("The Firework is spent, but your eyebrows remember.\n")
         user:broadcastMessage(pop)
-        self.fuseLit = false
     end, 5)
 end
 
@@ -55,7 +54,7 @@ function Thing:onInspect(inspector)
         return "A lit Firework. It is making increasingly poor choices.\n"
     end
 
-    return "A bright paper Firework. Use it to start a short delayed spectacle.\n"
+    return "A bright paper Firework. Use it to start a spectacle.\n"
 end
 
 function Thing:onHelp(user)
