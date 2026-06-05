@@ -329,6 +329,27 @@ TEST_CASE("Lua thing doLater method runs callbacks during world update")
     lua_settop(L, 0);
 }
 
+TEST_CASE("Lua thing destroy removes a scripted thing from its room")
+{
+    InitScriptVMsForTests();
+
+    auto room = std::make_shared<Room>(0, 0);
+    auto lua_thing = std::make_shared<ScriptedThing_Lua>("TestDummy");
+    lua_thing->physical()->current_room = room;
+    room->addThing(lua_thing);
+
+    lua_State* L = ScriptedThing_Lua::L;
+    lua_settop(L, 0);
+    lua_pushlightuserdata(L, lua_thing.get());
+    lua_setglobal(L, "__lua");
+
+    CheckLua(L, luaL_dostring(L, "__lua:doDestroy()"));
+
+    CHECK(room->getThing("TestDummy") == nullptr);
+    CHECK(lua_thing->physical()->current_room == nullptr);
+    lua_settop(L, 0);
+}
+
 TEST_CASE("Lua thing can index a JS thing via Lua __index")
 {
     InitScriptVMsForTests();

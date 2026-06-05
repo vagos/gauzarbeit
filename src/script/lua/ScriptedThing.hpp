@@ -26,6 +26,7 @@ class ScriptedThing_Lua : public script::ScriptedThing
     static int LoseItem(lua_State* L);
     static int GainItem(lua_State* L);
     static int DropItem(lua_State* L);
+    static int Destroy(lua_State* L);
     static int GetThing(lua_State* L);
     static int GetRoom(lua_State* L);
     static int GetThings(lua_State* L);

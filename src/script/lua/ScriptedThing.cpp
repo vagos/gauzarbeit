@@ -827,6 +827,25 @@ int ScriptedThing_Lua::DropItem(lua_State* L)
     return 0;
 }
 
+int ScriptedThing_Lua::Destroy(lua_State* L)
+{
+    assert(lua_isuserdata(L, 1));
+
+    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
+
+    if (!ptrThing->_physical || !ptrThing->physical()->current_room)
+        return 0;
+
+    auto thing = ptrThing->shared_from_this();
+    if (!thing)
+        return 0;
+
+    ptrThing->physical()->current_room->removeThing(thing);
+    ptrThing->physical()->current_room = nullptr;
+
+    return 0;
+}
+
 int ScriptedThing_Lua::GetThing(lua_State* L) // Return a thing from inside the room.
 {
     assert(lua_isuserdata(L, 1));
@@ -1533,6 +1552,7 @@ void ScriptedThing_Lua::Init()
                                      {"doSay", ScriptedThing_Lua::DoSay},
                                      {"loseItem", ScriptedThing_Lua::LoseItem},
                                      {"dropItem", ScriptedThing_Lua::DropItem},
+                                     {"doDestroy", ScriptedThing_Lua::Destroy},
                                      {"getThing", ScriptedThing_Lua::GetThing},
                                      {"getPlayer", ScriptedThing_Lua::GetPlayer},
                                      {"getRoom", ScriptedThing_Lua::GetRoom},
