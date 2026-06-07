@@ -14,6 +14,8 @@ HDRS := $(shell find $(SRC_DIRS) -name '*.hpp' -o -name '*.h')
 TSTS := $(shell find tests -name '*.cpp')
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
+TOBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.cpp.o,$(TSTS))
+TDEPS := $(TOBJS:.o=.d)
 
 INC_DIRS := . $(shell find $(SRC_DIRS) -type d) /usr/local/include
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
@@ -55,13 +57,12 @@ env:
 	docker build -t gzrbt .
 	docker run --rm -it -v $(shell pwd):/app gzrbt /bin/bash
 
--include $(DEPS)
+-include $(DEPS) $(TDEPS)
 
 lint:
 	clang-format -i --style=file $(SRCS) $(HDRS) $(TSTS)
 	# clang-tidy $(SRCS) $(HDRS) $(TSTS) --fix
 
-TOBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.cpp.o,$(TSTS))
 TARGET_TEST  := $(BUILD_DIR)/test
 
 $(TARGET_TEST): $(filter-out %/main.cpp.o,$(OBJS)) $(TOBJS)
