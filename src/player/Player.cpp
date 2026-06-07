@@ -24,6 +24,23 @@ Player::Player()
     _thinker = std::make_unique<PlayerThinker>();
 }
 
+void Player::doUpdate(World& world)
+{
+    try
+    {
+        attackable()->doUpdate(shared_from_this());
+        thinker()->doThink(shared_from_this(), world);
+        tasker()->doUpdate(shared_from_this());
+    }
+    catch (std::exception& e)
+    {
+        HandleException(shared_from_this(), e);
+    }
+
+    // Thing update conclusion
+    notifier()->clearEvent();
+}
+
 void Player::setPlayerCommands()
 {
     playerCommands["inv"] = Event::Type::Inspect;

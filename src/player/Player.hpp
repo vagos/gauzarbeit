@@ -10,6 +10,7 @@ class Player : public Thing
 {
   public:
     Player();
+    void doUpdate(World& world) override;
 
     static std::unordered_map<std::string, Event::Type> playerCommands;
 

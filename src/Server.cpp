@@ -97,15 +97,19 @@ void Server::updateClients(World& world)
         }
     }
 
-    // close the sockets of all !isOnline client
-    for (const auto& c : clients)
+    // Flush and remove disconnected clients so they are not processed again next tick.
+    for (auto it = clients.begin(); it != clients.end();)
     {
+        const auto& c = *it;
         if (!c->networked()->isOnline())
         {
-            // Flush any pending response before closing the socket.
             c->networked()->sendResponse(c);
             c->networked()->socket->close();
+            it = clients.erase(it);
+            continue;
         }
+
+        ++it;
     }
 }
 

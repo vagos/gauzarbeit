@@ -71,43 +71,7 @@ void World::doUpdate()
     ScriptedThing_Lua::RunScheduledCallbacks(current_time_seconds);
 
     for (auto& [name, player] : playersOnline)
-    {
-        try
-        {
-            player->attackable()->doUpdate(player);
-        }
-        catch (std::exception& e)
-        {
-            HandleException(player, e);
-        }
-    }
-
-    for (auto& [name, player] : playersOnline)
-    {
-        try
-        {
-            player->thinker()->doThink(player, *this);
-        }
-        catch (std::exception& e)
-        {
-            HandleException(player, e);
-        }
-    }
-
-    for (auto& [name, player] : playersOnline)
-    {
-        try
-        {
-            player->tasker()->doUpdate(player);
-        }
-        catch (std::exception& e)
-        {
-            HandleException(player, e);
-        }
-    }
-
-    for (auto& [name, player] : playersOnline) // TODO: make this last
-        player->notifier()->clearEvent();
+        player->doUpdate(*this);
 
     removeOfflinePlayers(); // TODO: move this to server
 }

@@ -45,23 +45,14 @@ void Thinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 
     auto event_target = owner->notifier()->event.target;
     if (event_target.empty())
-    {
-        owner->notifier()->clearEvent();
         return;
-    }
 
     if (!owner->_physical || !owner->physical()->current_room)
-    {
-        owner->notifier()->clearEvent();
         return;
-    }
 
     auto attacker = owner->physical()->current_room->getAnything(event_target);
     if (!attacker || !attacker->_attackable || !owner->_attackable)
-    {
-        owner->notifier()->clearEvent();
         return;
-    }
 
     owner->attackable()->getDamaged(owner, attacker, attacker->attackable()->getDamage(attacker));
     owner->attackable()->onAttack(owner, attacker);
@@ -71,6 +62,4 @@ void Thinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
     {
         owner->attackable()->doAttack(owner, attacker);
     }
-
-    owner->notifier()->clearEvent();
 }

@@ -42,7 +42,7 @@ class Thing : public std::enable_shared_from_this<Thing>
         JS,
     };
 
-    ~Thing() { Log(name << " got destroyed!"); }
+    virtual ~Thing() { Log(name << " got destroyed!"); }
     Thing();
     Thing(const std::string& name);
 
@@ -75,7 +75,7 @@ class Thing : public std::enable_shared_from_this<Thing>
         return os;
     }
 
-    void doUpdate(World& world);
+    virtual void doUpdate(World& world);
     std::size_t getID() const { return id; }
 
     std::shared_ptr<Networked>& networked()
