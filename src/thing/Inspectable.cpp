@@ -21,6 +21,18 @@ const std::string Inspectable::onInspect(const std::shared_ptr<Thing>& owner,
         inspect << VerticalListString(owner->physical()->inventory, '-');
     }
 
+    if (owner->_achiever && !owner->achiever()->extra_stats.empty())
+    {
+        inspect << "Stats: \n";
+        for (const auto& [name, stat] : owner->achiever()->extra_stats)
+        {
+            if (!stat)
+                continue;
+
+            inspect << "- " << name << ": " << stat->value << '\n';
+        }
+    }
+
     if (!owner->tasker()->tasks.empty())
     {
         inspect << "Tasks: \n";
