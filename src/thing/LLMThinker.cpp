@@ -14,7 +14,7 @@ void LLMThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 
     if (waiting_result)
     {
-        auto result = llm_system->pollResult(owner->getID());
+        auto result = llm_system->doInference(owner->getID());
         if (!result)
             return;
 
@@ -28,7 +28,7 @@ void LLMThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
     if (world.getCurrentTime() < next_think_time)
         return;
 
-    if (llm_system->enqueueOrReplace(owner->getID(), buildPrompt(owner)))
+    if (llm_system->doInference(owner->getID(), buildPrompt(owner)))
         waiting_result = true;
 }
 
@@ -44,9 +44,11 @@ std::string LLMThinker::buildPrompt(const std::shared_ptr<Thing>& owner) const
            "game command. Use either say <message> or go <direction>. Directions are left, right, "
            "up, down. Be brief, concrete, odd, and useful. Valid examples:\n"
            "say check the room before choosing a direction\n"
-           "say someone moved that while nobody was looking\n"
-           "go left\n"
            "go right\n"
+           "say someone moved that while nobody was looking\n"
+           "go up\n"
+           "go down\n"
+           "go left\n"
            "say the quiet path is usually hiding something\n"
            "<|im_end|>\n"
            "<|im_start|>user\n"

@@ -19,14 +19,14 @@ TEST_CASE("LLMSystem keeps only the latest pending prompt per entity")
                       return prompt;
                   });
 
-    CHECK(llm.enqueueOrReplace(42, "first"));
-    CHECK(llm.enqueueOrReplace(42, "second"));
+    CHECK(llm.doInference(42, "first"));
+    CHECK(llm.doInference(42, "second"));
 
     std::optional<std::string> result;
     for (int i = 0; i < 100; ++i)
     {
         llm.doUpdate(world);
-        result = llm.pollResult(42);
+        result = llm.doInference(42);
         if (result)
             break;
 

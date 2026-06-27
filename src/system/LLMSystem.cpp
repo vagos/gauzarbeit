@@ -68,7 +68,7 @@ std::string InferWithLlama(const std::string& prompt, const LLMConfig& config)
     std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)> smpl(smpl_raw, llama_sampler_free);
     llama_sampler_chain_add(smpl.get(), llama_sampler_init_top_k(40));
     llama_sampler_chain_add(smpl.get(), llama_sampler_init_top_p(0.9f, 1));
-    llama_sampler_chain_add(smpl.get(), llama_sampler_init_temp(0.85f));
+    llama_sampler_chain_add(smpl.get(), llama_sampler_init_temp(1.0f));
     llama_sampler_chain_add(smpl.get(), llama_sampler_init_dist(std::random_device{}()));
 
     llama_batch batch =
@@ -126,7 +126,7 @@ LLMSystem::~LLMSystem()
     pending_order.clear();
 }
 
-bool LLMSystem::enqueueOrReplace(std::size_t entity_id, const std::string& prompt)
+bool LLMSystem::doInference(std::size_t entity_id, const std::string& prompt)
 {
     if (!running)
         return false;
@@ -154,7 +154,7 @@ bool LLMSystem::enqueueOrReplace(std::size_t entity_id, const std::string& promp
     return true;
 }
 
-std::optional<std::string> LLMSystem::pollResult(std::size_t entity_id)
+std::optional<std::string> LLMSystem::doInference(std::size_t entity_id)
 {
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -208,7 +208,7 @@ void LLMSystem::workerLoop()
         std::string result;
         try
         {
-            result = infer(job.prompt);
+            result = doInference(job.prompt);
         }
         catch (const std::exception& e)
         {
@@ -226,7 +226,7 @@ void LLMSystem::workerLoop()
     }
 }
 
-std::string LLMSystem::infer(const std::string& prompt)
+std::string LLMSystem::doInference(const std::string& prompt)
 {
     InferFn infer_local;
     LLMConfig config_local;

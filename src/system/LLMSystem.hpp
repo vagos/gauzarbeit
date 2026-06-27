@@ -30,8 +30,8 @@ class LLMSystem : public System
     explicit LLMSystem(World& world, const LLMConfig& config = LLMConfig{}, InferFn infer_fn = {});
     ~LLMSystem();
 
-    bool enqueueOrReplace(std::size_t entity_id, const std::string& prompt);
-    std::optional<std::string> pollResult(std::size_t entity_id);
+    bool doInference(std::size_t entity_id, const std::string& prompt);
+    std::optional<std::string> doInference(std::size_t entity_id);
 
     void doUpdate(World& world) override;
 
@@ -43,7 +43,7 @@ class LLMSystem : public System
     };
 
     void workerLoop();
-    std::string infer(const std::string& prompt);
+    std::string doInference(const std::string& prompt);
 
     mutable std::mutex mutex;
     std::condition_variable cv;
