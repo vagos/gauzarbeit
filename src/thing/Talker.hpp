@@ -22,7 +22,7 @@ struct Guild
 
     const std::string onInspect();
 
-    void onNotify(const std::shared_ptr<Thing>& actor, Event::Type notification_type,
+    void onNotify(const std::shared_ptr<Thing>& actor, const Event& event,
                   const std::shared_ptr<Thing>& target);
 
     std::string name;
@@ -35,7 +35,8 @@ class Talker // This component can give tasks/dialog
 
     virtual void doUpdate(const std::shared_ptr<Thing>& owner) {}
 
-    virtual void onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker);
+    virtual void onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker,
+                        const Event& event);
 
     void createGuild(const std::shared_ptr<Thing> owner, const std::string& g_name)
     {

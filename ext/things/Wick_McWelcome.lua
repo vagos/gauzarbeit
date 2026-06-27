@@ -30,26 +30,26 @@ local function doRatQuest(self, player)
     end
 end
 
-function Wick_McWelcome:onNotify(actor, notification_type, target)
-    if (notification_type == Gauzarbeit.Event.Enter) then
-        self:doSay(actor, "Hello and welcome to Welcome Square!\n")
+function Wick_McWelcome:onNotify(event)
+    if (event.type == Gauzarbeit.Event.Enter) then
+        self:doSay(event.actor, "Hello and welcome to Welcome Square!\n")
     end
 end
 
-function Wick_McWelcome:onTalk(talker)
-    if (talker:getEventInfo().object == "help") then
-        talker:sendMessage("Oh? Here is a Leaflet with some help for starting out.\n")
-        talker:gainItem("HelpLeaflet")
+function Wick_McWelcome:onTalk(event)
+    if (event.object == "help") then
+        event.actor:sendMessage("Oh? Here is a Leaflet with some help for starting out.\n")
+        event.actor:gainItem("HelpLeaflet")
         return
     end
 
-    if (talker:getEventInfo().object == "rats") then
-        doRatQuest(self, talker)
+    if (event.object == "rats") then
+        doRatQuest(self, event.actor)
         return
     end
 
-    if (talker:getEventInfo().object ~= "") then
-        self:giveTask(talker, talker:getEventInfo().object)
+    if (event.object ~= "") then
+        self:giveTask(event.actor, event.object)
     end
 end
 

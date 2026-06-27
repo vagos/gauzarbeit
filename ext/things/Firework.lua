@@ -23,29 +23,29 @@ local function RainbowString(parts)
     return text
 end
 
-function Thing:onUse(user)
+function Thing:onUse(event)
     if self.fuseLit then
-        user:sendMessage("The Firework is already hissing. This is not the time for bravery.\n")
+        event.actor:sendMessage("The Firework is already hissing. This is not the time for bravery.\n")
         return
     end
 
     self.fuseLit = true
-    user:sendMessage("You light the Firework. The fuse snaps to life.\n")
-    user:broadcastMessage(user:getName().." lit a Firework. It starts hissing.\n")
+    event.actor:sendMessage("You light the Firework. The fuse snaps to life.\n")
+    event.actor:broadcastMessage(event.actor:getName().." lit a Firework. It starts hissing.\n")
     self:doDestroy()
 
     self:doLater(function()
-        user:sendMessage("The Firework spits green sparks across the floor.\n")
+        event.actor:sendMessage("The Firework spits green sparks across the floor.\n")
     end, 1)
 
     self:doLater(function()
-        user:broadcastMessage("The Firework jumps, screams, and paints the room with sparks.\n")
+        event.actor:broadcastMessage("The Firework jumps, screams, and paints the room with sparks.\n")
     end, 3)
 
     self:doLater(function()
         local pop = RainbowString({"BANG", "! ", "The ", "Firework ", "erupts ", "in ", "rainbow ", "sparks", "!\n"})
-        user:sendMessage(pop)
-        user:broadcastMessage(pop)
+        event.actor:sendMessage(pop)
+        event.actor:broadcastMessage(pop)
     end, 5)
 end
 

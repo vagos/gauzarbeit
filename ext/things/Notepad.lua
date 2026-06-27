@@ -4,14 +4,11 @@ function Thing:doInit()
     self.text = ""
 end
 
-function Thing:onUse(user)
-    
-    event = user:getEventInfo()
-
+function Thing:onUse(event)
     text = event.extra
 
     if event.object == "add" and string.len(text) then
-        user:sendMessage("Written to Notepad: "..text.."\n")
+        event.actor:sendMessage("Written to Notepad: "..text.."\n")
         self.text = self.text.."\n"..text
     end
 end

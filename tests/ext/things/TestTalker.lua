@@ -2,9 +2,9 @@ function TestTalker:doInit()
     self:addTask("TestTask")
 end
 
-function TestTalker:onTalk(talker)
-    self:giveTask(talker, "TestTask")
-    talker:sendMessage("TestTalker heard you.\n")
+function TestTalker:onTalk(event)
+    self:giveTask(event.actor, "TestTask")
+    event.actor:sendMessage("TestTalker heard you.\n")
 end
 
 function TestTalker:onInspect(inspector)

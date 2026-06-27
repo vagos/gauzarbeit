@@ -8,15 +8,15 @@ function Cheese:onInspect(inspector)
     return "A tasty piece of cheese\n"
 end
 
-function Cheese:onUse(user)
+function Cheese:onUse(event)
 
-    if (not user:hasItem(self)) then
+    if (not event.actor:hasItem(self)) then
         return
     end
 
-    user:sendMessage(string.format("You eat the %s. Very cheesy.\n", self:getName()))
-    user:loseItem(self) -- Remove the cheese from the inventory.
+    event.actor:sendMessage(string.format("You eat the %s. Very cheesy.\n", self:getName()))
+    event.actor:loseItem(self) -- Remove the cheese from the inventory.
 
-    local s = user:getStat("Cheesiness")
-    user:setStat("Cheesiness", s + 1)
+    local s = event.actor:getStat("Cheesiness")
+    event.actor:setStat("Cheesiness", s + 1)
 end

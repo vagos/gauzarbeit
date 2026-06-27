@@ -15,8 +15,8 @@
 
 struct LLMConfig
 {
-    std::string model_path = "tinyllama-1.1b-chat-v1.0.Q2_K.gguf";
-    int n_predict = 96;
+    std::string model_path = "Qwen3-4B-Instruct-2507-Q4_K_M.gguf";
+    int n_predict = 24;
     int n_ctx = 2048;
     int n_gpu_layers = 0;
     std::size_t max_pending_entities = 256;
@@ -27,7 +27,7 @@ class LLMSystem : public System
   public:
     using InferFn = std::function<std::string(const std::string&)>;
 
-    explicit LLMSystem(const LLMConfig& config = LLMConfig{}, InferFn infer_fn = {});
+    explicit LLMSystem(World& world, const LLMConfig& config = LLMConfig{}, InferFn infer_fn = {});
     ~LLMSystem();
 
     bool enqueueOrReplace(std::size_t entity_id, const std::string& prompt);

@@ -7,12 +7,12 @@ function Thing:doInit()
 end
 
 
-function Thing:onNotify(actor, notification_type, target)
+function Thing:onNotify(event)
 
-    if (not actor:hasItem(self)) then return end
+    if (not event.actor:hasItem(self)) then return end
 
-    if notification_type == Gauzarbeit.Event.Kill then  
-        actor:setStat("Wanted Level", actor:getStat("Wanted Level") + 1)
+    if event.type == Gauzarbeit.Event.Kill then  
+        event.actor:setStat("Wanted Level", event.actor:getStat("Wanted Level") + 1)
     end
 
 end

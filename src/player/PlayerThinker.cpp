@@ -1,6 +1,7 @@
 #include "player/PlayerThinker.hpp"
 #include "Helpers.hpp"
 #include "Room.hpp"
+#include "player/CommandParser.hpp"
 #include "player/PlayerPhysical.hpp"
 #include "script/ScriptedThing.hpp"
 #include "thing/Thing.hpp"
@@ -13,7 +14,13 @@
 void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 {
     Thinker::doThink(owner, world);
-    const auto& event = owner->notifier()->event;
+    const std::string request = owner->networked()->getRequestStream().str();
+    if (request.empty())
+    {
+        return;
+    }
+
+    auto event = CommandParser::Parse(request);
 
     if (event.verb.empty())
     {
@@ -47,7 +54,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 
     case Event::Type::Do:
     {
-        owner->notifier()->doNotify(owner, Event::Type::Do, nullptr);
+        owner->notifier()->doNotify(owner, event, nullptr);
         break;
     }
 
@@ -91,8 +98,8 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
             owner->networked()->addResponse(ColorString(res.str(), Color::Yellow));
         }
 
-        owner->notifier()->doNotify(owner, Event::Type::Ask, t);
-        t->talker()->onTalk(t, owner);
+        owner->notifier()->doNotify(owner, event, t);
+        t->talker()->onTalk(t, owner, event);
 
         break;
     }
@@ -103,12 +110,16 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         std::string message = event.target + ' ' + event.object + ' ' + event.extra;
         boost::algorithm::trim(message);
 
-        owner->notifier()->setEventPayload(message);
-        owner->notifier()->doNotify(owner, Event::Type::Chat);
+        Event chat_event(Event::Type::Chat, event.verb, event.target, event.object, event.extra,
+                         message);
+        owner->notifier()->doNotify(owner, chat_event);
 
-        std::stringstream res;
-        res << "You said: " << std::quoted(event.payload) << '\n';
-        owner->networked()->addResponse(res.str());
+        if (owner->_networked)
+        {
+            std::stringstream res;
+            res << "You said: " << std::quoted(message) << '\n';
+            owner->networked()->addResponse(res.str());
+        }
 
         break;
 
@@ -129,18 +140,12 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 
         std::shared_ptr<Thing> t;
 
-        if (event.target == "here" || event.target == "room")
+        if (event.target.empty() || event.target == "here" || event.target == "room")
         {
             t = owner->physical()->current_room;
             auto t = std::reinterpret_pointer_cast<Room>(owner->physical()->current_room);
             owner->networked()->addResponse(t->onInspect(t, owner));
             goto Notify;
-        }
-
-        if (event.target.size() == 0)
-        {
-            owner->networked()->addResponse(owner->inspectable()->onInspect(owner, owner));
-            break;
         }
 
         t = owner->physical()->current_room->getAnything(event.target);
@@ -171,7 +176,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
 
     Notify:
 
-        owner->notifier()->doNotify(owner, event.type, t);
+        owner->notifier()->doNotify(owner, event, t);
         break;
     }
 
@@ -192,7 +197,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         if (!t)
             throw TargetNotFound(event.target);
 
-        t->usable()->onUse(t, owner);
+        t->usable()->onUse(t, owner, event);
 
         break;
     }
@@ -201,7 +206,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
     {
         std::static_pointer_cast<PlayerPhysical>(owner->physical())
             ->moveDirection(owner, world, event.target);
-        owner->notifier()->doNotify(owner, event.type);
+        owner->notifier()->doNotify(owner, event);
         break;
     }
 
@@ -214,7 +219,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
         /*     throw MissingComponent(); */
 
         owner->physical()->pickupItem(t);
-        owner->notifier()->doNotify(owner, event.type, t);
+        owner->notifier()->doNotify(owner, event, t);
         owner->networked()->addResponse("You picked up " + t->name + '\n');
         break;
     }
@@ -229,7 +234,7 @@ void PlayerThinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
             throw TargetNotFound(event.target);
         t->physical()->gainItem(o);
         owner->physical()->loseItem(o);
-        owner->notifier()->doNotify(owner, event.type, t);
+        owner->notifier()->doNotify(owner, event, t);
         owner->networked()->addResponse("You gave " + t->name + " your " + o->name + "\n");
         break;
     }

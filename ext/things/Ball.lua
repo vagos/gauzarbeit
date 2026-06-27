@@ -1,14 +1,14 @@
-function Ball:onUse(user)
-    user:sendMessage("You threw the ball!\n")
-    user:dropItem(self)
+function Ball:onUse(event)
+    event.actor:sendMessage("You threw the ball!\n")
+    event.actor:dropItem(self)
     
-    user:broadcastMessage(user:getName().." threw a ball!\n");
+    event.actor:broadcastMessage(event.actor:getName().." threw a ball!\n");
 end
 
-function Ball:onNotify(actor, notification_type)
+function Ball:onNotify(event)
     
-    if notification_type == Gauzarbeit.Event.Do and actor:getEventInfo().target == "catch" and not actor:hasItem(self) then
-        actor:gainItem(self)
-        actor:sendMessage("You caught the ball!\n")
+    if event.type == Gauzarbeit.Event.Do and event.target == "catch" and not event.actor:hasItem(self) then
+        event.actor:gainItem(self)
+        event.actor:sendMessage("You caught the ball!\n")
     end
 end

@@ -20,7 +20,7 @@ TEST_CASE("WorldGenSystem deterministically generates rooms")
     Room::mapRooms.clear();
 
     World world;
-    world.systems.push_back(std::make_unique<WorldGenSystem>(99));
+    world.systems.push_back(std::make_unique<WorldGenSystem>(world, 99));
 
     auto room = Room::get(world, x, y);
     REQUIRE(room != nullptr);

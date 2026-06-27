@@ -10,13 +10,13 @@ function EvilChair:doAttack(target)
 end
 
 
-function EvilChair:onUse(user)
+function EvilChair:onUse(event)
 
-    user:sendMessage("You try to sit on the chair...\n")
+    event.actor:sendMessage("You try to sit on the chair...\n")
 
-    self:doAttack(user)
+    self:doAttack(event.actor)
 
-    user:sendMessage("The chair goes back to sitting still...\n")
+    event.actor:sendMessage("The chair goes back to sitting still...\n")
     
 end
 

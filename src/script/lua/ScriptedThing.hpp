@@ -21,8 +21,6 @@ class ScriptedThing_Lua : public script::ScriptedThing
 
     static int GetName(lua_State* L);
 
-    static int GetEventInfo(lua_State* L);
-
     static int LoseItem(lua_State* L);
     static int GainItem(lua_State* L);
     static int DropItem(lua_State* L);

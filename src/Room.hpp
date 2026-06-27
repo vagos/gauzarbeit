@@ -50,7 +50,6 @@ class Room : public Thing
     const std::shared_ptr<Thing> getAnything(const std::string& name);
 
     const std::string onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<Thing> inspector);
-    void onSay(const std::shared_ptr<Thing>& speaker, const std::string& message);
 
     virtual void doUpdate(World& world);
 

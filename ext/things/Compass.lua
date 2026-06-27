@@ -29,6 +29,6 @@ function Compass:onInspect(inspector)
     return "A brass compass marked with room names.\n"
 end
 
-function Compass:onUse(user)
-    user:sendMessage(build_compass_reading(user))
+function Compass:onUse(event)
+    event.actor:sendMessage(build_compass_reading(event.actor))
 end

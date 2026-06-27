@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <stdexcept>
 #include <vector>
 
@@ -65,7 +66,10 @@ std::string InferWithLlama(const std::string& prompt, const LLMConfig& config)
         throw std::runtime_error("failed to create llama sampler");
 
     std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)> smpl(smpl_raw, llama_sampler_free);
-    llama_sampler_chain_add(smpl.get(), llama_sampler_init_greedy());
+    llama_sampler_chain_add(smpl.get(), llama_sampler_init_top_k(40));
+    llama_sampler_chain_add(smpl.get(), llama_sampler_init_top_p(0.9f, 1));
+    llama_sampler_chain_add(smpl.get(), llama_sampler_init_temp(0.85f));
+    llama_sampler_chain_add(smpl.get(), llama_sampler_init_dist(std::random_device{}()));
 
     llama_batch batch =
         llama_batch_get_one(prompt_tokens.data(), static_cast<int32_t>(prompt_tokens.size()));
@@ -96,8 +100,8 @@ std::string InferWithLlama(const std::string& prompt, const LLMConfig& config)
 }
 } // namespace
 
-LLMSystem::LLMSystem(const LLMConfig& config, InferFn infer_fn)
-    : config(config), infer_fn(std::move(infer_fn))
+LLMSystem::LLMSystem(World& world, const LLMConfig& config, InferFn infer_fn)
+    : System(world), config(config), infer_fn(std::move(infer_fn))
 {
     if (!this->infer_fn && !std::filesystem::exists(this->config.model_path))
         throw std::runtime_error("model file not found at " + this->config.model_path);

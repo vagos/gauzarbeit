@@ -10,28 +10,28 @@ function PokeBall:onInspect(inspector)
     return "A PokeBall holding "..self.thingCaught:getName()..".\n"
 end
 
-function PokeBall:onUse(user)
+function PokeBall:onUse(event)
     if not self.thingCaught then
-        local target_name = user:getEventInfo().object
+        local target_name = event.object
         if target_name == "" then
-            user:sendMessage("Use PokeBall <thing> to catch something nearby.\n")
+            event.actor:sendMessage("Use PokeBall <thing> to catch something nearby.\n")
             return
         end
 
-        local target = user:getThing(target_name)
+        local target = event.actor:getThing(target_name)
         if not target then
-            user:sendMessage("The PokeBall snaps shut on absolutely nothing.\n")
+            event.actor:sendMessage("The PokeBall snaps shut on absolutely nothing.\n")
             return
         end
 
         self:gainItem(target)
         self.thingCaught = target
-        user:sendMessage("The PokeBall catches "..target:getName()..".\n")
+        event.actor:sendMessage("The PokeBall catches "..target:getName()..".\n")
         return
     end
 
     local released = self.thingCaught
     self.thingCaught = nil
     self:dropItem(released)
-    user:sendMessage("The PokeBall releases "..released:getName()..".\n")
+    event.actor:sendMessage("The PokeBall releases "..released:getName()..".\n")
 end

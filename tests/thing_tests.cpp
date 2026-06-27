@@ -2,6 +2,7 @@
 #include "TestSupport.hpp"
 #include "World.hpp"
 #include "player/Player.hpp"
+#include "player/PlayerNotifier.hpp"
 #include "script/ScriptedThing.hpp"
 #include "script/lua/LuaHelpers.hpp"
 #include "script/lua/ScriptedThing.hpp"
@@ -89,16 +90,39 @@ TEST_CASE("Attackable doAttack kills and removes target")
     target->attackable()->setMaxHealth(1);
     attacker->attackable()->doAttack(attacker, target);
 
-    CHECK(target->attackable()->is_alive());
-    CHECK(target->attackable()->current_health == doctest::Approx(1.0));
-    CHECK(target->notifier()->event.type == Event::Type::Attacked);
-    CHECK(target->notifier()->event.target == "Attacker");
-
-    target->thinker()->doThink(target, world);
-
     CHECK(!target->attackable()->is_alive());
     CHECK(target->physical()->current_room == nullptr);
     CHECK(room->getThing("Target") == nullptr);
+}
+
+TEST_CASE("Attackable keeps attacking its target on update")
+{
+    auto room = std::make_shared<Room>(0, 0);
+    auto attacker = MakeBasicThing("Attacker");
+    auto target = MakeBasicThing("Target");
+
+    attacker->physical()->current_room = room;
+    target->physical()->current_room = room;
+    room->addThing(attacker);
+    room->addThing(target);
+
+    attacker->attackable()->setMaxHealth(3);
+    target->attackable()->setMaxHealth(3);
+
+    attacker->attackable()->doAttack(attacker, target);
+
+    CHECK(attacker->attackable()->current_health == doctest::Approx(3.0));
+    CHECK(target->attackable()->current_health == doctest::Approx(2.0));
+
+    target->attackable()->doUpdate(target);
+
+    CHECK(attacker->attackable()->current_health == doctest::Approx(2.0));
+    CHECK(target->attackable()->current_health == doctest::Approx(2.0));
+
+    target->attackable()->doUpdate(target);
+
+    CHECK(attacker->attackable()->current_health == doctest::Approx(1.0));
+    CHECK(target->attackable()->current_health == doctest::Approx(2.0));
 }
 
 TEST_CASE("Tasker completes tasks and grants rewards")
@@ -154,14 +178,17 @@ TEST_CASE("Room speech broadcasts clear the active line")
     listener->is_player = true;
     speaker->physical()->current_room = room;
     listener->physical()->current_room = room;
+    speaker->_notifier = std::make_shared<PlayerNotifier>();
+    listener->_notifier = std::make_shared<PlayerNotifier>();
     room->addThing(speaker);
     room->addThing(listener);
 
-    room->onSay(speaker, "Squeak");
+    Event event(Event::Type::Chat, "say", "", "", "", "Squeak");
+    speaker->notifier()->doNotify(speaker, event);
 
     auto listener_net = std::dynamic_pointer_cast<TestNetworked>(listener->networked());
     REQUIRE(listener_net != nullptr);
-    CHECK(listener_net->response().find(std::string(PromptReset) + "Rat: Squeak") !=
+    CHECK(listener_net->response().find(std::string(PromptReset) + "Rat: Squeak\n") !=
           std::string::npos);
 }
 
@@ -421,15 +448,15 @@ TEST_CASE("PokeBall catches and releases a room thing")
     target->physical()->current_room = room;
     room->addThing(target);
 
-    player->notifier()->event.object = "Cheese";
-    poke_ball->usable()->onUse(poke_ball, player);
+    Event event(Event::Type::Invalid, "", "", "Cheese");
+    poke_ball->usable()->onUse(poke_ball, player, event);
 
     CHECK(room->getThing("Cheese") == nullptr);
     CHECK(poke_ball->physical()->getItem("Cheese") != nullptr);
     CHECK(poke_ball->inspectable()->onInspect(poke_ball, player).find("Cheese") !=
           std::string::npos);
 
-    poke_ball->usable()->onUse(poke_ball, player);
+    poke_ball->usable()->onUse(poke_ball, player, event);
 
     CHECK(room->getThing("Cheese") != nullptr);
     CHECK(poke_ball->physical()->getItem("Cheese") == nullptr);

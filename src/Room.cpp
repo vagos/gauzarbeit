@@ -6,8 +6,10 @@
 #include "script/lua/ScriptedThing.hpp"
 #include "system/WorldGenSystem.hpp"
 #include "World.hpp"
+#include <cstdlib>
 #include <cstddef>
 #include <exception>
+#include <execinfo.h>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -164,23 +166,6 @@ const std::string Room::onInspect(std::shared_ptr<Thing> owner, std::shared_ptr<
             << "(" << x << ", " << y << ")\n\n";
 
     return inspect.str();
-}
-
-void Room::onSay(const std::shared_ptr<Thing>& speaker, const std::string& message)
-{
-    if (!speaker)
-        return;
-
-    std::stringstream line;
-    line << PromptReset << speaker->name << ": " << message;
-
-    for (const auto& player : players)
-    {
-        if (!player || player == speaker || !player->_networked)
-            continue;
-
-        player->networked()->addResponse(line.str());
-    }
 }
 
 void ScriptedRoom::doGeneration()

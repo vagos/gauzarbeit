@@ -2,6 +2,6 @@ function TaskGiver:doInit()
     self:addTask("Collect herbs")
 end
 
-function TaskGiver:onTalk(talker)
-    self:giveTask(talker, "Collect herbs")
+function TaskGiver:onTalk(event)
+    self:giveTask(event.actor, "Collect herbs")
 end

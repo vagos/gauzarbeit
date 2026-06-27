@@ -13,6 +13,7 @@ constexpr int SIZE = 65;
 #include <random>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <unordered_map>
 #include <vector>
 
@@ -131,6 +132,13 @@ struct Event
         Custom,
         Invalid,
     };
+
+    Event(Type type = Type::Invalid, std::string verb = "", std::string target = "",
+          std::string object = "", std::string extra = "", std::string payload = "")
+        : verb(std::move(verb)), target(std::move(target)), object(std::move(object)),
+          extra(std::move(extra)), payload(std::move(payload)), type(type)
+    {
+    }
 
     std::string verb;
     std::string target;

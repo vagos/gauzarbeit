@@ -2,9 +2,9 @@
 #include "thing/Thing.hpp"
 #include <iomanip>
 
-void Talker::onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker)
+void Talker::onTalk(const std::shared_ptr<Thing>&, const std::shared_ptr<Thing>,
+                    const Event& event)
 {
-    const auto& event = talker->notifier()->event;
     Log(event.object);
 
     if (event.object.empty())
@@ -45,7 +45,7 @@ void Guild::addMember(const std::shared_ptr<Thing>& adder, const std::shared_ptr
     member->talker()->guild = adder->talker()->guild;
 }
 
-void Guild::onNotify(const std::shared_ptr<Thing>& actor, Event::Type notification_type,
-                     const std::shared_ptr<Thing>& target)
+void Guild::onNotify(const std::shared_ptr<Thing>&, const Event&,
+                     const std::shared_ptr<Thing>&)
 {
 }

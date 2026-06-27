@@ -22,6 +22,50 @@ struct ScheduledLuaCallback
 
 std::vector<ScheduledLuaCallback> scheduled_lua_callbacks;
 
+void PushEventTable(lua_State* L, const Event& event, const std::shared_ptr<Thing>& actor,
+                    const std::shared_ptr<Thing>& target)
+{
+    lua_newtable(L);
+
+    lua_pushinteger(L, static_cast<int>(event.type));
+    lua_setfield(L, -2, "type");
+
+    lua_pushstring(L, event.verb.c_str());
+    lua_setfield(L, -2, "verb");
+
+    lua_pushstring(L, event.target.c_str());
+    lua_setfield(L, -2, "target");
+
+    lua_pushstring(L, event.object.c_str());
+    lua_setfield(L, -2, "object");
+
+    lua_pushstring(L, event.extra.c_str());
+    lua_setfield(L, -2, "extra");
+
+    lua_pushstring(L, event.payload.c_str());
+    lua_setfield(L, -2, "payload");
+
+    if (actor)
+    {
+        lua_pushlightuserdata(L, actor.get());
+        luaL_getmetatable(L, "Gauzarbeit.Thing");
+        lua_setmetatable(L, -2);
+    }
+    else
+        lua_pushnil(L);
+    lua_setfield(L, -2, "actor");
+
+    if (target)
+    {
+        lua_pushlightuserdata(L, target.get());
+        luaL_getmetatable(L, "Gauzarbeit.Thing");
+        lua_setmetatable(L, -2);
+    }
+    else
+        lua_pushnil(L);
+    lua_setfield(L, -2, "targetThing");
+}
+
 std::shared_ptr<Room> FindRoomByThingPtr(Thing* thing_ptr)
 {
     // TODO: Instead of doing this, we could just reinterpret_cast the lightuserdata to a Room*
@@ -125,8 +169,6 @@ class ScriptedThinker : public Thinker
   public:
     void doThink(const std::shared_ptr<Thing>& owner, World& world) override
     {
-        (void)world;
-
         const auto& L = ScriptedThing_Lua::L;
         // Restore the Lua stack before returning.
         const int base_top = lua_gettop(L);
@@ -193,7 +235,8 @@ class ScriptedAchiever : public Achiever
 class ScriptedUsable : public Usable
 {
   public:
-    void onUse(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& user) override
+    void onUse(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& user,
+               const Event& event) override
     {
         const auto& L = ScriptedThing_Lua::L;
         const int base_top = lua_gettop(L);
@@ -208,7 +251,7 @@ class ScriptedUsable : public Usable
         }
 
         lua_pushlightuserdata(L, owner.get());
-        lua_pushlightuserdata(L, user.get());
+        PushEventTable(L, event, user, nullptr);
 
         CheckLua(L, lua_pcall(L, 2, 0, 0));
         lua_settop(L, base_top);
@@ -262,7 +305,7 @@ class ScriptedAttackable : public Attackable
 class ScriptedNotifier : public Notifier
 {
     void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
-                  Event::Type notification_type, const std::shared_ptr<Thing>& target) override
+                  const Event& event, const std::shared_ptr<Thing>& target) override
     {
         const auto& L = ScriptedThing_Lua::L;
         const int base_top = lua_gettop(L);
@@ -276,11 +319,9 @@ class ScriptedNotifier : public Notifier
         }
 
         lua_pushlightuserdata(L, owner.get());
-        lua_pushlightuserdata(L, actor.get());
-        lua_pushnumber(L, (int)notification_type);
-        lua_pushlightuserdata(L, target.get());
+        PushEventTable(L, event, actor, target);
 
-        CheckLua(L, lua_pcall(L, 4, 0, 0));
+        CheckLua(L, lua_pcall(L, 2, 0, 0));
         lua_settop(L, base_top);
     }
 };
@@ -389,7 +430,7 @@ class Task_Lua : public Tasker::Task
     }
 
     bool onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
-                  Event::Type notification_type, const std::shared_ptr<Thing>& target) override
+                  const Event& event, const std::shared_ptr<Thing>& target) override
     {
         if (update_ref == LUA_NOREF)
             return false;
@@ -404,7 +445,7 @@ class Task_Lua : public Tasker::Task
             lua_pushnil(L);
         lua_pushlightuserdata(L, owner.get());
         lua_pushlightuserdata(L, actor.get());
-        lua_pushnumber(L, (int)notification_type);
+        lua_pushnumber(L, (int)event.type);
         if (target)
         {
             lua_pushlightuserdata(L, target.get());
@@ -548,7 +589,8 @@ class ScriptedInspectable : public Inspectable
 class ScriptedTalker : public Talker
 {
   public:
-    void onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker) override
+    void onTalk(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing> talker,
+                const Event& event) override
     {
         const auto& L = ScriptedThing_Lua::L;
         const int base_top = lua_gettop(L);
@@ -559,12 +601,12 @@ class ScriptedTalker : public Talker
         if (lua_isfunction(L, -1))
         {
             lua_pushlightuserdata(L, owner.get());
-            lua_pushlightuserdata(L, talker.get());
+            PushEventTable(L, event, talker, nullptr);
             CheckLua(L, lua_pcall(L, 2, 0, 0));
         }
 
         lua_settop(L, base_top);
-        Talker::onTalk(owner, talker);
+        Talker::onTalk(owner, talker, event);
     }
 };
 
@@ -1032,8 +1074,8 @@ int ScriptedThing_Lua::BroadcastMessage(lua_State* L)
     auto p = GetSmartPtr(ptrThing->physical()->getRoom()->players, ptrThing);
     assert(p != nullptr);
 
-    p->notifier()->setEventPayload(message);
-    p->notifier()->doNotify(p, Event::Type::Message);
+    Event event(Event::Type::Message, "message", "", "", "", message);
+    p->notifier()->doNotify(p, event);
 
     return 0;
 }
@@ -1156,34 +1198,6 @@ int ScriptedThing_Lua::GetLevel(lua_State* L)
     return 0;
 }
 
-int ScriptedThing_Lua::GetEventInfo(lua_State* L)
-{
-    assert(lua_isuserdata(L, 1));
-
-    Thing* ptrThing = (Thing*)lua_touserdata(L, 1);
-
-    if (ptrThing->_notifier)
-    {
-        lua_newtable(L);
-
-        lua_pushstring(L, ptrThing->notifier()->event.verb.c_str());
-        lua_setfield(L, -2, "verb");
-
-        lua_pushstring(L, ptrThing->notifier()->event.target.c_str());
-        lua_setfield(L, -2, "target");
-
-        lua_pushstring(L, ptrThing->notifier()->event.object.c_str());
-        lua_setfield(L, -2, "object");
-
-        lua_pushstring(L, ptrThing->notifier()->event.extra.c_str());
-        lua_setfield(L, -2, "extra");
-
-        return 1;
-    }
-
-    return 0;
-}
-
 // Returns a Player with the given name in the room the thing is in
 int ScriptedThing_Lua::GetPlayer(lua_State* L)
 {
@@ -1243,9 +1257,10 @@ int ScriptedThing_Lua::DoSay(lua_State* L)
 
     std::string s(lua_tostring(L, 3));
 
-    if (auto room = FindRoomByThingPtr(ptrThingTarget))
+    if (FindRoomByThingPtr(ptrThingTarget))
     {
-        room->onSay(ptrThing->shared_from_this(), s);
+        Event event(Event::Type::Chat, "say", "", "", "", s);
+        ptrThing->notifier()->doNotify(ptrThing->shared_from_this(), event);
         return 0;
     }
 
@@ -1568,7 +1583,6 @@ void ScriptedThing_Lua::Init()
                                      {"hasDoneTask", ScriptedThing_Lua::HasDoneTask},
                                      {"rewardTask", ScriptedThing_Lua::RewardTask},
                                      {"gainXP", ScriptedThing_Lua::GainXP},
-                                     {"getEventInfo", ScriptedThing_Lua::GetEventInfo},
                                      {"getLevel", ScriptedThing_Lua::GetLevel},
                                      {"giveTask", ScriptedThing_Lua::GiveTask},
                                      {"doAttack", ScriptedThing_Lua::DoAttack},

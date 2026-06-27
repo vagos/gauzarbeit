@@ -5,10 +5,10 @@ function TestDummy:doInit()
     self:addTask("Say hello")
 end
 
-function TestDummy:onUse(user)
+function TestDummy:onUse(event)
     self.counter = self.counter + 1
-    user:sendMessage("TestDummy used " .. self.counter .. " times.\n")
-    user:gainXP(1)
+    event.actor:sendMessage("TestDummy used " .. self.counter .. " times.\n")
+    event.actor:gainXP(1)
 end
 
 function TestDummy:onInspect(inspector)

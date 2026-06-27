@@ -4,10 +4,10 @@ function Chair:doInit()
 
 end
 
-function Chair:onUse(user)
+function Chair:onUse(event)
     self.sits = self.sits + 1
-    user:sendMessage("You just sit on a chair!\n")
-    user:sendMessage("Times sitted: "..self.sits.."\n")
+    event.actor:sendMessage("You just sit on a chair!\n")
+    event.actor:sendMessage("Times sitted: "..self.sits.."\n")
 end
 
 function Chair:onInspect(inspector)

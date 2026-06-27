@@ -12,6 +12,8 @@ void PlayerAttackable::doUpdate(const std::shared_ptr<Thing>& owner)
     {
         doRespawn(owner);
     }
+
+    Attackable::doUpdate(owner);
 }
 
 void PlayerAttackable::doAttack(const std::shared_ptr<Thing>& owner,
@@ -42,7 +44,8 @@ void PlayerAttackable::onDeath(const std::shared_ptr<Thing>& owner)
 {
     alive = false;
     owner->networked()->addResponse(ColorString("You died!\n", Color::Red));
-    owner->notifier()->doNotify(owner, Event::Type::Death); // notify everyone about the death
+    Event death_event(Event::Type::Death, "death");
+    owner->notifier()->doNotify(owner, death_event); // notify everyone about the death
 }
 
 void PlayerAttackable::doRespawn(const std::shared_ptr<Thing> owner)

@@ -31,35 +31,8 @@ void Thing::doUpdate(World& world)
         _notifier->doUpdate(shared_from_this());
     if (_tasker)
         _tasker->doUpdate(shared_from_this());
-
-    if (_notifier)
-        _notifier->clearEvent();
 }
 
-void Thinker::doThink(const std::shared_ptr<Thing>& owner, World& world)
+void Thinker::doThink(const std::shared_ptr<Thing>& owner, World&)
 {
-    (void)world;
-
-    if (!owner || !owner->_notifier || owner->notifier()->event.type != Event::Type::Attacked)
-        return;
-
-    auto event_target = owner->notifier()->event.target;
-    if (event_target.empty())
-        return;
-
-    if (!owner->_physical || !owner->physical()->current_room)
-        return;
-
-    auto attacker = owner->physical()->current_room->getAnything(event_target);
-    if (!attacker || !attacker->_attackable || !owner->_attackable)
-        return;
-
-    owner->attackable()->getDamaged(owner, attacker, attacker->attackable()->getDamage(attacker));
-    owner->attackable()->onAttack(owner, attacker);
-
-    if (owner->attackable()->is_alive() && attacker != owner && attacker->_attackable &&
-        attacker->_physical && attacker->physical()->current_room == owner->physical()->current_room)
-    {
-        owner->attackable()->doAttack(owner, attacker);
-    }
 }

@@ -15,9 +15,10 @@
 #include <functional>
 #include <iostream>
 #include <memory>
-#include <queue>
+#include <optional>
 #include <sstream>
 #include <string>
+#include <vector>
 
 class World;
 class Thing;
@@ -145,34 +146,18 @@ class Notifier
   public:
     Notifier() {}
 
-    virtual void doNotify(const std::shared_ptr<Thing>& owner, Event::Type notification_type,
+    virtual void doNotify(const std::shared_ptr<Thing>& owner, const Event& event,
                           const std::shared_ptr<Thing>& target = nullptr)
     {
     }
 
     virtual void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
-                          Event::Type notification_type,
+                          const Event& event,
                           const std::shared_ptr<Thing>& target = nullptr)
     {
     }
 
-    virtual void setEvent(const std::shared_ptr<Thing>& owner) {}
-
-    void setEventPayload(std::string p) { event.payload = p; }
-
-    void clearEvent()
-    {
-        event.type = Event::Type::Invalid;
-        event.verb = "";
-        event.object = "";
-        event.target = "";
-        event.extra = "";
-        event.payload = "";
-    }
-
     virtual void doUpdate(const std::shared_ptr<Thing>& owner) {}
-
-    Event event;
 };
 
 class Tasker
@@ -188,7 +173,7 @@ class Tasker
         Task& operator=(const Task&) = default;
 
         virtual bool onNotify(const std::shared_ptr<Thing>& owner,
-                              const std::shared_ptr<Thing>& actor, Event::Type notification_type,
+                              const std::shared_ptr<Thing>& actor, const Event& event,
                               const std::shared_ptr<Thing>& target)
         {
             return false;
@@ -292,11 +277,11 @@ class Tasker
     }
 
     void onNotify(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& actor,
-                  Event::Type notification_type, const std::shared_ptr<Thing>& target)
+                  const Event& event, const std::shared_ptr<Thing>& target)
     {
         for (auto& task : tasks)
         {
-            if (task->onNotify(owner, actor, notification_type, target))
+            if (task->onNotify(owner, actor, event, target))
                 task->tick = true;
         }
     }
@@ -316,9 +301,8 @@ class Tasker
                            .length()); // The longer the task description, the more XP it gives.
     }
 
-    void doUpdate(const std::shared_ptr<Thing>& owner)
+    void doUpdate(const std::shared_ptr<Thing>&)
     {
-        (void)owner;
     }
 
     int getDifficulty() { return tasks.size(); }
@@ -335,7 +319,10 @@ class Thinker
 class Usable
 {
   public:
-    virtual void onUse(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& user) {}
+    virtual void onUse(const std::shared_ptr<Thing>& owner, const std::shared_ptr<Thing>& user,
+                       const Event& event)
+    {
+    }
 
     virtual void doUpdate(const std::shared_ptr<Thing>& owner) {}
 };

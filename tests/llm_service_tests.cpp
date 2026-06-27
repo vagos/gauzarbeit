@@ -13,7 +13,7 @@ TEST_CASE("LLMSystem keeps only the latest pending prompt per entity")
     config.model_path = "";
     config.max_pending_entities = 8;
 
-    LLMSystem llm(config, [](const std::string& prompt)
+    LLMSystem llm(world, config, [](const std::string& prompt)
                   {
                       std::this_thread::sleep_for(std::chrono::milliseconds(5));
                       return prompt;

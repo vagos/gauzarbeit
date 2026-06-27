@@ -1,13 +1,13 @@
-function Glove:onUse(user)
+function Glove:onUse(event)
 
-    print(user:getEventInfo().object)
+    print(event.object)
     
-    targetPlayer = user:getPlayer( user:getEventInfo().object )
+    targetPlayer = event.actor:getPlayer(event.object)
 
     print(targetPlayer)
 
     if (targetPlayer) then
-        targetPlayer:sendMessage(user:getName().." slapped you!\n")
+        targetPlayer:sendMessage(event.actor:getName().." slapped you!\n")
     end
 
 end

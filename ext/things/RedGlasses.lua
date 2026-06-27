@@ -1,18 +1,18 @@
 
-function RedGlasses:onNotify(actor, notification_type, target)
+function RedGlasses:onNotify(event)
 
-    if not target then
+    if not event.targetThing then
         return
     end
 
-    if (notification_type == Gauzarbeit.Event.Inspect) then
-        actor:sendMessage("\nYou see with your Red Glasses: \n\n")
-        local health = target:getStat("Health")
-        local max_health = target:getStat("MaxHealth")
+    if (event.type == Gauzarbeit.Event.Inspect) then
+        event.actor:sendMessage("\nYou see with your Red Glasses: \n\n")
+        local health = event.targetThing:getStat("Health")
+        local max_health = event.targetThing:getStat("MaxHealth")
         if health == 0 then
             health = max_health
         end
-        actor:sendMessage("HP: "..health.."/"..max_health.."\n")
+        event.actor:sendMessage("HP: "..health.."/"..max_health.."\n")
     end
 
 end

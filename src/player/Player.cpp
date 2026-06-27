@@ -36,9 +36,6 @@ void Player::doUpdate(World& world)
     {
         HandleException(shared_from_this(), e);
     }
-
-    // Thing update conclusion
-    notifier()->clearEvent();
 }
 
 void Player::setPlayerCommands()

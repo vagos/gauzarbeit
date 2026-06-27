@@ -1,4 +1,6 @@
 #pragma once
+#include "Helpers.hpp"
+#include <memory>
 
 class World;
 struct Thing;
@@ -10,5 +12,13 @@ struct System
 {
     virtual ~System() = default;
 
-    virtual void doUpdate(World& world) = 0;
+    explicit System(World& world) : world(world) {}
+
+    virtual void doUpdate(World& world) {}
+    virtual void onEvent(World& world, const std::shared_ptr<Thing>& actor, Event::Type event,
+                         const std::shared_ptr<Thing>& target = nullptr)
+    {
+    }
+
+    World& world;
 };

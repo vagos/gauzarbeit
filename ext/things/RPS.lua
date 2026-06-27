@@ -34,37 +34,37 @@ function RPS:doInit()
 end
 
 
-function RPS:onUse(user)
+function RPS:onUse(event)
 
     if self.enemyPlayer.ptr ~= nil then 
-        self.originalPlayer.choice = user:getEventInfo().object
-        self.originalPlayer.ptr = user
+        self.originalPlayer.choice = event.object
+        self.originalPlayer.ptr = event.actor
         return
     end
-    self.enemyPlayer.ptr = user:getPlayer( user:getEventInfo().object )
+    self.enemyPlayer.ptr = event.actor:getPlayer(event.object)
 
     if self.enemyPlayer.ptr then
-        local msg = user:getName().." has challenged you to a game of Rock, Paper, Scissors!\n"
+        local msg = event.actor:getName().." has challenged you to a game of Rock, Paper, Scissors!\n"
         self.enemyPlayer.ptr:sendMessage(msg)
 
-        user:sendMessage("You have challenged "..self.enemyPlayer.ptr:getName().."!\n"..
+        event.actor:sendMessage("You have challenged "..self.enemyPlayer.ptr:getName().."!\n"..
         "Type 'use RPS {choice}' to make a move!\n")
     else
-        user:sendMessage("Player not found!\n")
+        event.actor:sendMessage("Player not found!\n")
     end
     if self.enemyPlayer.choice and self.originalPlayer.choice then self:runGame() end
 
 end
 
 
-function RPS:onNotify(actor, notification_type, target)
+function RPS:onNotify(event)
 
-    if (self.enemyPlayer.ptr == nil or actor:getName() ~= self.enemyPlayer.ptr:getName()) then 
+    if (self.enemyPlayer.ptr == nil or event.actor:getName() ~= self.enemyPlayer.ptr:getName()) then 
         return
     end
 
-    if notification_type == Gauzarbeit.Event.Info then
-        self.enemyPlayer.choice = actor:getEventInfo().extra 
+    if event.type == Gauzarbeit.Event.Info then
+        self.enemyPlayer.choice = event.extra 
 
         if self.enemyPlayer.choice and self.originalPlayer.choice then self:runGame() end
     end

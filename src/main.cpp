@@ -1,11 +1,12 @@
 #include "Server.hpp"
 #include "Helpers.hpp"
 #include "World.hpp"
+#include "player/PlayerNotifier.hpp"
 #include "script/lua/ScriptedThing.hpp"
 #include "system/LLMSystem.hpp"
 #include "system/RoomSystem.hpp"
 #include "system/WorldGenSystem.hpp"
-#include "thing/LLMNotifier.hpp"
+#include "thing/LLMThinker.hpp"
 #include <atomic>
 #include <csignal>
 #include <cstdlib>
@@ -34,28 +35,29 @@ int main(int argc, char* argv[])
 
     Server server(port, io_service, endpoint);
     World world;
-    world.systems.push_back(std::make_unique<WorldGenSystem>());
+    world.systems.push_back(std::make_unique<WorldGenSystem>(world));
 
     try
     {
-        auto llm_system = std::make_unique<LLMSystem>();
+        auto llm_system = std::make_unique<LLMSystem>(world);
         auto guide_bot = std::make_shared<Thing>("GuideBot");
         guide_bot->_networked = std::make_shared<Networked>();
         guide_bot->_physical = std::make_shared<Physical>();
         guide_bot->_attackable = std::make_shared<Attackable>();
-        guide_bot->_notifier = std::make_shared<LLMNotifier>(10, 8, llm_system.get());
+        guide_bot->_notifier = std::make_shared<PlayerNotifier>();
         guide_bot->_achiever = std::make_shared<Achiever>();
         guide_bot->_tasker = std::make_shared<Tasker>();
         guide_bot->_inspectable = std::make_shared<Inspectable>();
         guide_bot->_talker = std::make_shared<Talker>();
-        guide_bot->physical()->doMove(guide_bot, 0, 0);
+        guide_bot->_thinker = std::make_shared<LLMThinker>(llm_system.get());
+        guide_bot->physical()->doMove(guide_bot, world, 0, 0);
         world.systems.push_back(std::move(llm_system));
     }
     catch (const std::exception& e)
     {
         Log("LLM disabled: " << e.what());
     }
-    world.systems.push_back(std::make_unique<RoomSystem>());
+    world.systems.push_back(std::make_unique<RoomSystem>(world));
 
     std::signal(SIGINT, HandleSignal);
     std::signal(SIGTERM, HandleSignal);
@@ -67,9 +69,8 @@ int main(int argc, char* argv[])
     }
 
     // Persist rooms to database on shutdown
-    for (auto& [key, room] : Room::mapRooms)
+    for (auto& [_, room] : Room::mapRooms)
     {
-        (void)key;
         if (room && room->_networked)
             room->networked()->doDatabaseStore(room);
     }

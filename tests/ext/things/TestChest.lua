@@ -2,15 +2,15 @@ function TestChest:doInit()
     self.opened = false
 end
 
-function TestChest:onUse(user)
+function TestChest:onUse(event)
     if self.opened then
-        user:sendMessage("TestChest is already open.\n")
+        event.actor:sendMessage("TestChest is already open.\n")
         return
     end
 
     self.opened = true
-    user:sendMessage("You open the TestChest.\n")
-    user:gainItem("TestToken")
+    event.actor:sendMessage("You open the TestChest.\n")
+    event.actor:gainItem("TestToken")
 end
 
 function TestChest:onInspect(inspector)

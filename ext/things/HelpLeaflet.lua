@@ -10,6 +10,6 @@ COMMANDS:
     return help
 end
 
-function HelpLeaflet:onUse(user)
-    user:sendMessage(self:onInspect(user))
+function HelpLeaflet:onUse(event)
+    event.actor:sendMessage(self:onInspect(event.actor))
 end

@@ -55,6 +55,6 @@ function Map:onInspect(inspector)
     return "A folded map of the world.\n"
 end
 
-function Map:onUse(user)
-    user:sendMessage(build_world_map(user))
+function Map:onUse(event)
+    event.actor:sendMessage(build_world_map(event.actor))
 end

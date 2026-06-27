@@ -157,7 +157,6 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
             return;
         }
 
-        owner->notifier()->event = event;
     }
 }
 

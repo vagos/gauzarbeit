@@ -10,7 +10,7 @@
 
 struct WorldGenSystem : System
 {
-    explicit WorldGenSystem(std::uint64_t seed = 1) : seed(seed) {}
+    explicit WorldGenSystem(World& world, std::uint64_t seed = 1) : System(world), seed(seed) {}
 
     void doUpdate(World& world) override {}
 

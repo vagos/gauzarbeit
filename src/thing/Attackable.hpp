@@ -17,7 +17,7 @@ class Attackable
     virtual void getDamaged(const std::shared_ptr<Thing>& owner,
                             const std::shared_ptr<Thing>& attacker, int dmg);
 
-    virtual void doUpdate(const std::shared_ptr<Thing>& owner) {}
+    virtual void doUpdate(const std::shared_ptr<Thing>& owner);
     virtual void onDeath(const std::shared_ptr<Thing>& owner);
 
     virtual int getDamage(const std::shared_ptr<Thing>& owner);
@@ -35,6 +35,7 @@ class Attackable
     float current_health = 1;
 
   protected:
+    std::weak_ptr<Thing> target;
     bool alive;
 };
 

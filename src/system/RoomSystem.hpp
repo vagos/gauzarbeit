@@ -7,13 +7,14 @@
 
 struct RoomSystem : System
 {
+    explicit RoomSystem(World& world) : System(world) {}
+
     void doUpdate(World& world) override
     {
         std::vector<std::shared_ptr<Room>> rooms;
         rooms.reserve(Room::mapRooms.size());
-        for (const auto& [id, room] : Room::mapRooms)
+        for (const auto& [_, room] : Room::mapRooms)
         {
-            (void)id;
             if (room)
                 rooms.push_back(room);
         }

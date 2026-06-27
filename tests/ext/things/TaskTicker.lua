@@ -1,3 +1,3 @@
-function TaskTicker:onTalk(talker)
-    talker:tickTask("Collect herbs")
+function TaskTicker:onTalk(event)
+    event.actor:tickTask("Collect herbs")
 end
