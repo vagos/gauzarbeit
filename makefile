@@ -54,8 +54,8 @@ clean:
 	$(RM) -r $(BUILD_DIR)
 
 env:
-	docker build -t gzrbt .
-	docker run --rm -it -v $(shell pwd):/app gzrbt /bin/bash
+	docker build --platform linux/amd64 -t gzrbt .
+	docker run --platform linux/amd64 --rm -it -v $(shell pwd):/app gzrbt /bin/bash
 
 -include $(DEPS) $(TDEPS)
 
