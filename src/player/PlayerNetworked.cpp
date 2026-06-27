@@ -51,6 +51,9 @@ void PlayerNetworked::handleRequest(std::shared_ptr<Thing> owner, World& world)
     }
     catch (InvalidCommand& e)
     {
+        if (isLoggedIn())
+            return;
+
         addResponse(ColorString(e.what(), Color::Red));
         return;
     }
